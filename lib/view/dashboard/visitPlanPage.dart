@@ -1,0 +1,334 @@
+import 'package:azure/controllers/UserController.dart';
+import 'package:azure/controllers/syncNowController.dart';
+import 'package:azure/model/categoryName.dart';
+import 'package:azure/model/reasonName.dart';
+import 'package:azure/model/syncDownModel.dart';
+import 'package:azure/res/base/fetch_pixels.dart';
+import 'package:azure/res/colors.dart';
+import 'package:azure/utils/routes/routePath.dart';
+import 'package:azure/utils/widgets/allStoresWidget.dart';
+import 'package:azure/utils/widgets/appWidgets.dart';
+import 'package:azure/utils/widgets/dialoges.dart';
+import 'package:azure/utils/widgets/showEditShopSheet.dart';
+import 'package:azure/view/sessionTimeOut.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../../data/getApis.dart';
+import '../../utils/widgets/productiveStores.dart';
+
+class VisitPlan extends StatefulWidget {
+  VisitPlan({super.key});
+
+  @override
+  State<VisitPlan> createState() => _VisitPlanState();
+}
+
+class _VisitPlanState extends State<VisitPlan> {
+  TextEditingController searchCtr = TextEditingController();
+
+  PageController pageController = PageController();
+  int page = 0;
+
+  bool search = false;
+
+  @override
+  Widget build(BuildContext context) {
+    SyncNowController syncNowController = Get.find<SyncNowController>();
+    UserController userController = Get.find<UserController>();
+    FetchPixels(context);
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Column(
+        children: [
+          SizedBox(
+            height: FetchPixels.getPixelHeight(10),
+          ),
+          Padding(
+            padding:
+                EdgeInsets.symmetric(horizontal: FetchPixels.getPixelWidth(20)),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    InkWell(
+                      onTap:(){
+                        syncNowController.syncDownList.sort();
+                      },
+                      child: Icon(
+                        Icons.filter_list,
+                        color: Colors.black,
+                      ),
+                    ),
+                    SizedBox(
+                      width: FetchPixels.getPixelWidth(10),
+                    ),
+                    search == false ? InkWell(
+                      onTap: (){
+                        setState(() {
+                          search = true;
+                        });
+                      },
+                      child: Icon(
+                        Icons.search,
+                        color: Colors.black,
+                      ),
+                    )
+                    : Container(
+                      height: FetchPixels.getPixelHeight(40),
+                      width: FetchPixels.getPixelWidth(200),
+                      child: TextField(
+                        onChanged: (v) {
+                          syncNowController.searchList.value = syncNowController.allList
+                              .where((item) => item.shopname!.toLowerCase().contains(v.toLowerCase()))
+                              .toList();
+                        },
+                        controller: searchCtr,
+                        decoration: InputDecoration(
+                          hintText: "Search Shops",
+                          suffixIcon: InkWell(
+                              onTap: (){
+                                setState(() {
+                                  search = false;
+                                });
+                              },
+                              child: Icon(Icons.close)),
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+                InkWell(
+                  onTap: (){
+                    Get.dialog(
+                      SessionTimeOut()
+                    );
+                  },
+                  child: buttonWithIcon(
+                      color: themeColor,
+                      textColor: Colors.white,
+                      textSize: FetchPixels.getPixelHeight(15),
+                      borderRadius: 20.0,
+                      textWeight: FontWeight.w500,
+                      text: "Add"),
+                )
+              ],
+            ),
+          ),
+          SizedBox(
+            height: FetchPixels.getPixelHeight(10),
+          ),
+          Container(
+            height: FetchPixels.getPixelHeight(75),
+            width: FetchPixels.width,
+            padding:
+                EdgeInsets.symmetric(horizontal: FetchPixels.getPixelWidth(20)),
+            color: Color(0xff616161),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        textWidget(
+                          textColor: Colors.white,
+                          text: "Booking Value:",
+                          fontSize: FetchPixels.getPixelHeight(11),
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textWidget(
+                          textColor: Colors.white,
+                          text: "LPPC:",
+                          fontSize: FetchPixels.getPixelHeight(11),
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textWidget(
+                          textColor: Colors.white,
+                          text: "Qty (Nos):",
+                          fontSize: FetchPixels.getPixelHeight(11),
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                      width: FetchPixels.getPixelWidth(11),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        textWidget(
+                          textColor: Colors.white,
+                          text: "0",
+                          fontSize: FetchPixels.getPixelHeight(11),
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textWidget(
+                          textColor: Colors.white,
+                          text: "0",
+                          fontSize: FetchPixels.getPixelHeight(11),
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textWidget(
+                          textColor: Colors.white,
+                          text: "0",
+                          fontSize: FetchPixels.getPixelHeight(11),
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        textWidget(
+                          textColor: Colors.white,
+                          text: "Productive Call:",
+                          fontSize: FetchPixels.getPixelHeight(11),
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textWidget(
+                          textColor: Colors.white,
+                          text: "Weight(Ltr / Kg):",
+                          fontSize: FetchPixels.getPixelHeight(11),
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textWidget(
+                          textColor: Colors.white,
+                          text: "Tonage:",
+                          fontSize: FetchPixels.getPixelHeight(11),
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                      width: FetchPixels.getPixelWidth(11),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        textWidget(
+                          textColor: Colors.white,
+                          text: "0",
+                          fontSize: FetchPixels.getPixelHeight(11),
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textWidget(
+                          textColor: Colors.white,
+                          text: "0",
+                          fontSize: FetchPixels.getPixelHeight(11),
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textWidget(
+                          textColor: Colors.white,
+                          text: "0",
+                          fontSize: FetchPixels.getPixelHeight(11),
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: FetchPixels.getPixelHeight(20),
+          ),
+          Padding(
+            padding:
+                EdgeInsets.symmetric(horizontal: FetchPixels.getPixelWidth(20)),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                InkWell(
+                  onTap: (){
+                    setState(() {
+                      page = 0;
+                      pageController.animateToPage(page, duration:Duration(milliseconds: 500), curve: Curves.easeInOut);
+                    });
+                  },
+                  child: textWidget(
+                    textColor: page == 0 ? primaryColor : Color(0xffd2d2d2),
+                    text: "All Stores ${syncNowController.syncDownList.length}",
+                    fontSize: FetchPixels.getPixelHeight(15),
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+                Container(
+                  height: FetchPixels.getPixelHeight(15),
+                  width: FetchPixels.getPixelWidth(1),
+                  color: Color(0xffd2d2d2),
+                ),
+                InkWell(
+                  onTap: (){
+                    setState(() {
+                      page = 1;
+                      pageController.animateToPage(page, duration:Duration(milliseconds: 500), curve: Curves.easeInOut);
+                    });
+                  },
+                  child: Obx(() => textWidget(
+                    textColor: page == 1 ? primaryColor :  Color(0xffd2d2d2),
+                    text: "Productive ${syncNowController.reasonModelList.length}",
+                    fontSize: FetchPixels.getPixelHeight(15),
+                    fontWeight: FontWeight.w400,
+                  )),
+                ),
+                InkWell(
+                  onTap: (){
+                    setState(() {
+                      page = 2;
+                      pageController.animateToPage(page, duration:Duration(milliseconds: 500), curve: Curves.easeInOut);
+                    });
+                  },
+                  child: textWidget(
+                    textColor: page == 2 ? primaryColor : Color(0xffd2d2d2),
+                    text: "Non Productive ${syncNowController.syncDownList.length}",
+                    fontSize: FetchPixels.getPixelHeight(15),
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: FetchPixels.getPixelHeight(5),
+          ),
+          Container(
+            margin:
+                EdgeInsets.symmetric(horizontal: FetchPixels.getPixelWidth(20)),
+            height: FetchPixels.getPixelHeight(1),
+            width: FetchPixels.width,
+            color: primaryColor.withOpacity(0.5),
+          ),
+          SizedBox(
+            height: FetchPixels.getPixelHeight(20),
+          ),
+          Expanded(
+            child: PageView(
+              physics: NeverScrollableScrollPhysics(),
+              controller: pageController,
+              children: [
+                allStores(syncNowController: syncNowController, userController: userController),
+                productiveStore(syncNowController: syncNowController),
+                Container(color: Colors.red,)
+              ],
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+
+}
