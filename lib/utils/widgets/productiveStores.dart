@@ -1,11 +1,7 @@
 import 'package:azure/controllers/syncNowController.dart';
-import 'package:azure/data/hiveDb.dart';
-import 'package:azure/model/syncDownModel.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
-
-import '../../model/reasonsModel.dart';
 import '../../res/base/fetch_pixels.dart';
 import '../../res/colors.dart';
 import '../../res/images.dart';

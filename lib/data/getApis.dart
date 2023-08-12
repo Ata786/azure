@@ -11,7 +11,9 @@ import "package:azure/model/reasonName.dart";
 import "package:azure/model/reateDetailModel.dart";
 import "package:azure/model/syncDownModel.dart";
 import "package:azure/model/weekPerformanceModel.dart" as week;
+import "package:azure/res/colors.dart";
 import "package:flutter/material.dart";
+import "package:fluttertoast/fluttertoast.dart";
 import "package:get/get.dart";
 import "package:http/http.dart" as http;
 import "../model/historyModel.dart";
@@ -23,8 +25,7 @@ String BASE_URL = "http://125.209.79.107:7700/api";
 
 
 // get shops
-void syncDownApi(BuildContext context, ScaffoldState? currentState) async {
-  currentState?.closeDrawer();
+void syncDownApi(BuildContext context) async {
   UserController userController = Get.find<UserController>();
   SyncNowController syncNowController = Get.find<SyncNowController>();
   syncNowController.check.value = true;
@@ -268,8 +269,15 @@ Future<List<RateDetailModel>> getRateDetails(BuildContext context)async{
       List<dynamic> list = map['rate'];
       rateDetaillist = list.map((e) => RateDetailModel.fromJson(e)).toList();
       syncNowController.check.value = false;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Sync Down is Completed")));
+      Fluttertoast.showToast(
+          msg: "Sync Down is Completed",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.CENTER,
+          timeInSecForIosWeb: 1,
+          backgroundColor: themeColor,
+          textColor: Colors.white,
+          fontSize: 16.0
+      );
       HiveDatabase.setProductRateDetails("product", "productRate", rateDetaillist.map((e) => e.toJson()).toList());
     }else{
       ScaffoldMessenger.of(context)

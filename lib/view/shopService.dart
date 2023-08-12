@@ -1,8 +1,6 @@
 import 'dart:io';
 import 'package:azure/controllers/UserController.dart';
 import 'package:azure/controllers/shopServiceController.dart';
-import 'package:azure/controllers/syncNowController.dart';
-import 'package:azure/data/getApis.dart';
 import 'package:azure/data/hiveDb.dart';
 import 'package:azure/res/base/fetch_pixels.dart';
 import 'package:azure/res/colors.dart';
@@ -14,7 +12,6 @@ import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
-
 import '../model/reasonName.dart';
 import '../model/reasonsModel.dart';
 import '../res/images.dart';
@@ -233,7 +230,7 @@ class _ShopServiceState extends State<ShopService> {
                   SizedBox(width: FetchPixels.getPixelWidth(10),),
                   InkWell(
                     onTap: (){
-
+                      Get.back();
                     },
                     child: button(
                         height: FetchPixels.getPixelHeight(35),

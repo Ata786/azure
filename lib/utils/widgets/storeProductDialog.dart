@@ -11,11 +11,11 @@ import '../../model/reateDetailModel.dart';
 import '../../res/images.dart';
 import 'appWidgets.dart';
 
-void showStoreProductDialog({required OrderModel order,required ShopServiceController shopServiceController,required sr,required productName,required List<RateDetailModel> rateDetail}){
+void showStoreProductDialog({required int argumentSr,required OrderModel order,required ShopServiceController shopServiceController,required sr,required productName,required List<RateDetailModel> rateDetail}){
   List<RateDetail> rates1 = rateDetail[0].rateDetail!.where((element) => element.productId == sr).toList();
   Get.dialog(
     AlertDialog(
-      content: StoreProductDialogContent(order: order,rates1: rates1,shopServiceController: shopServiceController, sr: sr, productName: productName, rateDetail: rateDetail,),
+      content: StoreProductDialogContent(argumentSr: argumentSr,order: order,rates1: rates1,shopServiceController: shopServiceController, sr: sr, productName: productName, rateDetail: rateDetail,),
     )
   );
 
@@ -29,8 +29,9 @@ class StoreProductDialogContent extends StatefulWidget {
   final dynamic productName;
   final List<RateDetailModel> rateDetail;
   final OrderModel order;
+  final int argumentSr;
 
-  StoreProductDialogContent({super.key,required this.order,required this.rates1, required this.shopServiceController, this.sr, this.productName, required this.rateDetail});
+  StoreProductDialogContent({super.key,required this.argumentSr,required this.order,required this.rates1, required this.shopServiceController, this.sr, this.productName, required this.rateDetail});
 
   @override
   State<StoreProductDialogContent> createState() => _StoreProductDialogContentState();
@@ -235,35 +236,62 @@ class _StoreProductDialogContentState extends State<StoreProductDialogContent> {
                   if(widget.shopServiceController.quantity.value == 0){
                     Get.back();
                   }else{
-                    List<OrderModel> orderList = await HiveDatabase.getOrderData("orderBox", "order");
-                    widget.order.orderDataModel =  OrderDataModel(fixedRate: widget.rates1[0].netRate.toStringAsFixed(6),productId: widget.sr,netRate: widget.shopServiceController.netRate.value,rateId: widget.rates1[0].rateId,quantity: widget.shopServiceController.quantity.value.toString());
-                    orderList.add(widget.order);
-                    HiveDatabase.setOrderData("orderBox", "order", orderList);
-                    ShopServiceController shopServiceCtr = Get.find<ShopServiceController>();
-                    var box = await Hive.openBox("productsBox");
-                    List<dynamic> data = box.get("products") ?? [];
-                    if(data.isNotEmpty){
-                      List<ProductsModel> products = data.map((e) => ProductsModel(sr: e.sr,pname: e.pname,wgm: e.wgm,brandName: e.brandName)).toList();
-                      int indexToUpdate = products.indexWhere((element) => element.sr == widget.sr);
 
-                      if (indexToUpdate != -1) {
-                        ProductsModel pModel = products[indexToUpdate];
-                        pModel.retail = widget.rates1[0].consumerPrice;
-                        pModel.netRate = widget.rates1[0].netRate;
-                        pModel.quantity = widget.shopServiceController.quantity.value;
-                        pModel.subTotal = widget.rates1[0].netRate * widget.shopServiceController.quantity.value;
+                    int index = widget.shopServiceController.orderList.indexWhere((element) => element.shopId == widget.argumentSr);
+                    if (index != -1) {
+                      OrderModel updatedOrder = widget.shopServiceController.orderList[index];
+                      updatedOrder.orderDataModel!.fixedRate = widget.rates1[0].netRate.toStringAsFixed(6);
+                      updatedOrder.orderDataModel!.productId = widget.sr;
+                      updatedOrder.orderDataModel!.netRate = widget.shopServiceController.netRate.value;
+                      updatedOrder.orderDataModel!.rateId = widget.rates1[0].rateId;
+                      updatedOrder.orderDataModel!.quantity = widget.shopServiceController.quantity.value.toString();
 
-                        products[indexToUpdate] = pModel;
+                      // Replace the existing OrderModel with the updated one
+                      widget.shopServiceController.orderList[index] = updatedOrder;
+                      HiveDatabase.setOrderData("orderBox", "order", widget.shopServiceController.orderList);
+                      var box = await Hive.openBox("productsBox");
+                      List<dynamic> data = box.get("products") ?? [];
+                      if (data.isNotEmpty) {
+                        List<ProductsModel> products = data.map((e) => ProductsModel(
+                          sr: e.sr,
+                          pname: e.pname,
+                          wgm: e.wgm,
+                          brandName: e.brandName,
+                          tonnageperpcs: e.tonnageperpcs,
+                          netRate: e.netRate,
+                          quantity: e.quantity,
+                          subTotal: e.subTotal,
+                          retail: e.retail,
+                        )).toList();
 
-                        await box.put("products", products);
-                        List<dynamic> dataList = box.get("products") ?? [];
-                        if(dataList.isNotEmpty){
-                          shopServiceCtr.productsList.value = dataList.map((e) => ProductsModel(sr: e.sr,pname: e.pname,wgm: e.wgm,brandName: e.brandName,
-                              netRate: e.netRate,quantity: e.quantity,subTotal: e.subTotal,retail: e.retail)).toList();
-                          Get.back();
+                        int productIndex = products.indexWhere((element) => element.sr == widget.sr);
+
+                        if (productIndex != -1) {
+                          ProductsModel product = products[productIndex];
+                          product.retail = widget.rates1[0].consumerPrice;
+                          product.netRate = widget.rates1[0].netRate;
+                          product.quantity = widget.shopServiceController.quantity.value;
+                          product.subTotal = widget.rates1[0].netRate * widget.shopServiceController.quantity.value;
+
+                          products[productIndex] = product;
+
+                          // Update the productsList in the shopServiceController
+                          widget.shopServiceController.productsList.value = products;
+
+                          // Update the specific product in the Hive box
+                          box.put("products", widget.shopServiceController.productsList);
+                          List<dynamic> data = box.get("products") ?? [];
+                          if(data.isNotEmpty){
+                            widget.shopServiceController.productsList.value = data.map((e) => ProductsModel(sr: e.sr,pname: e.pname,wgm: e.wgm,brandName: e.brandName,tonnageperpcs: e.tonnageperpcs,retail: e.retail,netRate: e.netRate,subTotal: e.subTotal,quantity: e.quantity)).toList();
+                            Get.back();
+                          }
+                        }else{
+
                         }
                       }
-                    }
+
+                  }
+
                   }
                 },
               ),

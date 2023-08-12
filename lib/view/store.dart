@@ -38,7 +38,7 @@ class _StoreScreenState extends State<StoreScreen> {
     FetchPixels(context);
     return Scaffold(
       bottomSheet: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: EdgeInsets.all(8.0),
         child: InkWell(
           onTap: (){
             Get.toNamed(ORDER_DETAIL);
@@ -162,7 +162,7 @@ class _StoreScreenState extends State<StoreScreen> {
                                 shopServiceController.radio.value = 0;
                                 shopServiceController.netRate.value = "";
                                 shopServiceController.quantity.value = 0;
-                                showStoreProductDialog(order: orderModel!,shopServiceController: shopServiceController,sr: shopServiceController.productsList[index].sr,productName: shopServiceController.productsList[index].pname ?? "",rateDetail: rateDetails);
+                                showStoreProductDialog(argumentSr: argument['sr'],order: orderModel!,shopServiceController: shopServiceController,sr: shopServiceController.productsList[index].sr,productName: shopServiceController.productsList[index].pname ?? "",rateDetail: rateDetails);
                               }else{
                                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Please CheckIn First"),behavior: SnackBarBehavior.floating,));
                               }

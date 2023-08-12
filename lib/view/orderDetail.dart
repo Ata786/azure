@@ -1,9 +1,17 @@
+import 'package:azure/controllers/UserController.dart';
+import 'package:azure/controllers/shopServiceController.dart';
 import 'package:azure/res/base/fetch_pixels.dart';
 import 'package:azure/res/colors.dart';
 import 'package:azure/utils/widgets/appWidgets.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:hive/hive.dart';
+import 'package:intl/intl.dart';
+import '../data/hiveDb.dart';
+import '../model/orderModel.dart';
 import '../model/productsModel.dart';
+import '../model/reasonsModel.dart';
+import '../model/syncDownModel.dart';
 
 class OrderDetail extends StatefulWidget {
   OrderDetail({super.key});
@@ -142,6 +150,7 @@ class _OrderDetailState extends State<OrderDetail> {
             ),
             SizedBox(height: FetchPixels.getPixelHeight(10),),
             Container(height: FetchPixels.getPixelHeight(1),color: Colors.black,),
+            SizedBox(height: FetchPixels.getPixelHeight(10),),
             Expanded(
                 child: loading == true ? Center(child: CircularProgressIndicator(color: themeColor,),)
                 :  ListView.builder(
@@ -199,7 +208,7 @@ class _OrderDetailState extends State<OrderDetail> {
                                   children: [
                                     textWidget(text: "SubTotal:", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: primaryColor),
                                     SizedBox(width: FetchPixels.getPixelWidth(10),),
-                                    textWidget(text: "${productsList[index].subTotal}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: primaryColor),
+                                    textWidget(text: "${productsList[index].subTotal.toStringAsFixed(6)}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: primaryColor),
                                   ],
                                 ),
                               ],
@@ -216,6 +225,7 @@ class _OrderDetailState extends State<OrderDetail> {
                 ),
               );
             })),
+            SizedBox(height: FetchPixels.getPixelHeight(10),),
             Container(
               margin: EdgeInsets.symmetric(horizontal: FetchPixels.getPixelWidth(20)),
               height: FetchPixels.getPixelHeight(100),
@@ -239,9 +249,9 @@ class _OrderDetailState extends State<OrderDetail> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          textWidget(text: "$totalAmount", fontSize: FetchPixels.getPixelHeight(13),textColor: primaryColor, fontWeight: FontWeight.w500),
-                          textWidget(text: "$totalWeight", fontSize: FetchPixels.getPixelHeight(13),textColor: primaryColor, fontWeight: FontWeight.w500),
                           textWidget(text: "$totalQuantity", fontSize: FetchPixels.getPixelHeight(13),textColor: primaryColor, fontWeight: FontWeight.w500),
+                          textWidget(text: "$totalWeight", fontSize: FetchPixels.getPixelHeight(13),textColor: primaryColor, fontWeight: FontWeight.w500),
+                          textWidget(text: "${totalAmount.toStringAsFixed(6)}", fontSize: FetchPixels.getPixelHeight(13),textColor: primaryColor, fontWeight: FontWeight.w500),
                         ],
                       ),
                     ],
@@ -256,15 +266,38 @@ class _OrderDetailState extends State<OrderDetail> {
                 alignment: Alignment.centerRight,
                 child: InkWell(
                   onTap: ()async{
-                    var box = await Hive.openBox("productsBox");
-                    List<dynamic> data = box.get("products") ?? [];
-                    List<ProductsModel> p = data.map((e) => ProductsModel(sr: e.sr,pname: e.pname,wgm: e.wgm,brandName: e.brandName,
-                        netRate: e.netRate,quantity: e.quantity,subTotal: e.subTotal,retail: e.retail)).toList();
-
-                    for(int i=0; i<p.length; i++){
-                      print('>>> ${p[i].toJson()}');
+                    List<OrderModel> orderList = await HiveDatabase.getOrderData("orderBox", "order");
+                    for (int i = 0; i < orderList.length; i++) {
+                      orderList[i].reason = "Invoice";
                     }
 
+                    var box = await Hive.openBox("orderBox");
+                    box.put("order", orderList);
+
+                    UserController userController = Get.find<UserController>();
+                    ShopServiceController shopServiceController = Get.find<ShopServiceController>();
+                    List<OrderModel> orders = shopServiceController.orderList;
+                    int shopId = orders[0].shopId;
+                    String checkIn = orders[0].checkIn;
+                    String image = orders[0].image;
+
+                    var box2 = await Hive.openBox("syncDownList");
+                    List<dynamic> syncDownData = box2.get("syncDown") ?? [];
+
+                    List<SyncDownModel> syncDownList = syncDownData.map((e) => SyncDownModel(shopname: e.shopname,address: e.address,salesInvoiceDate: e.salesInvoiceDate,gprs: e.gprs,shopCode: e.shopCode,sr: e.sr,phone: e.phone,owner: e.owner,catagoryId: e.catagoryId)).toList();
+                    SyncDownModel syncDownModel = syncDownList.firstWhere((element) => element.sr == shopId);
+
+                    String formattedDateTime = DateFormat("yyyy-MM-dd HH:mm:ss").format(DateTime.now());
+                    ReasonModel reasonModel = ReasonModel(shopName: syncDownModel.shopname,shopId: syncDownModel.sr.toString(),bookerId: userController.user!.value.catagoryId,checkIn: checkIn.toString(),createdOn: formattedDateTime,image: image,payment: "Nun",reason: "Invoice" ?? '',pjpnumber: "0");
+                    var box3 = await Hive.openBox("reasonNo");
+                    List<dynamic> data = box3.get("reason") ?? [];
+                    List<ReasonModel> reasonModelList = data.map((e) => ReasonModel(shopName: e.shopName,shopId: e.shopId,bookerId: e.bookerId,
+                        checkIn: e.checkIn,createdOn: e.createdOn,reason: e.reason,image: e.image,payment: radio == 0 ? "Credit" : radio == 1 ? "Cash" : "Check" ,pjpnumber: e.pjpnumber)).toList();
+                    reasonModelList.add(reasonModel);
+                    HiveDatabase.setReasonData("reasonNo", "reason", reasonModelList);
+                    HiveDatabase.getReasonData("reasonNo", "reason");
+                    Get.back();
+                    Get.back();
                   },
                   child: button(height: FetchPixels.getPixelHeight(30),
                       width: FetchPixels.getPixelWidth(130),

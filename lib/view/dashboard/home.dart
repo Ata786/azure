@@ -13,6 +13,7 @@ import 'package:azure/view/dashboard/traggingPage.dart';
 import 'package:azure/view/dashboard/visitPlanPage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../controllers/shopServiceController.dart';
@@ -163,7 +164,25 @@ class _HomeState extends State<Home> {
                 onTap: (){
                   showSyncDownDialog(onTap: ()async{
                     Get.back();
-                    syncDownApi(context,_scaffoldKey.currentState);
+                    var box1 = await Hive.openBox("syncDownList");
+                    var box2 = await Hive.openBox("weekPerformance");
+                    var box3 = await Hive.openBox("monthPerformance");
+                    var box4 = await Hive.openBox("reasonNo");
+                    var box5 = await Hive.openBox("productsBox");
+                    var box6 = await Hive.openBox("reasonsName");
+                    var box7 = await Hive.openBox("category");
+                    var box8 = await Hive.openBox("product");
+                    var box9 = await Hive.openBox("orderBox");
+                    box1.delete("syncDown");
+                    box2.delete("week");
+                    box3.delete("month");
+                    box4.delete("reason");
+                    box5.delete("products");
+                    box6.delete("reason");
+                    box7.delete("categoryName");
+                    box8.delete("productRate");
+                    box9.delete("order");
+                    syncDownApi(context);
                     await getWeekPerformance(context: context);
                     getMonthlyPerformance(context: context);
                     getProducts(context: context);
