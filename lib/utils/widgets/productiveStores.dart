@@ -1,7 +1,9 @@
-import 'package:azure/controllers/syncNowController.dart';
+import 'package:SalesUp/controllers/syncNowController.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
+import '../../data/hiveDb.dart';
+import '../../model/syncDownModel.dart';
 import '../../res/base/fetch_pixels.dart';
 import '../../res/colors.dart';
 import '../../res/images.dart';
@@ -13,7 +15,7 @@ Widget productiveStore({required SyncNowController syncNowController}){
         itemCount: syncNowController.reasonModelList.length,
         itemBuilder: (context,index){
       return Container(
-        height: FetchPixels.getPixelHeight(40),
+        height: FetchPixels.getPixelHeight(50),
         width: FetchPixels.width,
         margin: EdgeInsets.symmetric(horizontal: 20,vertical: 10),
         child: Column(
@@ -21,11 +23,22 @@ Widget productiveStore({required SyncNowController syncNowController}){
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                textWidget(
-                  textColor: Colors.black,
-                  text: syncNowController.reasonModelList[index].shopName ?? "",
-                  fontSize: FetchPixels.getPixelHeight(17),
-                  fontWeight: FontWeight.w600,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    textWidget(
+                      textColor: Colors.black,
+                      text: syncNowController.reasonModelList[index].shopName ?? "",
+                      fontSize: FetchPixels.getPixelHeight(17),
+                      fontWeight: FontWeight.w600,
+                    ),
+                    textWidget(
+                      textColor: Colors.black,
+                      text: syncNowController.reasonModelList[index].reason ?? "",
+                      fontSize: FetchPixels.getPixelHeight(12),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ],
                 ),
                 Row(
                   children: [
@@ -65,9 +78,25 @@ Widget productiveStore({required SyncNowController syncNowController}){
                                         ),
                                         InkWell(
                                           onTap: ()async{
-                                             var box = await Hive.openBox("reasonNo");
-                                            box.deleteAt(index);
+                                            String shopId = syncNowController.reasonModelList[index].shopId!;
+                                            var syncDownBox = await Hive.openBox("syncDownList");
+                                            List<dynamic> data = syncDownBox.get('syncDown') ?? [];
+                                            if(data.isNotEmpty){
+                                              List<SyncDownModel> modelList = data.map((e) => SyncDownModel(shopname: e.shopname,address: e.address,salesInvoiceDate: e.salesInvoiceDate,gprs: e.gprs,shopCode: e.shopCode,sr: e.sr,phone: e.phone,owner: e.owner,catagoryId: e.catagoryId,productive: e.productive)).toList();
+                                              int updateIndex = modelList.indexWhere((element) => element.sr == shopId);
+                                              if(updateIndex != -1){
+                                                modelList[updateIndex].productive = false;
+                                                await syncDownBox.put('syncDown', modelList);
+                                                List<dynamic> data2 = syncDownBox.get('syncDown') ?? [];
+                                                syncNowController.syncDownList.value = data2.map((e) => SyncDownModel(shopname: e.shopname,address: e.address,salesInvoiceDate: e.salesInvoiceDate,gprs: e.gprs,shopCode: e.shopCode,sr: e.sr,phone: e.phone,owner: e.owner,catagoryId: e.catagoryId,productive: e.productive)).toList();
+                                                syncNowController.allList.value = syncNowController.syncDownList;
+                                                syncNowController.searchList.value = syncNowController.allList;
+                                              }
+                                            }
+                                            var box = await Hive.openBox("reasonNo");
                                             syncNowController.reasonModelList.removeAt(index);
+                                            box.put("reason", syncNowController.reasonModelList);
+                                            HiveDatabase.getReasonData("reasonNo", "reason");
                                             Get.back();
                                           },
                                           child: Card(

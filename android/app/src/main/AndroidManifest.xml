@@ -21,7 +21,7 @@
     </queries>
 
     <application
-        android:label="azure"
+        android:label="SalesUp"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

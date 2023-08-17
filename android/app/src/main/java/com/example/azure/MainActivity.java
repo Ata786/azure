@@ -1,4 +1,4 @@
-package com.example.azure;
+package com.example.SalesUp;
 
 import io.flutter.embedding.android.FlutterActivity;
 

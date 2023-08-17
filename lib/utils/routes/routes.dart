@@ -1,16 +1,17 @@
-import 'package:azure/utils/routes/routePath.dart';
-import 'package:azure/view/NewShops.dart';
-import 'package:azure/view/Splash.dart';
-import 'package:azure/view/dashboard/home.dart';
-import 'package:azure/view/history.dart';
-import 'package:azure/view/officeCode.dart';
-import 'package:azure/view/orderDetail.dart';
-import 'package:azure/view/shopService.dart';
-import 'package:azure/view/signin.dart';
-import 'package:azure/view/store.dart';
+import 'package:SalesUp/utils/routes/routePath.dart';
+import 'package:SalesUp/view/NewShops.dart';
+import 'package:SalesUp/view/Splash.dart';
+import 'package:SalesUp/view/dashboard/home.dart';
+import 'package:SalesUp/view/history.dart';
+import 'package:SalesUp/view/officeCode.dart';
+import 'package:SalesUp/view/orderDetail.dart';
+import 'package:SalesUp/view/shopService.dart';
+import 'package:SalesUp/view/signin.dart';
+import 'package:SalesUp/view/store.dart';
 import 'package:get/get.dart';
 
 import '../../view/creditList.dart';
+import '../../view/todayNewShops.dart';
 
 class Routes{
 
@@ -25,6 +26,7 @@ class Routes{
     GetPage(name: NEW_SHOPS, page: ()=> NewShops()),
     GetPage(name: ORDER_DETAIL, page: ()=> OrderDetail()),
     GetPage(name: CREDIT_LIST, page: ()=> CreditList()),
+    GetPage(name: TODAY_NEW_SHOP, page: ()=> TodayNewShops()),
   ];
 
 }

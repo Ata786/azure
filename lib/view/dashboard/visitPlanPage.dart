@@ -1,21 +1,13 @@
-import 'package:azure/controllers/UserController.dart';
-import 'package:azure/controllers/syncNowController.dart';
-import 'package:azure/model/categoryName.dart';
-import 'package:azure/model/reasonName.dart';
-import 'package:azure/model/syncDownModel.dart';
-import 'package:azure/res/base/fetch_pixels.dart';
-import 'package:azure/res/colors.dart';
-import 'package:azure/utils/routes/routePath.dart';
-import 'package:azure/utils/widgets/allStoresWidget.dart';
-import 'package:azure/utils/widgets/appWidgets.dart';
-import 'package:azure/utils/widgets/dialoges.dart';
-import 'package:azure/utils/widgets/showEditShopSheet.dart';
-import 'package:azure/view/sessionTimeOut.dart';
+import 'package:SalesUp/controllers/UserController.dart';
+import 'package:SalesUp/controllers/syncNowController.dart';
+import 'package:SalesUp/res/base/fetch_pixels.dart';
+import 'package:SalesUp/res/colors.dart';
+import 'package:SalesUp/utils/widgets/allStoresWidget.dart';
+import 'package:SalesUp/utils/widgets/appWidgets.dart';
+import 'package:SalesUp/view/NonProductive.dart';
+import 'package:SalesUp/view/sessionTimeOut.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:url_launcher/url_launcher.dart';
-
-import '../../data/getApis.dart';
 import '../../utils/widgets/productiveStores.dart';
 
 class VisitPlan extends StatefulWidget {
@@ -260,7 +252,7 @@ class _VisitPlanState extends State<VisitPlan> {
                   },
                   child: textWidget(
                     textColor: page == 0 ? primaryColor : Color(0xffd2d2d2),
-                    text: "All Stores ${syncNowController.syncDownList.length}",
+                    text: "All Shops ${syncNowController.syncDownList.length}",
                     fontSize: FetchPixels.getPixelHeight(15),
                     fontWeight: FontWeight.w400,
                   ),
@@ -291,12 +283,12 @@ class _VisitPlanState extends State<VisitPlan> {
                       pageController.animateToPage(page, duration:Duration(milliseconds: 500), curve: Curves.easeInOut);
                     });
                   },
-                  child: textWidget(
+                  child: Obx(() => textWidget(
                     textColor: page == 2 ? primaryColor : Color(0xffd2d2d2),
-                    text: "Non Productive ${syncNowController.syncDownList.length}",
+                    text: "Non Productive ${syncNowController.syncDownList.where((p0) => p0.productive == false).length}",
                     fontSize: FetchPixels.getPixelHeight(15),
                     fontWeight: FontWeight.w400,
-                  ),
+                  )),
                 ),
               ],
             ),
@@ -321,7 +313,7 @@ class _VisitPlanState extends State<VisitPlan> {
               children: [
                 allStores(syncNowController: syncNowController, userController: userController),
                 productiveStore(syncNowController: syncNowController),
-                Container(color: Colors.red,)
+               NonProductiveShops(syncNowController: syncNowController, userController: userController)
               ],
             ),
           )

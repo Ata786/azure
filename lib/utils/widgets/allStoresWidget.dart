@@ -1,14 +1,12 @@
-import 'package:azure/controllers/UserController.dart';
-import 'package:azure/controllers/syncNowController.dart';
-import 'package:azure/data/hiveDb.dart';
-import 'package:azure/utils/widgets/dialoges.dart';
-import 'package:azure/utils/widgets/showEditShopSheet.dart';
+import 'package:SalesUp/controllers/UserController.dart';
+import 'package:SalesUp/controllers/syncNowController.dart';
+import 'package:SalesUp/data/hiveDb.dart';
+import 'package:SalesUp/utils/widgets/dialoges.dart';
+import 'package:SalesUp/utils/widgets/showEditShopSheet.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import '../../data/getApis.dart';
 import '../../model/categoryName.dart';
 import '../../model/reasonName.dart';
 import '../../res/base/fetch_pixels.dart';
@@ -25,20 +23,45 @@ Widget allStores({required SyncNowController syncNowController,required UserCont
           children: [
             InkWell(
               onTap: (){
-                showVisitPlanDialog(onTap: ()async{
-                  Get.back();
-                  Get.dialog(Center(child: CircularProgressIndicator(color: themeColor,),));
-                  List<CategoryNameModel> categoriesName = await HiveDatabase.getCategoryName("category", "categoryName");
-                  List<CategoryNameModel> categories = categoriesName.where((element) => element.sr == syncNowController.searchList[index].catagoryId).toList();
-                  Get.back();
-                  showShopEditSheet(context: context,shopName: syncNowController.searchList[index].shopname,address: syncNowController.searchList[index].address,shopCode: syncNowController.searchList[index].shopCode,phone: syncNowController.searchList[index].phone,owner: syncNowController.searchList[index].owner,sr: syncNowController.searchList[index].sr,channel: categories.first.name,gprs: syncNowController.searchList[index].gprs);
-                },noTap: ()async{
-                  Get.back();
-                  Get.dialog(Center(child: CircularProgressIndicator(color: themeColor,),));
-                  List<ReasonsModel> reasons = await HiveDatabase.getReasons("reasonsName", "reason");
-                  Get.back();
-                  Get.toNamed(SHOP_SERVICE,arguments: {"shopName": syncNowController.searchList[index].shopname,"reasons": reasons,"gprs": syncNowController.searchList[index].gprs,"shopId": syncNowController.searchList[index].sr});
-                });
+                if(syncNowController.searchList[index].gprs == null || syncNowController.searchList[index].gprs!.isEmpty || syncNowController.searchList[index].gprs == "0" ){
+                  Fluttertoast.showToast(
+                      msg: "Location is not define",
+                      toastLength: Toast.LENGTH_LONG,
+                      gravity: ToastGravity.CENTER,
+                      timeInSecForIosWeb: 1,
+                      backgroundColor: themeColor,
+                      textColor: Colors.white,
+                      fontSize: 16.0
+                  );
+                }else{
+                  if(syncNowController.searchList[index].productive == true){
+                    Fluttertoast.showToast(
+                        msg: "This Shop is already Productive",
+                        toastLength: Toast.LENGTH_LONG,
+                        gravity: ToastGravity.CENTER,
+                        timeInSecForIosWeb: 1,
+                        backgroundColor: themeColor,
+                        textColor: Colors.white,
+                        fontSize: 16.0
+                    );
+                  }else{
+                    showVisitPlanDialog(onTap: ()async{
+                      Get.back();
+                      Get.dialog(Center(child: CircularProgressIndicator(color: themeColor,),));
+                      List<CategoryNameModel> categoriesName = await HiveDatabase.getCategoryName("category", "categoryName");
+                      List<CategoryNameModel> categories = categoriesName.where((element) => element.sr == syncNowController.searchList[index].catagoryId).toList();
+                      Get.back();
+                      showShopEditSheet(context: context,shopName: syncNowController.searchList[index].shopname,address: syncNowController.searchList[index].address,shopCode: syncNowController.searchList[index].shopCode,phone: syncNowController.searchList[index].phone,owner: syncNowController.searchList[index].owner,sr: syncNowController.searchList[index].sr,channel: categories.first.name,gprs: syncNowController.searchList[index].gprs);
+                    },noTap: ()async{
+                      Get.back();
+                      Get.dialog(Center(child: CircularProgressIndicator(color: themeColor,),));
+                      List<ReasonsModel> reasons = await HiveDatabase.getReasons("reasonsName", "reason");
+                      Get.back();
+                      Get.toNamed(SHOP_SERVICE,arguments: {"shopName": syncNowController.searchList[index].shopname,"reasons": reasons,"gprs": syncNowController.searchList[index].gprs,"shopId": syncNowController.searchList[index].sr});
+                    });
+                  }
+                }
+
               },
               child: Container(
                 height: FetchPixels.getPixelHeight(80),
@@ -82,9 +105,21 @@ Widget allStores({required SyncNowController syncNowController,required UserCont
                                   FetchPixels.getPixelHeight(5))),
                           child: InkWell(
                             onTap: (){
-                              String lat = userController.latitude.toString();
-                              String lon = userController.longitude.toString();
-                              openGoogleMap(syncNowController.searchList[index].gprs ?? "0,0","$lat,,$lon");
+                              if(syncNowController.searchList[index].gprs == null || syncNowController.searchList[index].gprs!.isEmpty || syncNowController.searchList[index].gprs == "0" ){
+                                Fluttertoast.showToast(
+                                    msg: "Location is not define",
+                                    toastLength: Toast.LENGTH_LONG,
+                                    gravity: ToastGravity.CENTER,
+                                    timeInSecForIosWeb: 1,
+                                    backgroundColor: themeColor,
+                                    textColor: Colors.white,
+                                    fontSize: 16.0
+                                );
+                              }else{
+                                String lat = userController.latitude.toString();
+                                String lon = userController.longitude.toString();
+                                openGoogleMap(syncNowController.searchList[index].gprs ?? "0,0","$lat,,$lon");
+                              }
                             },
                             child: Icon(
                               Icons.location_on,
@@ -94,9 +129,20 @@ Widget allStores({required SyncNowController syncNowController,required UserCont
                         )),
                         SizedBox(width: FetchPixels.getPixelWidth(7),),
                         InkWell(
-                          onTap: (){
+                          onTap: (){if(syncNowController.searchList[index].gprs == null || syncNowController.searchList[index].gprs!.isEmpty || syncNowController.searchList[index].gprs == "0" ){
+                            Fluttertoast.showToast(
+                                msg: "Location is not define",
+                                toastLength: Toast.LENGTH_LONG,
+                                gravity: ToastGravity.CENTER,
+                                timeInSecForIosWeb: 1,
+                                backgroundColor: themeColor,
+                                textColor: Colors.white,
+                                fontSize: 16.0
+                            );
+                          }else{
                             String phone = syncNowController.searchList[index].phone ?? "";
                             _launchPhoneNumber(phone);
+                          }
                           },
                           child: Container(
                             padding: EdgeInsets.symmetric(horizontal: FetchPixels.getPixelWidth(6),vertical: FetchPixels.getPixelHeight(2)),

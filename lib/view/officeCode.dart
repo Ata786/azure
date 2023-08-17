@@ -1,7 +1,7 @@
-import 'package:azure/res/base/fetch_pixels.dart';
-import 'package:azure/res/colors.dart';
-import 'package:azure/res/images.dart';
-import 'package:azure/utils/widgets/appWidgets.dart';
+import 'package:SalesUp/res/base/fetch_pixels.dart';
+import 'package:SalesUp/res/colors.dart';
+import 'package:SalesUp/res/images.dart';
+import 'package:SalesUp/utils/widgets/appWidgets.dart';
 import 'package:flutter/material.dart';
 import '../data/postApis.dart';
 

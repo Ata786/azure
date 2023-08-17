@@ -1,12 +1,14 @@
 import 'dart:convert';
-import 'package:azure/data/getApis.dart';
-import 'package:azure/data/sharedPreference.dart';
-import 'package:azure/model/attendenceModel.dart';
-import 'package:azure/res/colors.dart';
+import 'package:SalesUp/data/getApis.dart';
+import 'package:SalesUp/data/sharedPreference.dart';
+import 'package:SalesUp/model/attendenceModel.dart';
+import 'package:SalesUp/res/colors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 import '../controllers/UserController.dart';
 import '../model/userModel.dart';
@@ -55,12 +57,14 @@ void signInApi(String email,String password,BuildContext context)async{
       Map<String,dynamic> dataMap = jsonDecode(res.body);
       dataMap.putIfAbsent("isLogin", () => true);
       setUserDataSp(jsonEncode(dataMap));
-      getLocation(context).then((value) {
+      getLocation(context).then((value) async{
         userController.latitude = value!.latitude ?? 0.0;
         userController.longitude = value.longitude ?? 0.0;
         UserModel userModel = UserModel.fromJson(dataMap);
         userController.user = userModel.obs;
-        Get.toNamed(HOME);
+        var box = await Hive.openBox("attendance");
+        box.put("markAttendance", userModel.attendance);
+        Get.offAllNamed(HOME);
       });
     }else{
       print(">> error ${res.body}");
@@ -74,19 +78,26 @@ void signInApi(String email,String password,BuildContext context)async{
 
 void setAttendence({required double latitude,required double longitude,required String userId})async{
   UserController userController = Get.find<UserController>();
-  try{
+  // try{
     var res = await http.post(Uri.parse("$BASE_URL/Attendance"),
         body: jsonEncode({"userId": userId,"latitude": latitude,"longitude": longitude})
     );
+    //
+    // if(res.statusCode == 200){
+    //   print('>>> ${res.body}');
+    //   // Map<String,dynamic> body = jsonDecode(res.body);
+    //   // userController.attendanceModel = AttendenceModel.fromJson(body).obs;
+    // }else{
+    //   print('>>> error ${res.body}');
+    // }
+  // }catch(exception){
+  //   print('>>> exception ${exception.toString()}');
+  // }
+}
 
-    if(res.statusCode == 200){
-      print('>>> ${res.body}');
-      // Map<String,dynamic> body = jsonDecode(res.body);
-      // userController.attendanceModel = AttendenceModel.fromJson(body).obs;
-    }else{
-      print('>>> error ${res.body}');
-    }
-  }catch(exception){
-    print('>>> exception ${exception.toString()}');
-  }
+
+String changeDateFormat(String date){
+  DateTime dateTime = DateTime.parse(date);
+  String formattedDate = DateFormat('dd MMM yyyy hh:mm a').format(dateTime);
+  return formattedDate;
 }

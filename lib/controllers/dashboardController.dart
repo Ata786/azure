@@ -1,4 +1,4 @@
-import 'package:azure/model/monthPerformanceModel.dart';
+import 'package:SalesUp/model/monthPerformanceModel.dart';
 import 'package:get/get.dart';
 
 import '../model/weekPerformanceModel.dart';

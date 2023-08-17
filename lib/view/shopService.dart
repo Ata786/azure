@@ -1,11 +1,12 @@
 import 'dart:io';
-import 'package:azure/controllers/UserController.dart';
-import 'package:azure/controllers/shopServiceController.dart';
-import 'package:azure/data/hiveDb.dart';
-import 'package:azure/res/base/fetch_pixels.dart';
-import 'package:azure/res/colors.dart';
-import 'package:azure/utils/widgets/appWidgets.dart';
-import 'package:azure/utils/widgets/imagePickerDialog.dart';
+import 'package:SalesUp/controllers/UserController.dart';
+import 'package:SalesUp/controllers/shopServiceController.dart';
+import 'package:SalesUp/controllers/syncNowController.dart';
+import 'package:SalesUp/data/hiveDb.dart';
+import 'package:SalesUp/res/base/fetch_pixels.dart';
+import 'package:SalesUp/res/colors.dart';
+import 'package:SalesUp/utils/widgets/appWidgets.dart';
+import 'package:SalesUp/utils/widgets/imagePickerDialog.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
@@ -14,6 +15,7 @@ import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import '../model/reasonName.dart';
 import '../model/reasonsModel.dart';
+import '../model/syncDownModel.dart';
 import '../res/images.dart';
 
 class ShopService extends StatefulWidget {
@@ -85,12 +87,11 @@ class _ShopServiceState extends State<ShopService> {
                      Center(
                        child: InkWell(
                          onTap: (){
-                           ImagePickerDialog.imagePickerDialog(context: context,
-                               myHeight: FetchPixels.height, myWidth: FetchPixels.width, setFile: (f){
-                             if(f.path.isNotEmpty){
-                               shopServiceController.image.value = f.path;
+                           ImagePickerDialog.pickImageCamera(context, (p0) {
+                             if(p0.path.isNotEmpty){
+                               shopServiceController.image.value = p0.path;
                              }
-                               });
+                           });
                          },
                          child: Container(
                            height: FetchPixels.getPixelHeight(80),
@@ -209,14 +210,31 @@ class _ShopServiceState extends State<ShopService> {
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Image and Distance is required"),behavior: SnackBarBehavior.floating,));
                       }else{
                         String formattedDateTime = DateFormat("yyyy-MM-dd HH:mm:ss").format(DateTime.now());
-                        ReasonModel reasonModel = ReasonModel(shopName: arguments['shopName'],shopId: arguments['sr'],bookerId: userController.user!.value.catagoryId,checkIn: distance.toString(),createdOn: formattedDateTime,image: shopServiceController.image.value,payment: "Nun",reason: selectedItem ?? '',pjpnumber: "0");
+                        ReasonModel reasonModel = ReasonModel(shopName: arguments['shopName'],shopId: arguments['shopId'].toString(),bookerId: userController.user!.value.catagoryId,checkIn: distance.toString(),createdOn: formattedDateTime,image: shopServiceController.image.value,payment: "Nun",reason: selectedItem ?? '',pjpnumber: "0");
                         var box = await Hive.openBox("reasonNo");
                         List<dynamic> data = box.get("reason") ?? [];
                          List<ReasonModel> reasonModelList = data.map((e) => ReasonModel(shopName: e.shopName,shopId: e.shopId,bookerId: e.bookerId,
                               checkIn: e.checkIn,createdOn: e.createdOn,reason: e.reason,image: e.image,payment: "payment",pjpnumber: e.pjpnumber)).toList();
                         reasonModelList.add(reasonModel);
                           HiveDatabase.setReasonData("reasonNo", "reason", reasonModelList);
-                        Get.back();
+                          HiveDatabase.getReasonData("reasonNo", "reason");
+
+                        SyncNowController syncNowController = Get.find<SyncNowController>();
+
+                        var syncDown = await Hive.openBox("syncDownList");
+                        List<dynamic> syncDownList = syncDown.get("syncDown") ?? [];
+                        if(syncDownList.isNotEmpty){
+                          List<SyncDownModel> syncDownModelList = syncDownList.map((e) => SyncDownModel(shopname: e.shopname,address: e.address,salesInvoiceDate: e.salesInvoiceDate,gprs: e.gprs,shopCode: e.shopCode,sr: e.sr,phone: e.phone,owner: e.owner,catagoryId: e.catagoryId,productive: e.productive)).toList();
+                          int shopIndex = syncDownModelList.indexWhere((element) => element.sr == arguments['shopId']);
+                          syncDownModelList[shopIndex].productive = true;
+                          await syncDown.put("syncDown", syncDownModelList);
+                          List<dynamic> syncDownUpdatedList = syncDown.get("syncDown") ?? [];
+                          syncNowController.syncDownList.value = syncDownUpdatedList.map((e) => SyncDownModel(shopname: e.shopname,address: e.address,salesInvoiceDate: e.salesInvoiceDate,gprs: e.gprs,shopCode: e.shopCode,sr: e.sr,phone: e.phone,owner: e.owner,catagoryId: e.catagoryId,productive: e.productive)).toList();
+                          syncNowController.allList.value = syncNowController.syncDownList;
+                          syncNowController.searchList.value = syncNowController.allList;
+                          shopServiceController.image.value = '';
+                          Get.back();
+                        }
                       }
                     },
                     child: button(

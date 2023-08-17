@@ -1,7 +1,7 @@
-import 'package:azure/controllers/shopServiceController.dart';
-import 'package:azure/res/base/fetch_pixels.dart';
-import 'package:azure/res/colors.dart';
-import 'package:azure/utils/widgets/appWidgets.dart';
+import 'package:SalesUp/controllers/shopServiceController.dart';
+import 'package:SalesUp/res/base/fetch_pixels.dart';
+import 'package:SalesUp/res/colors.dart';
+import 'package:SalesUp/utils/widgets/appWidgets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -9,6 +9,7 @@ import 'package:hive/hive.dart';
 import '../../data/hiveDb.dart';
 import '../../model/orderModel.dart';
 import '../../model/productsModel.dart';
+import '../../view/NewShops.dart';
 import '../routes/routePath.dart';
 
 void showShopEditSheet(
@@ -34,15 +35,23 @@ void showShopEditSheet(
               children: [
                 Container(
                   alignment: Alignment.centerRight,
-                  child: button(
-                      height: FetchPixels.getPixelHeight(35),
-                      width: FetchPixels.getPixelWidth(100),
-                      color: themeColor,
-                      textColor: Colors.white,
-                      textSize: FetchPixels.getPixelHeight(13),
-                      borderRadius: FetchPixels.getPixelHeight(8),
-                      textWeight: FontWeight.w500,
-                      text: "EDIT SHOP"),
+                  child: InkWell(
+                    onTap: ()async{
+                      await HiveDatabase.getShopType("shopTypeBox", "shopType");
+                      await HiveDatabase.getShopSector("shopSectorBox", "shopSector");
+                      await HiveDatabase.getShopStatus('shopStatusBox', "shopStatus");
+                      Get.to(NewShops(sr: sr,));
+                    },
+                    child: button(
+                        height: FetchPixels.getPixelHeight(35),
+                        width: FetchPixels.getPixelWidth(100),
+                        color: themeColor,
+                        textColor: Colors.white,
+                        textSize: FetchPixels.getPixelHeight(13),
+                        borderRadius: FetchPixels.getPixelHeight(8),
+                        textWeight: FontWeight.w500,
+                        text: "EDIT SHOP"),
+                  ),
                 ),
                 SizedBox(
                   height: FetchPixels.getPixelHeight(15),

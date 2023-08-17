@@ -1,17 +1,17 @@
 import "dart:async";
 import "dart:convert";
-import "package:azure/controllers/UserController.dart";
-import "package:azure/controllers/dashboardController.dart";
-import "package:azure/controllers/shopServiceController.dart";
-import "package:azure/controllers/syncNowController.dart";
-import "package:azure/data/hiveDb.dart";
-import "package:azure/model/categoryName.dart";
-import "package:azure/model/monthPerformanceModel.dart" as month;
-import "package:azure/model/reasonName.dart";
-import "package:azure/model/reateDetailModel.dart";
-import "package:azure/model/syncDownModel.dart";
-import "package:azure/model/weekPerformanceModel.dart" as week;
-import "package:azure/res/colors.dart";
+import "package:SalesUp/controllers/UserController.dart";
+import "package:SalesUp/controllers/dashboardController.dart";
+import "package:SalesUp/controllers/shopServiceController.dart";
+import "package:SalesUp/controllers/syncNowController.dart";
+import "package:SalesUp/data/hiveDb.dart";
+import "package:SalesUp/model/categoryName.dart";
+import "package:SalesUp/model/monthPerformanceModel.dart" as month;
+import "package:SalesUp/model/reasonName.dart";
+import "package:SalesUp/model/reateDetailModel.dart";
+import "package:SalesUp/model/syncDownModel.dart";
+import "package:SalesUp/model/weekPerformanceModel.dart" as week;
+import "package:SalesUp/res/colors.dart";
 import "package:flutter/material.dart";
 import "package:fluttertoast/fluttertoast.dart";
 import "package:get/get.dart";
@@ -19,6 +19,7 @@ import "package:http/http.dart" as http;
 import "../model/historyModel.dart";
 import "../model/monthPerformanceModel.dart";
 import "../model/productsModel.dart";
+import "../model/shopsTexModel.dart";
 
 String BASE_URL = "http://125.209.79.107:7700/api";
 
@@ -26,6 +27,7 @@ String BASE_URL = "http://125.209.79.107:7700/api";
 
 // get shops
 void syncDownApi(BuildContext context) async {
+  print('>>>> 1');
   UserController userController = Get.find<UserController>();
   SyncNowController syncNowController = Get.find<SyncNowController>();
   syncNowController.check.value = true;
@@ -43,7 +45,16 @@ void syncDownApi(BuildContext context) async {
             shopCode: e['shops']['shopcode'],
             phone: e['shops']['phone'],
             owner: e['shops']['owner'],
-            catagoryId: e['shops']['catagoryId']
+            catagoryId: e['shops']['catagoryId'],
+            productive: false,
+            myntn: e['shops']['myntn'],
+            tax: e['shops']['tax'],
+            cnic: e['shops']['cnic'],
+            typeId: e['shops']['typeId'],
+            sectorId: e['shops']['sectorId'],
+            statusId: e['shops']['statusId'],
+            isEdit: false,
+            picture: e['shops']['picture']
     ))
         .toList();
     await HiveDatabase.setData("syncDownList", "syncDown", syncDownList);
@@ -61,6 +72,7 @@ void syncDownApi(BuildContext context) async {
 // get Week Performance Data
 Future<void> getWeekPerformance(
     {required BuildContext context}) async {
+  print('>>>> 2');
   UserController userController = Get.find<UserController>();
   DashBoardController dashBoardController = Get.find<DashBoardController>();
   dashBoardController.weekCheck.value = true;
@@ -111,6 +123,7 @@ Future<void> getWeekPerformance(
 // get Month Performance Data
 Future<void> getMonthlyPerformance(
     {required BuildContext context}) async {
+  print('>>>> 3');
   UserController userController = Get.find<UserController>();
   DashBoardController dashBoardController = Get.find<DashBoardController>();
   try {
@@ -161,6 +174,7 @@ Future<void> getMonthlyPerformance(
 
 // get reasons
 Future<void> getReasons(BuildContext context) async {
+  print('>>>> 4');
   UserController userController = Get.find<UserController>();
 
   var res = await http.get(Uri.parse(
@@ -179,6 +193,7 @@ Future<void> getReasons(BuildContext context) async {
 
 // get Products table data
 Future<void> getProducts({required BuildContext context}) async {
+  print('>>>> 5');
   UserController userController = Get.find<UserController>();
   ShopServiceController shopServiceController = Get.find<ShopServiceController>();
     try {
@@ -205,6 +220,7 @@ Future<void> getProducts({required BuildContext context}) async {
 
 // get orderMasterApp table data for product history
 Future<List<HistoryModel>> getHistory({required BuildContext context}) async {
+  print('>>>> 6');
   UserController userController = Get.find<UserController>();
   List<HistoryModel> historyModel = [];
   try {
@@ -231,6 +247,7 @@ Future<List<HistoryModel>> getHistory({required BuildContext context}) async {
 
 // get shopCategory table for his sr
 Future<void> getCategoryName(BuildContext context)async{
+  print('>>>> 7');
   UserController userController = Get.find<UserController>();
   SyncNowController syncNowController = Get.find<SyncNowController>();
   try {
@@ -256,9 +273,9 @@ Future<void> getCategoryName(BuildContext context)async{
 
 
 // get retail details table data
-Future<List<RateDetailModel>> getRateDetails(BuildContext context)async{
+Future<void> getRateDetails(BuildContext context)async{
+  print('>>>> 8');
   UserController userController = Get.find<UserController>();
-  SyncNowController syncNowController = Get.find<SyncNowController>();
   List<RateDetailModel> rateDetaillist = [];
   try {
     var res = await http.get(Uri.parse(
@@ -268,16 +285,6 @@ Future<List<RateDetailModel>> getRateDetails(BuildContext context)async{
       Map<String,dynamic> map = jsonDecode(res.body);
       List<dynamic> list = map['rate'];
       rateDetaillist = list.map((e) => RateDetailModel.fromJson(e)).toList();
-      syncNowController.check.value = false;
-      Fluttertoast.showToast(
-          msg: "Sync Down is Completed",
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.CENTER,
-          timeInSecForIosWeb: 1,
-          backgroundColor: themeColor,
-          textColor: Colors.white,
-          fontSize: 16.0
-      );
       HiveDatabase.setProductRateDetails("product", "productRate", rateDetaillist.map((e) => e.toJson()).toList());
     }else{
       ScaffoldMessenger.of(context)
@@ -288,9 +295,61 @@ Future<List<RateDetailModel>> getRateDetails(BuildContext context)async{
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text("Exceptionr:- ${exception}")));
   }
-return rateDetaillist;
 }
 
+
+Future<void> getShopTexData(BuildContext context)async{
+  print('>>>> 9');
+  UserController userController = Get.find<UserController>();
+  SyncNowController syncNowController = Get.find<SyncNowController>();
+  List<ShopsStatusModel> shopStatusList = [];
+  List<ShopTypeModel> shopTypeList = [];
+  List<ShopSectorModel> shopSectorList = [];
+  try {
+    var res = await http.get(Uri.parse(
+        "${BASE_URL}/SyncDown/${userController.user!.value.catagoryId}"));
+
+    if(res.statusCode == 200){
+      Map<String,dynamic> map = jsonDecode(res.body);
+      List<dynamic> shopTypeMaps = map['shopTypes'];
+      List<dynamic> sectorList = map['sector'];
+      List<dynamic> statusList = map['status'];
+
+      shopTypeList = shopTypeMaps.map((e) => ShopTypeModel(sr: e['sr'],name: e['name'])).toList();
+      shopStatusList = statusList.map((e) => ShopsStatusModel(sr: e['sr'],name: e['name'])).toList();
+      shopSectorList = sectorList.map((e) => ShopSectorModel(sr: e['sr'],name: e['name'],nname: e['nname'],distributerId: e['distributerId'])).toList();
+
+      await HiveDatabase.setShopType("shopTypeBox", "shopType", shopTypeList);
+      await HiveDatabase.setShopSector("shopSectorBox", "shopSector", shopSectorList);
+      await HiveDatabase.setShopStatus('shopStatusBox', "shopStatus", shopStatusList);
+
+      await HiveDatabase.getShopType("shopTypeBox", "shopType");
+      await HiveDatabase.getShopSector("shopSectorBox", "shopSector");
+      await HiveDatabase.getShopStatus('shopStatusBox', "shopStatus");
+
+      syncNowController.check.value = false;
+      Fluttertoast.showToast(
+          msg: "Sync Down is Completed",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.CENTER,
+          timeInSecForIosWeb: 1,
+          backgroundColor: themeColor,
+          textColor: Colors.white,
+          fontSize: 16.0
+      );
+
+    }else{
+      print('>>> Error ${res.body}');
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("Error:- ${res.body}")));
+    }
+
+  } catch (exception) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text("Exceptionr:- ${exception}")));
+  }
+
+}
 
 
 

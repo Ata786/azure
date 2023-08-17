@@ -1,11 +1,13 @@
-import 'package:azure/res/base/fetch_pixels.dart';
-import 'package:azure/res/colors.dart';
-import 'package:azure/utils/routes/routePath.dart';
-import 'package:azure/utils/widgets/appWidgets.dart';
+import 'package:SalesUp/res/base/fetch_pixels.dart';
+import 'package:SalesUp/res/colors.dart';
+import 'package:SalesUp/utils/routes/routePath.dart';
+import 'package:SalesUp/utils/widgets/appWidgets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../data/hiveDb.dart';
 import '../../res/images.dart';
+import '../NewShops.dart';
 
 class NewShop extends StatelessWidget {
   NewShop({super.key});
@@ -33,8 +35,11 @@ class NewShop extends StatelessWidget {
                     textWidget(text: "Add New Shops", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w600),
                     Spacer(),
                     InkWell(
-                        onTap: (){
-                          Get.toNamed(NEW_SHOPS);
+                        onTap: ()async{
+                          await HiveDatabase.getShopType("shopTypeBox", "shopType");
+                          await HiveDatabase.getShopSector("shopSectorBox", "shopSector");
+                          await HiveDatabase.getShopStatus('shopStatusBox', "shopStatus");
+                          Get.to(NewShops(isEdit: false));
                         },
                         child: Icon(Icons.add,color: themeColor,size: FetchPixels.getPixelHeight(30),))
                   ],
@@ -46,17 +51,22 @@ class NewShop extends StatelessWidget {
                 color: Colors.black,
               ),
               SizedBox(height: FetchPixels.getPixelHeight(10),),
-              Container(
-                  height: FetchPixels.getPixelHeight(60),
-                  width: FetchPixels.width,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Image.asset(shop,height: FetchPixels.getPixelHeight(60),width: FetchPixels.getPixelWidth(60),),
-                      SizedBox(width: FetchPixels.getPixelWidth(20),),
-                      textWidget(text: "Today New Shops", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w600),
-                    ],
-                  )
+              InkWell(
+                onTap: (){
+                  Get.toNamed(TODAY_NEW_SHOP);
+                },
+                child: Container(
+                    height: FetchPixels.getPixelHeight(60),
+                    width: FetchPixels.width,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Image.asset(shop,height: FetchPixels.getPixelHeight(60),width: FetchPixels.getPixelWidth(60),),
+                        SizedBox(width: FetchPixels.getPixelWidth(20),),
+                        textWidget(text: "Today New Shops", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w600),
+                      ],
+                    )
+                ),
               ),
               SizedBox(height: FetchPixels.getPixelHeight(10),),
               Container(

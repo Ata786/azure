@@ -1,5 +1,5 @@
-import 'package:azure/res/base/fetch_pixels.dart';
-import 'package:azure/res/colors.dart';
+import 'package:SalesUp/res/base/fetch_pixels.dart';
+import 'package:SalesUp/res/colors.dart';
 import 'package:flutter/material.dart';
 
 // app text widget
@@ -7,12 +7,14 @@ Widget textWidget(
     {required String text,
     required double fontSize,
     required fontWeight,
+      textAlign,
     maxLines,
     textColor,
     underline}) {
   return Text(
     text,
     maxLines: maxLines,
+    textAlign: textAlign,
     style: TextStyle(
         fontSize: fontSize,
         fontWeight: fontWeight,

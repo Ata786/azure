@@ -1,8 +1,10 @@
-import 'package:azure/controllers/UserController.dart';
-import 'package:azure/controllers/shopServiceController.dart';
-import 'package:azure/res/base/fetch_pixels.dart';
-import 'package:azure/res/colors.dart';
-import 'package:azure/utils/widgets/appWidgets.dart';
+import 'package:SalesUp/controllers/UserController.dart';
+import 'package:SalesUp/controllers/shopServiceController.dart';
+import 'package:SalesUp/controllers/syncNowController.dart';
+import 'package:SalesUp/controllers/syncNowController.dart';
+import 'package:SalesUp/res/base/fetch_pixels.dart';
+import 'package:SalesUp/res/colors.dart';
+import 'package:SalesUp/utils/widgets/appWidgets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -276,6 +278,7 @@ class _OrderDetailState extends State<OrderDetail> {
 
                     UserController userController = Get.find<UserController>();
                     ShopServiceController shopServiceController = Get.find<ShopServiceController>();
+                    SyncNowController syncNowController = Get.find<SyncNowController>();
                     List<OrderModel> orders = shopServiceController.orderList;
                     int shopId = orders[0].shopId;
                     String checkIn = orders[0].checkIn;
@@ -284,8 +287,18 @@ class _OrderDetailState extends State<OrderDetail> {
                     var box2 = await Hive.openBox("syncDownList");
                     List<dynamic> syncDownData = box2.get("syncDown") ?? [];
 
-                    List<SyncDownModel> syncDownList = syncDownData.map((e) => SyncDownModel(shopname: e.shopname,address: e.address,salesInvoiceDate: e.salesInvoiceDate,gprs: e.gprs,shopCode: e.shopCode,sr: e.sr,phone: e.phone,owner: e.owner,catagoryId: e.catagoryId)).toList();
+                    List<SyncDownModel> syncDownList = syncDownData.map((e) => SyncDownModel(shopname: e.shopname,address: e.address,salesInvoiceDate: e.salesInvoiceDate,gprs: e.gprs,shopCode: e.shopCode,sr: e.sr,phone: e.phone,owner: e.owner,catagoryId: e.catagoryId,productive: e.productive)).toList();
                     SyncDownModel syncDownModel = syncDownList.firstWhere((element) => element.sr == shopId);
+                    int index = syncDownList.indexWhere((element) => element.sr == shopId);
+
+                    syncDownList[index].productive = true;
+
+                    await box2.put("syncDown",syncDownList);
+
+                    List<dynamic> syncDownUpdatedList = box2.get("syncDown") ?? [];
+                    syncNowController.syncDownList.value = syncDownUpdatedList.map((e) => SyncDownModel(shopname: e.shopname,address: e.address,salesInvoiceDate: e.salesInvoiceDate,gprs: e.gprs,shopCode: e.shopCode,sr: e.sr,phone: e.phone,owner: e.owner,catagoryId: e.catagoryId,productive: e.productive)).toList();
+                    syncNowController.allList.value = syncNowController.syncDownList;
+                    syncNowController.searchList.value = syncNowController.allList;
 
                     String formattedDateTime = DateFormat("yyyy-MM-dd HH:mm:ss").format(DateTime.now());
                     ReasonModel reasonModel = ReasonModel(shopName: syncDownModel.shopname,shopId: syncDownModel.sr.toString(),bookerId: userController.user!.value.catagoryId,checkIn: checkIn.toString(),createdOn: formattedDateTime,image: image,payment: "Nun",reason: "Invoice" ?? '',pjpnumber: "0");
@@ -296,6 +309,7 @@ class _OrderDetailState extends State<OrderDetail> {
                     reasonModelList.add(reasonModel);
                     HiveDatabase.setReasonData("reasonNo", "reason", reasonModelList);
                     HiveDatabase.getReasonData("reasonNo", "reason");
+
                     Get.back();
                     Get.back();
                   },

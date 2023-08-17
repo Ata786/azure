@@ -1,4 +1,4 @@
-import 'package:azure/res/base/fetch_pixels.dart';
+import 'package:SalesUp/res/base/fetch_pixels.dart';
 import 'package:flutter/material.dart';
 
 import '../utils/widgets/appWidgets.dart';

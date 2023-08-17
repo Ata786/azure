@@ -1,6 +1,6 @@
-import 'package:azure/controllers/shopServiceController.dart';
-import 'package:azure/res/base/fetch_pixels.dart';
-import 'package:azure/res/colors.dart';
+import 'package:SalesUp/controllers/shopServiceController.dart';
+import 'package:SalesUp/res/base/fetch_pixels.dart';
+import 'package:SalesUp/res/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';

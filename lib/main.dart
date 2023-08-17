@@ -1,12 +1,14 @@
-import 'package:azure/controllers/UserController.dart';
-import 'package:azure/model/categoryName.dart';
-import 'package:azure/model/monthPerformanceModel.dart';
-import 'package:azure/model/orderModel.dart';
-import 'package:azure/model/productsModel.dart';
-import 'package:azure/model/syncDownModel.dart';
-import 'package:azure/model/weekPerformanceModel.dart';
-import 'package:azure/utils/routes/routePath.dart';
-import 'package:azure/utils/routes/routes.dart';
+import 'package:SalesUp/controllers/UserController.dart';
+import 'package:SalesUp/model/NewShopModel.dart';
+import 'package:SalesUp/model/categoryName.dart';
+import 'package:SalesUp/model/monthPerformanceModel.dart';
+import 'package:SalesUp/model/orderModel.dart';
+import 'package:SalesUp/model/productsModel.dart';
+import 'package:SalesUp/model/shopsTexModel.dart';
+import 'package:SalesUp/model/syncDownModel.dart';
+import 'package:SalesUp/model/weekPerformanceModel.dart';
+import 'package:SalesUp/utils/routes/routePath.dart';
+import 'package:SalesUp/utils/routes/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -35,7 +37,11 @@ void main() async {
     ..registerAdapter(RateDetailModelAdapter())
     ..registerAdapter(RateDetailAdapter())
     ..registerAdapter(OrderModelAdapter())
-    ..registerAdapter(OrderDataModelAdapter());
+    ..registerAdapter(OrderDataModelAdapter())
+    ..registerAdapter(ShopsStatusModelAdapter())
+    ..registerAdapter(ShopTypeModelAdapter())
+    ..registerAdapter(ShopSectorModelAdapter())
+    ..registerAdapter(NewShopModelHiveAdapter());
 
   runApp(MyApp());
 }

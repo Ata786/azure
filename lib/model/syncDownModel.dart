@@ -26,10 +26,37 @@ class SyncDownModel extends HiveObject implements Comparable<SyncDownModel> {
   @HiveField(7)
   int? sr;
 
-  @HiveField(7)
+  @HiveField(8)
   int? catagoryId;
 
-  SyncDownModel({this.shopname, this.address, this.salesInvoiceDate,this.gprs,this.shopCode,this.phone,this.owner,this.sr,this.catagoryId});
+  @HiveField(9)
+  bool? productive;
+
+  @HiveField(10)
+  String? cnic;
+
+  @HiveField(11)
+  String? myntn;
+
+  @HiveField(12)
+  String? tax;
+
+  @HiveField(13)
+  int? typeId;
+
+  @HiveField(14)
+  int? sectorId;
+
+  @HiveField(15)
+  int? statusId;
+
+  @HiveField(16)
+  bool? isEdit;
+
+  @HiveField(17)
+  String? picture;
+
+  SyncDownModel({this.shopname, this.address, this.salesInvoiceDate,this.gprs,this.shopCode,this.phone,this.owner,this.sr,this.catagoryId,this.productive,this.cnic,this.tax,this.myntn,this.sectorId,this.statusId,this.typeId,this.isEdit,this.picture});
 
   SyncDownModel.fromJson(Map<String, dynamic> json) {
      shopname = json['shops']['shopname'] as String;
@@ -41,6 +68,15 @@ class SyncDownModel extends HiveObject implements Comparable<SyncDownModel> {
      owner = json['shops']['owner'] as String;
      sr = json['shops']['sr'] as int;
      catagoryId = json['catagoryId']['sr'] as int;
+     productive = json['productive'] as bool;
+     tax = json['shops']['tax'] as String;
+     myntn = json['shops']['myntn'] as String;
+     cnic = json['shops']['cnic'] as String;
+     typeId = json['shops']['typeId'] as int;
+     sectorId = json['shops']['sectorId'] as int;
+     statusId = json['shops']['statusId'] as int;
+     statusId = json['shops']['picture'] as int;
+     isEdit = json['isEdit'] as bool;
   }
 
   Map<String, dynamic> toJson() {
@@ -54,6 +90,15 @@ class SyncDownModel extends HiveObject implements Comparable<SyncDownModel> {
     data['owner'] = this.owner;
     data['sr'] = this.sr;
     data['catagoryId'] = this.catagoryId;
+    data['productive'] = this.productive;
+    data['cnic'] = this.cnic;
+    data['myntn'] = this.myntn;
+    data['isEdit'] = this.isEdit;
+    data['tax'] = this.tax;
+    data['sectorId'] = this.sectorId;
+    data['typeId'] = this.typeId;
+    data['statusId'] = this.statusId;
+    data['picture'] = this.picture;
     return data;
   }
 
@@ -80,7 +125,16 @@ class SyncDownModelAdapter extends TypeAdapter<SyncDownModel> {
       ..phone = reader.readString()
       ..owner = reader.readString()
       ..sr = reader.readInt()
-      ..catagoryId = reader.readInt();
+      ..catagoryId = reader.readInt()
+      ..productive = reader.readBool()
+      ..tax = reader.readString()
+      ..cnic = reader.readString()
+      ..myntn = reader.readString()
+      ..statusId = reader.readInt()
+      ..sectorId = reader.readInt()
+      ..typeId = reader.readInt()
+      ..isEdit = reader.readBool()
+      ..picture = reader.readString();
   }
 
   @override
@@ -94,5 +148,14 @@ class SyncDownModelAdapter extends TypeAdapter<SyncDownModel> {
     writer.writeString(obj.owner ?? '');
     writer.writeInt(obj.sr ?? 0);
     writer.writeInt(obj.catagoryId ?? 0);
+    writer.writeBool(obj.productive ?? false);
+    writer.writeString(obj.tax ?? '');
+    writer.writeString(obj.cnic ?? '');
+    writer.writeString(obj.myntn ?? '');
+    writer.writeInt(obj.typeId ?? 0);
+    writer.writeInt(obj.statusId ?? 0);
+    writer.writeInt(obj.sectorId ?? 0);
+    writer.writeBool(obj.isEdit ?? false);
+    writer.writeString(obj.picture ?? "");
   }
 }

@@ -1,8 +1,8 @@
-import 'package:azure/data/getApis.dart';
-import 'package:azure/model/historyModel.dart';
-import 'package:azure/res/base/fetch_pixels.dart';
-import 'package:azure/res/colors.dart';
-import 'package:azure/utils/widgets/appWidgets.dart';
+import 'package:SalesUp/data/getApis.dart';
+import 'package:SalesUp/model/historyModel.dart';
+import 'package:SalesUp/res/base/fetch_pixels.dart';
+import 'package:SalesUp/res/colors.dart';
+import 'package:SalesUp/utils/widgets/appWidgets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

@@ -1,16 +1,20 @@
-import 'package:azure/controllers/UserController.dart';
-import 'package:azure/controllers/dashboardController.dart';
-import 'package:azure/controllers/syncNowController.dart';
-import 'package:azure/data/getApis.dart';
-import 'package:azure/data/hiveDb.dart';
-import 'package:azure/model/reasonsModel.dart';
-import 'package:azure/res/base/fetch_pixels.dart';
-import 'package:azure/res/colors.dart';
-import 'package:azure/utils/routes/routePath.dart';
-import 'package:azure/utils/widgets/dialoges.dart';
-import 'package:azure/view/dashboard/dashboardPage.dart';
-import 'package:azure/view/dashboard/traggingPage.dart';
-import 'package:azure/view/dashboard/visitPlanPage.dart';
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:SalesUp/controllers/UserController.dart';
+import 'package:SalesUp/controllers/dashboardController.dart';
+import 'package:SalesUp/controllers/syncNowController.dart';
+import 'package:SalesUp/data/getApis.dart';
+import 'package:SalesUp/data/hiveDb.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:http/http.dart' as http;
+import 'package:SalesUp/res/base/fetch_pixels.dart';
+import 'package:SalesUp/res/colors.dart';
+import 'package:SalesUp/utils/routes/routePath.dart';
+import 'package:SalesUp/utils/widgets/dialoges.dart';
+import 'package:SalesUp/view/dashboard/dashboardPage.dart';
+import 'package:SalesUp/view/dashboard/traggingPage.dart';
+import 'package:SalesUp/view/dashboard/visitPlanPage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -32,6 +36,7 @@ class _HomeState extends State<Home> {
   List<Widget> pagesList = [Dashboard(), VisitPlan(), NewShop()];
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   int page = 0;
+  String attendanceTime = '';
 
   @override
   void initState() {
@@ -43,20 +48,89 @@ class _HomeState extends State<Home> {
     HiveDatabase.getMonthPerformanceData("monthPerformance", "month");
     HiveDatabase.getReasonData("reasonNo", "reason");
     HiveDatabase.getProducts("productsBox", "products");
-
+    getAtten();
     super.initState();
   }
 
-  // void checkAttendance(){
-  //   UserController userController = Get.find<UserController>();
-  //   print('>>> ${userController.user!.value.id!}');
-  //   setAttendence(userId:  userController.user!.value.id!,latitude: userController.latitude,longitude: userController.longitude,);
-  // }
+  void getAtten()async{
+    var box = await Hive.openBox("attendance");
+    String attendance = box.get('markAttendance');
+    setState(() {
+      if(attendance.isNotEmpty){
+        DateTime date = DateTime.parse(attendance);
+        attendanceTime = DateFormat('dd MMM yyyy hh:mm a').format(date);
+      }else{
+        attendanceTime = attendance;
+      }
+    });
+  }
+
+
+
+  Future<void> markAttendance() async {
+    UserController userController = Get.find<UserController>();
+    final url = Uri.parse('http://125.209.79.107:7700/api/Attendance');
+
+    final response = await http.post(
+      url,
+      body: jsonEncode({"userId": userController.user!.value.id,"latitude": userController.latitude,"longitude": userController.longitude}),
+      headers: {'Content-Type': 'application/json'},
+    );
+    if (response.statusCode == 200) {
+      Fluttertoast.showToast(
+          msg: "Your Attendance is Successfully marked",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.CENTER,
+          timeInSecForIosWeb: 1,
+          backgroundColor: themeColor,
+          textColor: Colors.white,
+          fontSize: 16.0
+      );
+    } else {
+      Fluttertoast.showToast(
+          msg: "Your Attendance is Already Marked",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.CENTER,
+          timeInSecForIosWeb: 1,
+          backgroundColor: themeColor,
+          textColor: Colors.white,
+          fontSize: 16.0
+      );
+    }
+  }
+
+
+  Future<String> getAttendanceData() async {
+    UserController userController = Get.find<UserController>();
+    final url =
+    Uri.parse('http://125.209.79.107:7700/api/Attendance/${userController.user!.value.id}');
+    String formattedDate = '';
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final jsonData = jsonDecode(response.body);
+      String attendance = jsonData['attendanceDateTime'];
+      setState(() {
+        DateTime date = DateTime.parse(attendance);
+        formattedDate = DateFormat('dd MMM yyyy hh:mm a').format(date);
+
+      });
+    } else {
+      throw Exception(
+          'Failed to fetch attendance data. Error:${response.body}');
+    }
+
+    return formattedDate;
+  }
+
+
+
 
   @override
   Widget build(BuildContext context) {
     UserController userController = Get.find<UserController>();
     Get.put(SyncNowController());
+    SyncNowController syncNowController = Get.find<SyncNowController>();
     return SafeArea(
         child: Scaffold(
       key: _scaffoldKey,
@@ -129,9 +203,29 @@ class _HomeState extends State<Home> {
                 ),
               ),
             ListTile(
+              onTap: ()async{
+                var box = await Hive.openBox("attendance");
+                String attendance = box.get('markAttendance');
+
+                if(attendance == '' || attendance.isEmpty){
+                  await markAttendance();
+                  String att = await getAttendanceData();
+                  box.put("markAttendance", att);
+                  String attendance2 = box.get('markAttendance');
+                  setState(() {
+                    attendanceTime = attendance2;
+                  });
+                }else{
+                  setState(() {
+                    attendanceTime = attendance;
+                  });
+                }
+
+              },
               minLeadingWidth: FetchPixels.getPixelWidth(20),
                 subtitle: textWidget(
-                    text: userController.user!.value.attendance == "" ? "" : changeDateFormat(userController.user!.value.attendance),
+                  text: attendanceTime,
+                    // text: userController.user!.value.attendance == "" ? "" : changeDateFormat(userController.user!.value.attendance),
                     fontSize: FetchPixels.getPixelHeight(17),
                     fontWeight: FontWeight.w500,
                     textColor: Colors.black),
@@ -148,6 +242,12 @@ class _HomeState extends State<Home> {
                 ),
               ),
               ListTile(
+                onTap: (){
+                  setState(() {
+                    page = 0;
+                    _scaffoldKey.currentState!.closeDrawer();
+                  });
+                },
                 minLeadingWidth: FetchPixels.getPixelWidth(20),
                 title: textWidget(
                     text: "Booker Performance",
@@ -173,6 +273,9 @@ class _HomeState extends State<Home> {
                     var box7 = await Hive.openBox("category");
                     var box8 = await Hive.openBox("product");
                     var box9 = await Hive.openBox("orderBox");
+                    var box10 = await Hive.openBox("shopTypeBox");
+                    var box11 = await Hive.openBox("shopSectorBox");
+                    var box12 = await Hive.openBox("shopStatusBox");
                     box1.delete("syncDown");
                     box2.delete("week");
                     box3.delete("month");
@@ -182,13 +285,17 @@ class _HomeState extends State<Home> {
                     box7.delete("categoryName");
                     box8.delete("productRate");
                     box9.delete("order");
+                    box10.delete("shopType");
+                    box11.delete("shopSector");
+                    box12.delete("shopStatus");
                     syncDownApi(context);
                     await getWeekPerformance(context: context);
                     getMonthlyPerformance(context: context);
                     getProducts(context: context);
                     getReasons(context);
                     getCategoryName(context);
-                    await getRateDetails(context);
+                    getRateDetails(context);
+                    await getShopTexData(context);
                   });
                 },
                 minLeadingWidth: FetchPixels.getPixelWidth(20),
@@ -197,6 +304,21 @@ class _HomeState extends State<Home> {
                     text: "Sync Down",
                     fontSize: FetchPixels.getPixelHeight(17),
                     fontWeight: FontWeight.w500),
+                subtitle: Obx(() => syncNowController.check.value == true ? Row(
+                  children: [
+                    SizedBox(
+                      height: FetchPixels.getPixelHeight(10),
+                      width: FetchPixels.getPixelWidth(10),
+                      child: Center(child: CircularProgressIndicator(color: themeColor,strokeWidth: 2,),),
+                    ),
+                    SizedBox(width: FetchPixels.getPixelWidth(10),),
+                    textWidget(
+                        textColor: Colors.black,
+                        text: "Wait for Sync Down Complete",
+                        fontSize: FetchPixels.getPixelHeight(10),
+                        fontWeight: FontWeight.w500)
+                  ],
+                ) : SizedBox()),
                 leading: Image.asset(
                   color: Colors.black,
                   downArrow,
@@ -205,6 +327,12 @@ class _HomeState extends State<Home> {
                 ),
               ),
               ListTile(
+                onTap: (){
+                  setState(() {
+                    page = 1;
+                    _scaffoldKey.currentState!.closeDrawer();
+                  });
+                },
                 minLeadingWidth: FetchPixels.getPixelWidth(20),
                 title: textWidget(
                     text: "Visit Plan",
@@ -219,6 +347,12 @@ class _HomeState extends State<Home> {
                 ),
               ),
               ListTile(
+                onTap: (){
+                  setState(() {
+                    page = 2;
+                    _scaffoldKey.currentState!.closeDrawer();
+                  });
+                },
                 minLeadingWidth: FetchPixels.getPixelWidth(20),
                 title: textWidget(
                     text: "New Shops",
@@ -266,11 +400,38 @@ class _HomeState extends State<Home> {
               ),
               ListTile(
                 onTap: ()async{
-                  SharedPreferences shared = await SharedPreferences.getInstance();
-                  bool remove = await shared.remove("user");
-                  if(remove == true){
-                    Get.offAllNamed(SIGN_IN_SCREEN);
-                  }
+                  Get.dialog(
+                    AlertDialog(content: Container(
+                      height: FetchPixels.getPixelHeight(100),
+                      width: FetchPixels.width,
+                      color: Colors.white,
+                      child: Column(
+                        children: [
+                          textWidget(text: "Are your sure?\nYou want to logout?", fontSize: FetchPixels.getPixelHeight(20), fontWeight: FontWeight.w500,textAlign: TextAlign.center),
+                          SizedBox(height: FetchPixels.getPixelHeight(25),),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              InkWell(
+                                  onTap: (){
+                                    Get.back();
+                                  },
+                                  child: textWidget(text: "No", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w600,textColor: Colors.red)),
+                              InkWell(
+                                  onTap: ()async{
+                                    SharedPreferences shared = await SharedPreferences.getInstance();
+                                    bool remove = await shared.remove("user");
+                                    if(remove == true){
+                                      Get.offAllNamed(SIGN_IN_SCREEN);
+                                    }
+                                  },
+                                  child: textWidget(text: "Yes", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w600,textColor: Colors.green)),
+                            ],
+                          )
+                        ],
+                      ),
+                    ),)
+                  );
                 },
                 minLeadingWidth: FetchPixels.getPixelWidth(20),
                 title: textWidget(
@@ -330,10 +491,6 @@ class _HomeState extends State<Home> {
   }
 
 
-  String changeDateFormat(String date){
-    DateTime dateTime = DateTime.parse(date);
-    String formattedDate = DateFormat('dd MMM yyyy').format(dateTime);
-    return formattedDate;
-  }
+
   
 }

@@ -1,8 +1,8 @@
-import 'package:azure/controllers/UserController.dart';
-import 'package:azure/data/postApis.dart';
-import 'package:azure/res/base/fetch_pixels.dart';
-import 'package:azure/res/fieldvalidation.dart';
-import 'package:azure/utils/routes/routePath.dart';
+import 'package:SalesUp/controllers/UserController.dart';
+import 'package:SalesUp/data/postApis.dart';
+import 'package:SalesUp/res/base/fetch_pixels.dart';
+import 'package:SalesUp/res/fieldvalidation.dart';
+import 'package:SalesUp/utils/routes/routePath.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -46,7 +46,7 @@ class SignIn extends StatelessWidget {
                       textWidget(
                         textColor: Colors.red,
                         text: "SUFI",
-                        fontSize: FetchPixels.getPixelHeight(35),
+                        fontSize: FetchPixels.getPixelHeight(30),
                         fontWeight: FontWeight.bold,),
                       // Obx(() => userController.officeCode != null ? Image.network("http://125.209.79.107:7700/api${userController.officeCode!.value.image}") : textWidget(
                       //   textColor: Colors.red,
@@ -87,6 +87,7 @@ class SignIn extends StatelessWidget {
                           var box7 = await Hive.openBox("category");
                           var box8 = await Hive.openBox("product");
                           var box9 = await Hive.openBox("orderBox");
+                          var box10 = await Hive.openBox("attendance");
                           box1.delete("syncDown");
                           box2.delete("week");
                           box3.delete("month");
@@ -96,6 +97,7 @@ class SignIn extends StatelessWidget {
                           box7.delete("categoryName");
                           box8.delete("productRate");
                           box9.delete("order");
+                          box10.delete("markAttendance");
                           signInApi(nameCtr.text, passCtr.text,context);
                         },
                         child: button(

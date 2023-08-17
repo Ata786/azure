@@ -1,4 +1,4 @@
-# azure
+# SalesUp
 
 A new Flutter project.
 
