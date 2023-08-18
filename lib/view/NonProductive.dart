@@ -25,30 +25,39 @@ Widget NonProductiveShops({required SyncNowController syncNowController,required
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment:
-                      MainAxisAlignment.spaceEvenly,
-                      children: [
-                        textWidget(
-                          textColor: Colors.black,
-                          text: syncNowController.nonProductiveList[index].shopname ?? "",
-                          fontSize: FetchPixels.getPixelHeight(17),
-                          fontWeight: FontWeight.w600,
-                        ),
-                        textWidget(
-                          textColor: Colors.black,
-                          text: syncNowController.nonProductiveList[index].address ?? "",
-                          fontSize: FetchPixels.getPixelHeight(13),
-                          fontWeight: FontWeight.w500,
-                        ),
-                        textWidget(
-                          textColor: Colors.black,
-                          text: "${syncNowController.nonProductiveList[index].salesInvoiceDate ?? ""}",
-                          fontSize: FetchPixels.getPixelHeight(13),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ],
+                    Container(
+                      width: FetchPixels.width/1.8,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment:
+                              MainAxisAlignment.spaceEvenly,
+                              children: [
+                                textWidget(
+                                  textColor: Colors.black,
+                                  text: syncNowController.nonProductiveList[index].shopname ?? "",
+                                  fontSize: FetchPixels.getPixelHeight(17),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                textWidget(
+                                  textColor: Colors.black,
+                                  text: syncNowController.nonProductiveList[index].address ?? "",
+                                  fontSize: FetchPixels.getPixelHeight(13),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                textWidget(
+                                  textColor: Colors.black,
+                                  text: "${syncNowController.nonProductiveList[index].salesInvoiceDate ?? ""}",
+                                  fontSize: FetchPixels.getPixelHeight(13),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ]
+                      ),
                     ),
                     Row(
                       children: [

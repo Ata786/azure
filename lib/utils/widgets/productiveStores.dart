@@ -23,22 +23,31 @@ Widget productiveStore({required SyncNowController syncNowController}){
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    textWidget(
-                      textColor: Colors.black,
-                      text: syncNowController.reasonModelList[index].shopName ?? "",
-                      fontSize: FetchPixels.getPixelHeight(17),
-                      fontWeight: FontWeight.w600,
-                    ),
-                    textWidget(
-                      textColor: Colors.black,
-                      text: syncNowController.reasonModelList[index].reason ?? "",
-                      fontSize: FetchPixels.getPixelHeight(12),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ],
+                Container(
+                  width: FetchPixels.width/1.8,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            textWidget(
+                              textColor: Colors.black,
+                              text: syncNowController.reasonModelList[index].shopName ?? "",
+                              fontSize: FetchPixels.getPixelHeight(17),
+                              fontWeight: FontWeight.w600,
+                            ),
+                            textWidget(
+                              textColor: Colors.black,
+                              text: syncNowController.reasonModelList[index].reason ?? "",
+                              fontSize: FetchPixels.getPixelHeight(12),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 Row(
                   children: [
@@ -83,7 +92,7 @@ Widget productiveStore({required SyncNowController syncNowController}){
                                             List<dynamic> data = syncDownBox.get('syncDown') ?? [];
                                             if(data.isNotEmpty){
                                               List<SyncDownModel> modelList = data.map((e) => SyncDownModel(shopname: e.shopname,address: e.address,salesInvoiceDate: e.salesInvoiceDate,gprs: e.gprs,shopCode: e.shopCode,sr: e.sr,phone: e.phone,owner: e.owner,catagoryId: e.catagoryId,productive: e.productive)).toList();
-                                              int updateIndex = modelList.indexWhere((element) => element.sr == shopId);
+                                              int updateIndex = modelList.indexWhere((element) => element.sr == int.tryParse(shopId));
                                               if(updateIndex != -1){
                                                 modelList[updateIndex].productive = false;
                                                 await syncDownBox.put('syncDown', modelList);
