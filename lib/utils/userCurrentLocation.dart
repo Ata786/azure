@@ -9,6 +9,9 @@ Future<Position?> getLocation(BuildContext context)async{
 // Test if location services are enabled.
   serviceEnabled = await Geolocator.isLocationServiceEnabled();
 
+  if (!serviceEnabled) {
+    Geolocator.openLocationSettings();
+  }
 
   permission = await Geolocator.checkPermission();
   if (permission == LocationPermission.denied) {

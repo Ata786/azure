@@ -154,24 +154,24 @@ class _VisitPlanState extends State<VisitPlan> {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        textWidget(
+                        Obx(() => textWidget(
                           textColor: Colors.white,
-                          text: "0",
+                          text: syncNowController.orderCalculationModel.value.bookingValue == null ? "" : "${syncNowController.orderCalculationModel.value.bookingValue!.toStringAsFixed(3) ?? 0}",
                           fontSize: FetchPixels.getPixelHeight(11),
                           fontWeight: FontWeight.w400,
-                        ),
-                        textWidget(
+                        )),
+                        Obx(() => textWidget(
                           textColor: Colors.white,
-                          text: "0",
+                          text: syncNowController.orderCalculationModel.value.llpc == null ? "" :"${syncNowController.orderCalculationModel.value.llpc!.toStringAsFixed(3) ?? 0}",
                           fontSize: FetchPixels.getPixelHeight(11),
                           fontWeight: FontWeight.w400,
-                        ),
-                        textWidget(
+                        )),
+                        Obx(() => textWidget(
                           textColor: Colors.white,
-                          text: "0",
+                          text: syncNowController.orderCalculationModel.value.qty == null ? "" :"${syncNowController.orderCalculationModel.value.qty!.toStringAsFixed(3) ?? 0}",
                           fontSize: FetchPixels.getPixelHeight(11),
                           fontWeight: FontWeight.w400,
-                        ),
+                        )),
                       ],
                     ),
                   ],
@@ -211,7 +211,7 @@ class _VisitPlanState extends State<VisitPlan> {
                       children: [
                         textWidget(
                           textColor: Colors.white,
-                          text: "0",
+                          text: "${syncNowController.reasonModelList.length}/${syncNowController.syncDownList.length}",
                           fontSize: FetchPixels.getPixelHeight(11),
                           fontWeight: FontWeight.w400,
                         ),

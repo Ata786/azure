@@ -2,6 +2,7 @@ import 'package:SalesUp/controllers/dashboardController.dart';
 import 'package:SalesUp/model/NewShopModel.dart';
 import 'package:SalesUp/model/categoryName.dart';
 import 'package:SalesUp/model/monthPerformanceModel.dart';
+import 'package:SalesUp/model/orderCalculations.dart';
 import 'package:SalesUp/model/productsModel.dart';
 import 'package:SalesUp/model/reasonsModel.dart';
 import 'package:SalesUp/model/reateDetailModel.dart';
@@ -331,5 +332,26 @@ class HiveDatabase {
     }
     return newShops;
   }
+
+
+  static Future setOrderCalculation(String boxName, String key, var data) async {
+    var box = await Hive.openBox(boxName);
+    await box.put(key, data);
+  }
+
+
+
+  static Future<OrderCalculationModel> getOrderCalculation(String boxName, String key) async {
+    var box = await Hive.openBox(boxName);
+    var data = box.get(key);
+    OrderCalculationModel orderCalculationModel = OrderCalculationModel();
+    if(data != null){
+      orderCalculationModel = OrderCalculationModel(bookingValue: data.bookingValue,llpc: data.llpc,qty: data.qty);
+    }
+
+    return orderCalculationModel;
+  }
+
+
 
 }

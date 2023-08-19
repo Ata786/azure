@@ -1,3 +1,4 @@
+import 'package:SalesUp/model/orderCalculations.dart';
 import 'package:SalesUp/model/reasonsModel.dart';
 import 'package:get/get.dart';
 import '../model/shopsTexModel.dart';
@@ -16,6 +17,8 @@ class SyncNowController extends GetxController{
   RxList<ShopsStatusModel> shopStatusList = <ShopsStatusModel>[].obs;
   RxList<ShopSectorModel> shopSectorList = <ShopSectorModel>[].obs;
   RxList<ShopTypeModel> shopTypeList = <ShopTypeModel>[].obs;
+
+  Rx<OrderCalculationModel> orderCalculationModel = OrderCalculationModel().obs;
 
 
 }

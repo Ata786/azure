@@ -2,6 +2,7 @@ import 'package:SalesUp/controllers/UserController.dart';
 import 'package:SalesUp/model/NewShopModel.dart';
 import 'package:SalesUp/model/categoryName.dart';
 import 'package:SalesUp/model/monthPerformanceModel.dart';
+import 'package:SalesUp/model/orderCalculations.dart';
 import 'package:SalesUp/model/orderModel.dart';
 import 'package:SalesUp/model/productsModel.dart';
 import 'package:SalesUp/model/shopsTexModel.dart';
@@ -41,7 +42,8 @@ void main() async {
     ..registerAdapter(ShopsStatusModelAdapter())
     ..registerAdapter(ShopTypeModelAdapter())
     ..registerAdapter(ShopSectorModelAdapter())
-    ..registerAdapter(NewShopModelHiveAdapter());
+    ..registerAdapter(NewShopModelHiveAdapter())
+    ..registerAdapter(OrderCalculationModelAdapter());
 
   runApp(MyApp());
 }

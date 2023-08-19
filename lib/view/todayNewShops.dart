@@ -39,6 +39,14 @@ class _TodayNewShopsState extends State<TodayNewShops> {
   Widget build(BuildContext context) {
     FetchPixels(context);
     return Scaffold(
+      appBar: AppBar(
+        title:  textWidget(
+          textColor: Colors.white,
+          text: "Today New Shop",
+          fontSize: FetchPixels.getPixelHeight(17),
+          fontWeight: FontWeight.w600,
+        ),
+      ),
       body: Container(
         height: FetchPixels.height,
         width: FetchPixels.width,
@@ -46,7 +54,7 @@ class _TodayNewShopsState extends State<TodayNewShops> {
             itemCount: todayNewShops.length,
             itemBuilder: (context,index){
           return Container(
-              height: FetchPixels.getPixelHeight(50),
+              height: FetchPixels.getPixelHeight(60),
               width: FetchPixels.width,
               margin: EdgeInsets.symmetric(horizontal: 20,vertical: 10),
               child: Column(
@@ -63,6 +71,7 @@ class _TodayNewShopsState extends State<TodayNewShops> {
                             fontSize: FetchPixels.getPixelHeight(17),
                             fontWeight: FontWeight.w600,
                           ),
+                          SizedBox(height: FetchPixels.getPixelHeight(10),),
                           textWidget(
                             textColor: Colors.black,
                             text: todayNewShops[index].shopAddress ?? "",

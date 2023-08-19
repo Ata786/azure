@@ -221,6 +221,7 @@ void showShopEditSheet(
                                 retail: null,
                               ))
                           .toList();
+                      shopCtr.productsList.value = products;
                       box.put("products", products);
                     }
 
@@ -233,7 +234,8 @@ void showShopEditSheet(
                     Get.toNamed(STORE, arguments: {
                       "shopName": shopName,
                       "sr": sr,
-                      "gprs": gprs
+                      "gprs": gprs,
+                      "phone": phone
                     });
                   },
                   child: button(

@@ -223,23 +223,26 @@ Future<List<HistoryModel>> getHistory({required BuildContext context}) async {
   print('>>>> 6');
   UserController userController = Get.find<UserController>();
   List<HistoryModel> historyModel = [];
-  try {
+  // try {
     var res = await http.get(Uri.parse(
         "${BASE_URL}/SyncDown/${userController.user!.value.catagoryId}"));
-
     if(res.statusCode == 200){
       Map<String,dynamic> map = jsonDecode(res.body);
-      List<dynamic> list = map['orderMasterApp'];
-      historyModel = list.map((e) => HistoryModel.fromJson(e)).toList();
+      List<dynamic> list = map['pjpDetail'];
+      List<dynamic> orderMasterAppList = list
+          .map((entry) => entry['shops']['orderMasterApp'] as List)
+          .expand((orderMasterApp) => orderMasterApp)
+          .toList();
+      historyModel = orderMasterAppList.map((e) => HistoryModel.fromJson(e)).toList();
     }else{
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text("Error:- ${res.body}")));
     }
-
-  } catch (exception) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text("Exceptionr:- ${exception}")));
-  }
+  //
+  // } catch (exception) {
+  //   ScaffoldMessenger.of(context)
+  //       .showSnackBar(SnackBar(content: Text("Exceptionr:- ${exception}")));
+  // }
   return historyModel;
 }
 

@@ -22,6 +22,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../controllers/shopServiceController.dart';
 import '../../data/postApis.dart';
+import '../../model/orderCalculations.dart';
 import '../../res/images.dart';
 import '../../utils/widgets/appWidgets.dart';
 
@@ -49,7 +50,14 @@ class _HomeState extends State<Home> {
     HiveDatabase.getReasonData("reasonNo", "reason");
     HiveDatabase.getProducts("productsBox", "products");
     getAtten();
+    getCalculation();
     super.initState();
+  }
+
+  void getCalculation()async{
+    SyncNowController syncNowController = Get.find<SyncNowController>();
+    OrderCalculationModel orderCalculate = await HiveDatabase.getOrderCalculation("orderCalculateBox", "orderCalculate");
+    syncNowController.orderCalculationModel.value = orderCalculate;
   }
 
   void getAtten()async{
@@ -242,7 +250,7 @@ class _HomeState extends State<Home> {
                 ),
               ),
               ListTile(
-                onTap: (){
+                onTap: syncNowController.check.value == true ? (){} : (){
                   setState(() {
                     page = 0;
                     _scaffoldKey.currentState!.closeDrawer();
@@ -327,7 +335,7 @@ class _HomeState extends State<Home> {
                 ),
               ),
               ListTile(
-                onTap: (){
+                onTap: syncNowController.check.value == true ? (){} : (){
                   setState(() {
                     page = 1;
                     _scaffoldKey.currentState!.closeDrawer();
@@ -347,7 +355,7 @@ class _HomeState extends State<Home> {
                 ),
               ),
               ListTile(
-                onTap: (){
+                onTap: syncNowController.check.value == true ? (){} : (){
                   setState(() {
                     page = 2;
                     _scaffoldKey.currentState!.closeDrawer();
@@ -367,7 +375,7 @@ class _HomeState extends State<Home> {
                 ),
               ),
               ListTile(
-                onTap: (){
+                onTap: syncNowController.check.value == true ? (){} : (){
                   HiveDatabase.getReasonData("reasonNo", "reason");
                 },
                 minLeadingWidth: FetchPixels.getPixelWidth(20),
@@ -383,7 +391,7 @@ class _HomeState extends State<Home> {
                 ),
               ),
               ListTile(
-                onTap: (){
+                onTap: syncNowController.check.value == true ? (){} : (){
                   Get.toNamed(CREDIT_LIST);
                 },
                 minLeadingWidth: FetchPixels.getPixelWidth(20),
@@ -399,7 +407,7 @@ class _HomeState extends State<Home> {
                 ),
               ),
               ListTile(
-                onTap: ()async{
+                onTap: syncNowController.check.value == true ? (){} : ()async{
                   Get.dialog(
                     AlertDialog(content: Container(
                       height: FetchPixels.getPixelHeight(100),

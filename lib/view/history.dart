@@ -16,11 +16,6 @@ class ShopHistory extends StatefulWidget {
 class _ShopHistoryState extends State<ShopHistory> {
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     Map<String,dynamic> argument = Get.arguments as Map<String,dynamic>;
     int sr = argument['sr'];
@@ -35,15 +30,15 @@ class _ShopHistoryState extends State<ShopHistory> {
         width: FetchPixels.width,
         child: Column(
           children: [
-            Container(
-              height: FetchPixels.getPixelHeight(50),
-              width: FetchPixels.width,
-              color: themeColor,
-              padding: EdgeInsets.only(left: FetchPixels.getPixelWidth(30)),
-              child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: textWidget(text: argument['shopName'] ?? '', fontSize: FetchPixels.getPixelHeight(16), fontWeight: FontWeight.w600,textColor: Colors.white)),
-            ),
+            // Container(
+            //   height: FetchPixels.getPixelHeight(50),
+            //   width: FetchPixels.width,
+            //   color: themeColor,
+            //   padding: EdgeInsets.only(left: FetchPixels.getPixelWidth(30)),
+            //   child: Align(
+            //       alignment: Alignment.centerLeft,
+            //       child: textWidget(text: argument['shopName'] ?? '', fontSize: FetchPixels.getPixelHeight(16), fontWeight: FontWeight.w600,textColor: Colors.white)),
+            // ),
             Expanded(
                 child: FutureBuilder<List<HistoryModel>>(
                     future: getHistory(context: context),
@@ -51,7 +46,7 @@ class _ShopHistoryState extends State<ShopHistory> {
                   if(snapshot.hasData){
                     List<HistoryModel> history = snapshot.data!.where((element) => element.shopId == sr).toList();
                     return ListView.builder(
-                      itemCount: snapshot.data!.length,
+                      itemCount: history.length,
                         itemBuilder: (context,index){
                           return Container(
                             height: FetchPixels.getPixelHeight(250),
@@ -69,31 +64,17 @@ class _ShopHistoryState extends State<ShopHistory> {
                                           children: [
                                             textWidget(text: "Date", fontSize: FetchPixels.getPixelHeight(16), fontWeight: FontWeight.w600,textColor: Colors.black),
                                             SizedBox(height: FetchPixels.getPixelHeight(10),),
-                                            textWidget(text: "Date", fontSize: FetchPixels.getPixelHeight(16), fontWeight: FontWeight.w400,textColor: Colors.black),
+                                            textWidget(text: "${history[index].createdOn}", fontSize: FetchPixels.getPixelHeight(16), fontWeight: FontWeight.w400,textColor: Colors.black),
                                             SizedBox(height: FetchPixels.getPixelHeight(10),),
-                                            textWidget(text: "Date", fontSize: FetchPixels.getPixelHeight(16), fontWeight: FontWeight.w400,textColor: Colors.black),
-                                            SizedBox(height: FetchPixels.getPixelHeight(25),),
-                                            textWidget(text: "Date", fontSize: FetchPixels.getPixelHeight(16), fontWeight: FontWeight.w400,textColor: Colors.black),
-                                            SizedBox(height: FetchPixels.getPixelHeight(25),),
-                                            textWidget(text: "Date", fontSize: FetchPixels.getPixelHeight(16), fontWeight: FontWeight.w400,textColor: Colors.black),
-                                            SizedBox(height: FetchPixels.getPixelHeight(10),),
-                                            textWidget(text: "Date", fontSize: FetchPixels.getPixelHeight(16), fontWeight: FontWeight.w400,textColor: Colors.black),
-                                          ],
+                                           ],
                                         ),
                                         Column(
                                           children: [
-                                            textWidget(text: "Date", fontSize: FetchPixels.getPixelHeight(16), fontWeight: FontWeight.w600,textColor: Colors.black),
+                                            textWidget(text: "Visit Status", fontSize: FetchPixels.getPixelHeight(16), fontWeight: FontWeight.w600,textColor: Colors.black),
                                             SizedBox(height: FetchPixels.getPixelHeight(10),),
-                                            textWidget(text: "Date", fontSize: FetchPixels.getPixelHeight(16), fontWeight: FontWeight.w400,textColor: Colors.black),
+                                            textWidget(text: "${history[index].reason}", fontSize: FetchPixels.getPixelHeight(16), fontWeight: FontWeight.w400,textColor: Colors.black),
                                             SizedBox(height: FetchPixels.getPixelHeight(10),),
-                                            textWidget(text: "Date", fontSize: FetchPixels.getPixelHeight(16), fontWeight: FontWeight.w400,textColor: Colors.black),
-                                            SizedBox(height: FetchPixels.getPixelHeight(25),),
-                                            textWidget(text: "Date", fontSize: FetchPixels.getPixelHeight(16), fontWeight: FontWeight.w400,textColor: Colors.black),
-                                            SizedBox(height: FetchPixels.getPixelHeight(25),),
-                                            textWidget(text: "Date", fontSize: FetchPixels.getPixelHeight(16), fontWeight: FontWeight.w400,textColor: Colors.black),
-                                            SizedBox(height: FetchPixels.getPixelHeight(10),),
-                                            textWidget(text: "Date", fontSize: FetchPixels.getPixelHeight(16), fontWeight: FontWeight.w400,textColor: Colors.black),
-                                          ],
+                                            ],
                                         ),
                                       ],
                                     )
@@ -103,6 +84,8 @@ class _ShopHistoryState extends State<ShopHistory> {
                             ),
                           );
                         });
+                  }else if(snapshot.hasError){
+                    return Center(child: Text("Error: ${snapshot.error}",style: TextStyle(color: Colors.black),),);
                   }else{
                     return Center(child: CircularProgressIndicator(color: themeColor,),);
                   }

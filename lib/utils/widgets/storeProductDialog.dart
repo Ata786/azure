@@ -262,6 +262,8 @@ class _StoreProductDialogContentState extends State<StoreProductDialogContent> {
                           quantity: e.quantity,
                           subTotal: e.subTotal,
                           retail: e.retail,
+                          weight: e.weight,
+                          tonnage: e.tonnage
                         )).toList();
 
                         int productIndex = products.indexWhere((element) => element.sr == widget.sr);
@@ -269,9 +271,11 @@ class _StoreProductDialogContentState extends State<StoreProductDialogContent> {
                         if (productIndex != -1) {
                           ProductsModel product = products[productIndex];
                           product.retail = widget.rates1[0].consumerPrice;
-                          product.netRate = widget.rates1[0].netRate;
+                          product.netRate = widget.shopServiceController.netRate.value;
                           product.quantity = widget.shopServiceController.quantity.value;
                           product.subTotal = widget.rates1[0].netRate * widget.shopServiceController.quantity.value;
+                          product.weight = product.wgm;
+                          product.tonnage = double.tryParse(product.tonnageperpcs!)!;
 
                           products[productIndex] = product;
 

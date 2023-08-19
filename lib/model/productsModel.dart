@@ -10,6 +10,8 @@ class ProductsModel {
   dynamic netRate;
   dynamic quantity;
   dynamic subTotal;
+  dynamic weight;
+  dynamic tonnage;
 
   ProductsModel(
       {this.sr,
@@ -20,7 +22,10 @@ class ProductsModel {
       this.retail,
       this.netRate,
       this.quantity,
-      this.subTotal});
+      this.subTotal,
+      this.weight,
+      this.tonnage
+      });
 
   ProductsModel.fromJson(Map<dynamic, dynamic> json) {
     sr = json['sr'];
@@ -32,6 +37,8 @@ class ProductsModel {
     netRate = json['netRate'];
     quantity = json['quantity'];
     subTotal = json['subTotal'];
+    weight = json['weight'];
+    tonnage = json['tonnage'];
   }
 
   Map<String, dynamic> toJson() {
@@ -45,6 +52,8 @@ class ProductsModel {
     data['netRate'] = this.netRate;
     data['quantity'] = this.quantity;
     data['subTotal'] = this.subTotal;
+    data['weight'] = this.weight;
+    data['tonnage'] = this.tonnage;
     return data;
   }
 }

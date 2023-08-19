@@ -127,7 +127,7 @@ Widget allStores({required SyncNowController syncNowController,required UserCont
                               }else{
                                 String lat = userController.latitude.toString();
                                 String lon = userController.longitude.toString();
-                                openGoogleMap(syncNowController.searchList[index].gprs ?? "0,0","$lat,,$lon");
+                                openGoogleMap(syncNowController.searchList[index].gprs ?? "0,0","$lat,$lon");
                               }
                             },
                             child: Icon(

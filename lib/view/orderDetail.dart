@@ -2,6 +2,7 @@ import 'package:SalesUp/controllers/UserController.dart';
 import 'package:SalesUp/controllers/shopServiceController.dart';
 import 'package:SalesUp/controllers/syncNowController.dart';
 import 'package:SalesUp/controllers/syncNowController.dart';
+import 'package:SalesUp/model/orderCalculations.dart';
 import 'package:SalesUp/res/base/fetch_pixels.dart';
 import 'package:SalesUp/res/colors.dart';
 import 'package:SalesUp/utils/widgets/appWidgets.dart';
@@ -30,7 +31,7 @@ class _OrderDetailState extends State<OrderDetail> {
   double totalAmount = 0.0;
   int totalQuantity = 0;
 
-  int radio = 0;
+  int radio = 1;
 
   void getSelectedProducts()async{
     var box = await Hive.openBox("productsBox");
@@ -134,13 +135,7 @@ class _OrderDetailState extends State<OrderDetail> {
                                  });
                                 },activeColor: Colors.pinkAccent,),
                                 textWidget(text: "Cash", fontSize: FetchPixels.getPixelHeight(14),textColor: primaryColor, fontWeight: FontWeight.w500),
-                                Radio(value: radio == 2 ? true : false, groupValue: true, onChanged: (v){
-                                  setState(() {
-                                    radio = 2;
-                                  });
-                                },activeColor: Colors.pinkAccent,),
-                                textWidget(text: "Check", fontSize: FetchPixels.getPixelHeight(14),textColor: primaryColor, fontWeight: FontWeight.w500),
-                              ],
+                               ],
                             )
                           ],
                         ),
@@ -268,17 +263,33 @@ class _OrderDetailState extends State<OrderDetail> {
                 alignment: Alignment.centerRight,
                 child: InkWell(
                   onTap: ()async{
+                    SyncNowController syncNowController = Get.find<SyncNowController>();
                     List<OrderModel> orderList = await HiveDatabase.getOrderData("orderBox", "order");
+
+                    OrderCalculationModel orderCalculate = await HiveDatabase.getOrderCalculation("orderCalculateBox", "orderCalculate");
+                    double bookingValue = orderCalculate.bookingValue ?? 0.0;
+                    double llpc = orderCalculate.llpc ?? 0.0;
+                    double qty = orderCalculate.qty ?? 0.0;
+
+                    double sum = 0.0;
+                    double quantitySum = 0.0;
+
                     for (int i = 0; i < orderList.length; i++) {
                       orderList[i].reason = "Invoice";
+                      sum += double.tryParse(orderList[i].orderDataModel!.netRate)! * double.tryParse(orderList[i].orderDataModel!.quantity)!;
+                      quantitySum += double.tryParse(orderList[i].orderDataModel!.quantity)!;
                     }
+
+                    double updatedBookingValue = bookingValue + sum;
+                    double updatedQuantity = qty + quantitySum;
+                    orderCalculate.bookingValue = updatedBookingValue;
+                    orderCalculate.qty = updatedQuantity;
 
                     var box = await Hive.openBox("orderBox");
                     box.put("order", orderList);
 
                     UserController userController = Get.find<UserController>();
                     ShopServiceController shopServiceController = Get.find<ShopServiceController>();
-                    SyncNowController syncNowController = Get.find<SyncNowController>();
                     List<OrderModel> orders = shopServiceController.orderList;
                     int shopId = orders[0].shopId;
                     String checkIn = orders[0].checkIn;
@@ -309,6 +320,16 @@ class _OrderDetailState extends State<OrderDetail> {
                     reasonModelList.add(reasonModel);
                     HiveDatabase.setReasonData("reasonNo", "reason", reasonModelList);
                     HiveDatabase.getReasonData("reasonNo", "reason");
+
+                    int orderListLength = shopServiceController.orderList.length;
+                    int reasonLength = syncNowController.reasonModelList.where((p0) => p0.reason == "Invoice").length;
+
+                    double llpLength = orderListLength/reasonLength;
+
+                    orderCalculate.llpc = llpc + llpLength;
+
+                    syncNowController.orderCalculationModel.value = orderCalculate;
+                    HiveDatabase.setOrderCalculation("orderCalculateBox", "orderCalculate", orderCalculate);
 
                     Get.back();
                     Get.back();

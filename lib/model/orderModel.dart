@@ -12,6 +12,8 @@ class OrderModel {
   dynamic checkIn;
   dynamic image;
   dynamic orderNumber;
+  dynamic weight;
+  dynamic tonnage;
   OrderDataModel? orderDataModel;
 
   OrderModel(
@@ -26,7 +28,10 @@ class OrderModel {
         this.checkIn,
         this.image,
       this.orderNumber,
-      this.orderDataModel});
+      this.orderDataModel,
+      this.weight,
+        this.tonnage
+      });
 
   OrderModel.fromJson(Map<String, dynamic> json) {
     shopId = json['shopId'];
@@ -40,6 +45,8 @@ class OrderModel {
     checkIn = json['checkIn'];
     image = json['Image'];
     orderNumber = json['orderNumber'];
+    weight = json['weight'];
+    tonnage = json['tonnage'];
     if (json['orderDataModel'] != null) {
       orderDataModel = OrderDataModel.fromJson(json['orderDataModel']);
     } else {
@@ -60,6 +67,8 @@ class OrderModel {
     data['checkIn'] = this.checkIn;
     data['Image'] = this.image;
     data['orderNumber'] = this.orderNumber;
+    data['weight'] = this.weight;
+    data['tonnage'] = this.tonnage;
     if (orderDataModel != null) {
       data['orderDataModel'] = orderDataModel!.toJson();
     }
@@ -114,6 +123,8 @@ class OrderModelAdapter extends TypeAdapter<OrderModel> {
       checkIn: reader.read(),
       image: reader.read(),
       orderNumber: reader.read(),
+      weight: reader.read(),
+      tonnage: reader.read(),
     );
   }
 
@@ -130,6 +141,8 @@ class OrderModelAdapter extends TypeAdapter<OrderModel> {
     writer.write(obj.checkIn);
     writer.write(obj.image);
     writer.write(obj.orderNumber);
+    writer.write(obj.weight);
+    writer.write(obj.tonnage);
   }
 }
 

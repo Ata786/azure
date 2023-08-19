@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../res/images.dart';
 
 class StoreScreen extends StatefulWidget {
@@ -64,7 +65,11 @@ class _StoreScreenState extends State<StoreScreen> {
                 SizedBox(height: FetchPixels.getPixelHeight(20),),
                 Row(
                   children: [
-                    storeWidget(call,"call",(){},''),
+                    storeWidget(call,"call",(){
+                      if(argument['phone'] != '' || argument['phone'] != null){
+                        _launchPhoneNumber(argument['phone']);
+                      }
+                    },''),
                     storeWidget(history,"History",(){
                       Get.toNamed(SHOP_HISTORY,arguments: {"shopName": argument['shopName'],"sr": argument['sr']});
                     },''),
@@ -152,21 +157,24 @@ class _StoreScreenState extends State<StoreScreen> {
                         : ListView.builder(
                         itemCount: shopServiceController.productsList.length,
                         itemBuilder: (context,index){
-                          return InkWell(
+                          return Obx(() => InkWell(
                             onTap: ()async{
                               if(shopServiceController.checkIn.value == argument['sr']){
-
-                                Get.dialog(Center(child: CircularProgressIndicator(color: themeColor,)));
-                                List<RateDetailModel> rateDetails = await HiveDatabase.getProductRateDetails("product", "productRate");
-                                Get.back();
-                                shopServiceController.radio.value = 0;
-                                shopServiceController.netRate.value = "";
-                                shopServiceController.quantity.value = 0;
-                                showStoreProductDialog(argumentSr: argument['sr'],order: orderModel!,shopServiceController: shopServiceController,sr: shopServiceController.productsList[index].sr,productName: shopServiceController.productsList[index].pname ?? "",rateDetail: rateDetails);
-                              }else{
+                                if(orderModel != null){
+                                  Get.dialog(Center(child: CircularProgressIndicator(color: themeColor,)));
+                                  List<RateDetailModel> rateDetails = await HiveDatabase.getProductRateDetails("product", "productRate");
+                                  Get.back();
+                                  shopServiceController.radio.value = 0;
+                                  shopServiceController.netRate.value = "";
+                                  shopServiceController.quantity.value = 0;
+                                  showStoreProductDialog(argumentSr: argument['sr'],order: orderModel!,shopServiceController: shopServiceController,sr: shopServiceController.productsList[index].sr,productName: shopServiceController.productsList[index].pname ?? "",rateDetail: rateDetails);
+                                }else{
+                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Please CheckIn First"),behavior: SnackBarBehavior.floating,));
+                                }
+                                }else{
                                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Please CheckIn First"),behavior: SnackBarBehavior.floating,));
                               }
-                              },
+                            },
                             child: Container(
                                 margin: EdgeInsets.only(top: FetchPixels.getPixelHeight(10)),
                                 width: FetchPixels.width,
@@ -212,13 +220,13 @@ class _StoreScreenState extends State<StoreScreen> {
                                               ],
                                             ),
                                             SizedBox(height: FetchPixels.getPixelHeight(30),),
-                                            textWidget(text: "0", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: shopServiceController.productsList[index].subTotal == null ? primaryColor : Colors.green),
+                                            textWidget(text: shopServiceController.productsList[index].quantity ==  null ? "0" : "${shopServiceController.productsList[index].quantity}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: shopServiceController.productsList[index].subTotal == null ? primaryColor : Colors.green),
                                             Row(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
                                                 textWidget(text: "Subtotal:", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: shopServiceController.productsList[index].subTotal == null ? primaryColor : Colors.green),
                                                 SizedBox(width: FetchPixels.getPixelWidth(10),),
-                                                textWidget(text: shopServiceController.productsList[index].subTotal == null ? "0" : "${shopServiceController.productsList[index].retail}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: shopServiceController.productsList[index].subTotal == null ? primaryColor : Colors.green),
+                                                textWidget(text: shopServiceController.productsList[index].subTotal == null ? "0" : "${shopServiceController.productsList[index].subTotal}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: shopServiceController.productsList[index].subTotal == null ? primaryColor : Colors.green),
                                               ],
                                             ),
                                           ],
@@ -233,7 +241,7 @@ class _StoreScreenState extends State<StoreScreen> {
                                   ],
                                 )
                             ),
-                          );
+                          ));
                         }),
                 ),
                 SizedBox(height: FetchPixels.getPixelHeight(55),)
@@ -277,6 +285,16 @@ class _StoreScreenState extends State<StoreScreen> {
         ),
       ),
     );
+  }
+
+
+  void _launchPhoneNumber(String phoneNumber) async {
+    final url = 'tel:$phoneNumber';
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
   }
 
 
