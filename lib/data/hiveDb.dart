@@ -226,7 +226,8 @@ class HiveDatabase {
     if (data != null) {
       List<dynamic> list = data;
       List<OrderModel> order = list.map((e) =>
-          OrderModel(shopId: e.shopId,
+          OrderModel(
+            shopId: e.shopId,
               pjpDate: e.pjpDate,
               pjpNo: e.pjpNo,
               bookerId: e.bookerId,
@@ -237,7 +238,10 @@ class HiveDatabase {
               invoiceStatus: e.invoiceStatus,
               orderDataModel: e.orderDataModel,
               orderNumber: e.orderNumber,
-              replace: e.replace)).toList();
+              weight: e.weight,
+              tonnage: e.tonnage,
+              replace: e.replace,
+          )).toList();
       orderModel = order;
     }
     return orderModel;

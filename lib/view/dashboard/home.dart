@@ -210,8 +210,8 @@ class _HomeState extends State<Home> {
                   ],
                 ),
               ),
-            ListTile(
-              onTap: ()async{
+            Obx(() => ListTile(
+              onTap: syncNowController.check.value == true ? (){} : ()async{
                 var box = await Hive.openBox("attendance");
                 String attendance = box.get('markAttendance');
 
@@ -231,25 +231,25 @@ class _HomeState extends State<Home> {
 
               },
               minLeadingWidth: FetchPixels.getPixelWidth(20),
-                subtitle: textWidget(
+              subtitle: textWidget(
                   text: attendanceTime,
-                    // text: userController.user!.value.attendance == "" ? "" : changeDateFormat(userController.user!.value.attendance),
-                    fontSize: FetchPixels.getPixelHeight(17),
-                    fontWeight: FontWeight.w500,
-                    textColor: Colors.black),
-                title: textWidget(
-                    text: "Attendance",
-                    fontSize: FetchPixels.getPixelHeight(17),
-                    fontWeight: FontWeight.w500,
-                    textColor: Colors.black),
-                leading: Image.asset(
-                  color: Colors.black,
-                  attendance,
-                  height: FetchPixels.getPixelHeight(20),
-                  width: FetchPixels.getPixelWidth(20),
-                ),
+                  // text: userController.user!.value.attendance == "" ? "" : changeDateFormat(userController.user!.value.attendance),
+                  fontSize: FetchPixels.getPixelHeight(17),
+                  fontWeight: FontWeight.w500,
+                  textColor: Colors.black),
+              title: textWidget(
+                  text: "Attendance",
+                  fontSize: FetchPixels.getPixelHeight(17),
+                  fontWeight: FontWeight.w500,
+                  textColor: Colors.black),
+              leading: Image.asset(
+                color: Colors.black,
+                attendance,
+                height: FetchPixels.getPixelHeight(20),
+                width: FetchPixels.getPixelWidth(20),
               ),
-              ListTile(
+            )),
+              Obx(() => ListTile(
                 onTap: syncNowController.check.value == true ? (){} : (){
                   setState(() {
                     page = 0;
@@ -267,7 +267,7 @@ class _HomeState extends State<Home> {
                   height: FetchPixels.getPixelHeight(20),
                   width: FetchPixels.getPixelWidth(20),
                 ),
-              ),
+              )),
               ListTile(
                 onTap: (){
                   showSyncDownDialog(onTap: ()async{
@@ -284,6 +284,7 @@ class _HomeState extends State<Home> {
                     var box10 = await Hive.openBox("shopTypeBox");
                     var box11 = await Hive.openBox("shopSectorBox");
                     var box12 = await Hive.openBox("shopStatusBox");
+                    var box13 = await Hive.openBox("orderCalculateBox");
                     box1.delete("syncDown");
                     box2.delete("week");
                     box3.delete("month");
@@ -296,14 +297,16 @@ class _HomeState extends State<Home> {
                     box10.delete("shopType");
                     box11.delete("shopSector");
                     box12.delete("shopStatus");
-                    syncDownApi(context);
-                    await getWeekPerformance(context: context);
-                    getMonthlyPerformance(context: context);
-                    getProducts(context: context);
-                    getReasons(context);
-                    getCategoryName(context);
-                    getRateDetails(context);
-                    await getShopTexData(context);
+                    box13.delete("orderCalculate");
+                    // syncDownApi(context);
+                    // await getWeekPerformance(context: context);
+                    // getMonthlyPerformance(context: context);
+                    // getProducts(context: context);
+                    // getReasons(context);
+                    // getCategoryName(context);
+                    // getRateDetails(context);
+                    // await getShopTexData(context);
+                    allApis();
                   });
                 },
                 minLeadingWidth: FetchPixels.getPixelWidth(20),
@@ -334,7 +337,7 @@ class _HomeState extends State<Home> {
                   width: FetchPixels.getPixelWidth(20),
                 ),
               ),
-              ListTile(
+              Obx(() => ListTile(
                 onTap: syncNowController.check.value == true ? (){} : (){
                   setState(() {
                     page = 1;
@@ -353,8 +356,8 @@ class _HomeState extends State<Home> {
                   height: FetchPixels.getPixelHeight(20),
                   width: FetchPixels.getPixelWidth(20),
                 ),
-              ),
-              ListTile(
+              )),
+              Obx(() => ListTile(
                 onTap: syncNowController.check.value == true ? (){} : (){
                   setState(() {
                     page = 2;
@@ -373,8 +376,8 @@ class _HomeState extends State<Home> {
                   height: FetchPixels.getPixelHeight(20),
                   width: FetchPixels.getPixelWidth(20),
                 ),
-              ),
-              ListTile(
+              )),
+              Obx(() => ListTile(
                 onTap: syncNowController.check.value == true ? (){} : (){
                   HiveDatabase.getReasonData("reasonNo", "reason");
                 },
@@ -389,8 +392,8 @@ class _HomeState extends State<Home> {
                   height: FetchPixels.getPixelHeight(20),
                   width: FetchPixels.getPixelWidth(20),
                 ),
-              ),
-              ListTile(
+              )),
+              Obx(() => ListTile(
                 onTap: syncNowController.check.value == true ? (){} : (){
                   Get.toNamed(CREDIT_LIST);
                 },
@@ -405,40 +408,40 @@ class _HomeState extends State<Home> {
                   height: FetchPixels.getPixelHeight(20),
                   width: FetchPixels.getPixelWidth(20),
                 ),
-              ),
-              ListTile(
+              )),
+              Obx(() => ListTile(
                 onTap: syncNowController.check.value == true ? (){} : ()async{
                   Get.dialog(
-                    AlertDialog(content: Container(
-                      height: FetchPixels.getPixelHeight(100),
-                      width: FetchPixels.width,
-                      color: Colors.white,
-                      child: Column(
-                        children: [
-                          textWidget(text: "Are your sure?\nYou want to logout?", fontSize: FetchPixels.getPixelHeight(20), fontWeight: FontWeight.w500,textAlign: TextAlign.center),
-                          SizedBox(height: FetchPixels.getPixelHeight(25),),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              InkWell(
-                                  onTap: (){
-                                    Get.back();
-                                  },
-                                  child: textWidget(text: "No", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w600,textColor: Colors.red)),
-                              InkWell(
-                                  onTap: ()async{
-                                    SharedPreferences shared = await SharedPreferences.getInstance();
-                                    bool remove = await shared.remove("user");
-                                    if(remove == true){
-                                      Get.offAllNamed(SIGN_IN_SCREEN);
-                                    }
-                                  },
-                                  child: textWidget(text: "Yes", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w600,textColor: Colors.green)),
-                            ],
-                          )
-                        ],
-                      ),
-                    ),)
+                      AlertDialog(content: Container(
+                        height: FetchPixels.getPixelHeight(100),
+                        width: FetchPixels.width,
+                        color: Colors.white,
+                        child: Column(
+                          children: [
+                            textWidget(text: "Are your sure?\nYou want to logout?", fontSize: FetchPixels.getPixelHeight(20), fontWeight: FontWeight.w500,textAlign: TextAlign.center),
+                            SizedBox(height: FetchPixels.getPixelHeight(25),),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                InkWell(
+                                    onTap: (){
+                                      Get.back();
+                                    },
+                                    child: textWidget(text: "No", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w600,textColor: Colors.red)),
+                                InkWell(
+                                    onTap: ()async{
+                                      SharedPreferences shared = await SharedPreferences.getInstance();
+                                      bool remove = await shared.remove("user");
+                                      if(remove == true){
+                                        Get.offAllNamed(SIGN_IN_SCREEN);
+                                      }
+                                    },
+                                    child: textWidget(text: "Yes", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w600,textColor: Colors.green)),
+                              ],
+                            )
+                          ],
+                        ),
+                      ),)
                   );
                 },
                 minLeadingWidth: FetchPixels.getPixelWidth(20),
@@ -452,7 +455,7 @@ class _HomeState extends State<Home> {
                   height: FetchPixels.getPixelHeight(20),
                   width: FetchPixels.getPixelWidth(20),
                 ),
-              ),
+              )),
               SizedBox(height: FetchPixels.getPixelHeight(50),),
               Center(
                 child: textWidget(

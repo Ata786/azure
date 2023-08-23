@@ -31,14 +31,24 @@ class _ShopServiceState extends State<ShopService> {
 
   List<ReasonsModel> reasons = [];
   late String selectedItem;
-  double distance = 0.0;
+  late double distance;
+  bool isEdit = false;
 
   @override
   void initState() {
     super.initState();
+    ShopServiceController shopServiceController = Get.find<ShopServiceController>();
     arguments = Get.arguments;
     reasons = arguments['reasons'] as  List<ReasonsModel>;
-    selectedItem = reasons[0].reasonName ?? "";
+    isEdit = arguments['isEdit'] ?? false;
+    if(isEdit == true){
+      selectedItem = arguments['isReason'] ?? "";
+    }else{
+      selectedItem = reasons[0].reasonName ?? "";
+    }
+
+    distance = double.tryParse(arguments['gprs']) ?? 0.0;
+    shopServiceController.image.value = arguments['image'] ?? "";
   }
 
   @override
@@ -180,12 +190,16 @@ class _ShopServiceState extends State<ShopService> {
               SizedBox(height: FetchPixels.getPixelHeight(10),),
               Align(alignment: Alignment.centerRight,child: InkWell(
                 onTap: (){
-                  String gprs = arguments['gprs'];
-                  List<String> gprsLatLng = gprs.split(',');
-                  double? lat = double.tryParse(gprsLatLng[0]);
-                  double? lon = double.tryParse(gprsLatLng[1]);
-                  double dis = Geolocator.distanceBetween(userController.latitude, userController.longitude, lat ?? 0.0, lon ?? 0.0);
-                  distance = dis;
+                  if(isEdit == false){
+                    String gprs = arguments['gprs'];
+                    List<String> gprsLatLng = gprs.split(',');
+                    double? lat = double.tryParse(gprsLatLng[0]);
+                    double? lon = double.tryParse(gprsLatLng[1]);
+                    double dis = Geolocator.distanceBetween(userController.latitude, userController.longitude, lat ?? 0.0, lon ?? 0.0);
+                    distance = dis;
+                  }else{
+
+                  }
                   setState(() {
                     
                   });
@@ -206,36 +220,50 @@ class _ShopServiceState extends State<ShopService> {
                 children: [
                   InkWell(
                     onTap: ()async{
-                      if(shopServiceController.image.value == '' || distance == 0.0){
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Image and Distance is required"),behavior: SnackBarBehavior.floating,));
+                      SyncNowController syncNowController = Get.find<SyncNowController>();
+                      if(isEdit == true){
+
+                        syncNowController.reasonModelList.removeWhere((element) => element.shopId == arguments['shopId']);
+                        ReasonModel reasonModelArgument = arguments['updateReason'];
+                        ReasonModel reasonModel = ReasonModel(shopName: arguments['shopName'],shopId: arguments['shopId'].toString(),bookerId: reasonModelArgument.bookerId,checkIn: distance.toString(),createdOn: reasonModelArgument.createdOn,image: shopServiceController.image.value,payment: "Nun",reason: selectedItem ?? '',pjpnumber: reasonModelArgument.pjpnumber);
+                        syncNowController.reasonModelList.add(reasonModel);
+                        HiveDatabase.setReasonData("reasonNo", "reason", syncNowController.reasonModelList);
+                        HiveDatabase.getReasonData("reasonNo", "reason");
+                        Get.back();
+
                       }else{
-                        String formattedDateTime = DateFormat("yyyy-MM-dd HH:mm:ss").format(DateTime.now());
-                        ReasonModel reasonModel = ReasonModel(shopName: arguments['shopName'],shopId: arguments['shopId'].toString(),bookerId: userController.user!.value.catagoryId,checkIn: distance.toString(),createdOn: formattedDateTime,image: shopServiceController.image.value,payment: "Nun",reason: selectedItem ?? '',pjpnumber: "0");
-                        var box = await Hive.openBox("reasonNo");
-                        List<dynamic> data = box.get("reason") ?? [];
-                         List<ReasonModel> reasonModelList = data.map((e) => ReasonModel(shopName: e.shopName,shopId: e.shopId,bookerId: e.bookerId,
+
+                        if(shopServiceController.image.value == '' || distance == 0.0){
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Image and Distance is required"),behavior: SnackBarBehavior.floating,));
+                        }else{
+                          String formattedDateTime = DateFormat("yyyy-MM-dd HH:mm:ss").format(DateTime.now());
+                          ReasonModel reasonModel = ReasonModel(shopName: arguments['shopName'],shopId: arguments['shopId'].toString(),bookerId: userController.user!.value.catagoryId,checkIn: distance.toString(),createdOn: formattedDateTime,image: shopServiceController.image.value,payment: "Nun",reason: selectedItem ?? '',pjpnumber: "0");
+                          var box = await Hive.openBox("reasonNo");
+                          List<dynamic> data = box.get("reason") ?? [];
+                          List<ReasonModel> reasonModelList = data.map((e) => ReasonModel(shopName: e.shopName,shopId: e.shopId,bookerId: e.bookerId,
                               checkIn: e.checkIn,createdOn: e.createdOn,reason: e.reason,image: e.image,payment: "payment",pjpnumber: e.pjpnumber)).toList();
-                        reasonModelList.add(reasonModel);
+                          reasonModelList.add(reasonModel);
                           HiveDatabase.setReasonData("reasonNo", "reason", reasonModelList);
                           HiveDatabase.getReasonData("reasonNo", "reason");
 
-                        SyncNowController syncNowController = Get.find<SyncNowController>();
-
-                        var syncDown = await Hive.openBox("syncDownList");
-                        List<dynamic> syncDownList = syncDown.get("syncDown") ?? [];
-                        if(syncDownList.isNotEmpty){
-                          List<SyncDownModel> syncDownModelList = syncDownList.map((e) => SyncDownModel(shopname: e.shopname,address: e.address,salesInvoiceDate: e.salesInvoiceDate,gprs: e.gprs,shopCode: e.shopCode,sr: e.sr,phone: e.phone,owner: e.owner,catagoryId: e.catagoryId,productive: e.productive)).toList();
-                          int shopIndex = syncDownModelList.indexWhere((element) => element.sr == arguments['shopId']);
-                          syncDownModelList[shopIndex].productive = true;
-                          await syncDown.put("syncDown", syncDownModelList);
-                          List<dynamic> syncDownUpdatedList = syncDown.get("syncDown") ?? [];
-                          syncNowController.syncDownList.value = syncDownUpdatedList.map((e) => SyncDownModel(shopname: e.shopname,address: e.address,salesInvoiceDate: e.salesInvoiceDate,gprs: e.gprs,shopCode: e.shopCode,sr: e.sr,phone: e.phone,owner: e.owner,catagoryId: e.catagoryId,productive: e.productive)).toList();
-                          syncNowController.allList.value = syncNowController.syncDownList;
-                          syncNowController.searchList.value = syncNowController.allList;
-                          shopServiceController.image.value = '';
-                          Get.back();
+                          var syncDown = await Hive.openBox("syncDownList");
+                          List<dynamic> syncDownList = syncDown.get("syncDown") ?? [];
+                          if(syncDownList.isNotEmpty){
+                            List<SyncDownModel> syncDownModelList = syncDownList.map((e) => SyncDownModel(shopname: e.shopname,address: e.address,salesInvoiceDate: e.salesInvoiceDate,gprs: e.gprs,shopCode: e.shopCode,sr: e.sr,phone: e.phone,owner: e.owner,catagoryId: e.catagoryId,productive: e.productive)).toList();
+                            int shopIndex = syncDownModelList.indexWhere((element) => element.sr == arguments['shopId']);
+                            syncDownModelList[shopIndex].productive = true;
+                            await syncDown.put("syncDown", syncDownModelList);
+                            List<dynamic> syncDownUpdatedList = syncDown.get("syncDown") ?? [];
+                            syncNowController.syncDownList.value = syncDownUpdatedList.map((e) => SyncDownModel(shopname: e.shopname,address: e.address,salesInvoiceDate: e.salesInvoiceDate,gprs: e.gprs,shopCode: e.shopCode,sr: e.sr,phone: e.phone,owner: e.owner,catagoryId: e.catagoryId,productive: e.productive)).toList();
+                            syncNowController.allList.value = syncNowController.syncDownList;
+                            syncNowController.searchList.value = syncNowController.allList;
+                            shopServiceController.image.value = '';
+                            Get.back();
+                          }
                         }
+
                       }
+
                     },
                     child: button(
                         height: FetchPixels.getPixelHeight(35),
@@ -243,7 +271,7 @@ class _ShopServiceState extends State<ShopService> {
                         color: themeColor,
                         textColor: Colors.white,
                         textSize: FetchPixels.getPixelHeight(10), borderRadius: FetchPixels.getPixelHeight(20),
-                        textWeight: FontWeight.w500, text: "Okay"),
+                        textWeight: FontWeight.w500, text: isEdit == true ? "Update" : "Okay"),
                   ),
                   SizedBox(width: FetchPixels.getPixelWidth(10),),
                   InkWell(

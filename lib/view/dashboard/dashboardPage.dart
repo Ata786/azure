@@ -150,10 +150,10 @@ class Dashboard extends StatelessWidget {
                                   text: "NoOfInvoices"),
                               performanceTextWidget(
                                   text: "AverageDropSize"),
-                              performanceTextWidget(
-                                  text: "AverageSale"),
-                              performanceTextWidget(
-                                  text: "Frequency"),
+                              // performanceTextWidget(
+                              //     text: "AverageSale"),
+                              // performanceTextWidget(
+                              //     text: "Frequency"),
                               performanceTextWidget(text: "Lppc"),
                               performanceTextWidget(
                                   text: "TotalTonage"),
@@ -214,16 +214,16 @@ class Dashboard extends StatelessWidget {
                                       ? ""
                                       : "${dashBoardController.weekPerformanceModel.value.averageDropSize.toStringAsFixed(3) ?? ""}",
                                 ),
-                                performanceTextWidget(
-                                  text: dashBoardController.weekPerformanceModel.value.averageSale == null
-                                      ? ""
-                                      : "${dashBoardController.weekPerformanceModel.value.averageSale.toStringAsFixed(3) ?? ""}",
-                                ),
-                                performanceTextWidget(
-                                  text: dashBoardController.weekPerformanceModel.value.frequency == null
-                                      ? ""
-                                      : "${dashBoardController.weekPerformanceModel.value.frequency.toStringAsFixed(3) ?? ""}",
-                                ),
+                                // performanceTextWidget(
+                                //   text: dashBoardController.weekPerformanceModel.value.averageSale == null
+                                //       ? ""
+                                //       : "${dashBoardController.weekPerformanceModel.value.averageSale.toStringAsFixed(3) ?? ""}",
+                                // ),
+                                // performanceTextWidget(
+                                //   text: dashBoardController.weekPerformanceModel.value.frequency == null
+                                //       ? ""
+                                //       : "${dashBoardController.weekPerformanceModel.value.frequency.toStringAsFixed(3) ?? ""}",
+                                // ),
                                 performanceTextWidget(
                                   text: dashBoardController.weekPerformanceModel.value.lppc == null
                                       ? ""
@@ -297,10 +297,10 @@ class Dashboard extends StatelessWidget {
                                 text: "NoOfInvoices"),
                             performanceTextWidget(
                                 text: "AverageDropSize"),
-                            performanceTextWidget(
-                                text: "AverageSale"),
-                            performanceTextWidget(
-                                text: "Frequency"),
+                            // performanceTextWidget(
+                            //     text: "AverageSale"),
+                            // performanceTextWidget(
+                            //     text: "Frequency"),
                             performanceTextWidget(text: "Lppc"),
                             performanceTextWidget(
                                 text: "TotalTonage"),
@@ -361,16 +361,16 @@ class Dashboard extends StatelessWidget {
                                     ? ""
                                     : "${dashBoardController.monthPerformanceModel.value.averageDropSize.toStringAsFixed(3) ?? ""}",
                               ),
-                              performanceTextWidget(
-                                text: dashBoardController.monthPerformanceModel.value.averageSale == null
-                                    ? ""
-                                    : "${dashBoardController.monthPerformanceModel.value.averageSale.toStringAsFixed(3) ?? ""}",
-                              ),
-                              performanceTextWidget(
-                                text: dashBoardController.monthPerformanceModel.value.frequency == null
-                                    ? ""
-                                    : "${dashBoardController.monthPerformanceModel.value.frequency.toStringAsFixed(3) ?? ""}",
-                              ),
+                              // performanceTextWidget(
+                              //   text: dashBoardController.monthPerformanceModel.value.averageSale == null
+                              //       ? ""
+                              //       : "${dashBoardController.monthPerformanceModel.value.averageSale.toStringAsFixed(3) ?? ""}",
+                              // ),
+                              // performanceTextWidget(
+                              //   text: dashBoardController.monthPerformanceModel.value.frequency == null
+                              //       ? ""
+                              //       : "${dashBoardController.monthPerformanceModel.value.frequency.toStringAsFixed(3) ?? ""}",
+                              // ),
                               performanceTextWidget(
                                 text: dashBoardController.monthPerformanceModel.value.lppc == null
                                     ? ""

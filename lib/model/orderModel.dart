@@ -28,9 +28,9 @@ class OrderModel {
         this.checkIn,
         this.image,
       this.orderNumber,
+        this.weight,
+        this.tonnage,
       this.orderDataModel,
-      this.weight,
-        this.tonnage
       });
 
   OrderModel.fromJson(Map<String, dynamic> json) {

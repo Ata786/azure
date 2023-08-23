@@ -248,7 +248,7 @@ class _StoreProductDialogContentState extends State<StoreProductDialogContent> {
 
                       // Replace the existing OrderModel with the updated one
                       widget.shopServiceController.orderList[index] = updatedOrder;
-                      HiveDatabase.setOrderData("orderBox", "order", widget.shopServiceController.orderList);
+                      // HiveDatabase.setOrderData("orderBox", "order", widget.shopServiceController.orderList);
                       var box = await Hive.openBox("productsBox");
                       List<dynamic> data = box.get("products") ?? [];
                       if (data.isNotEmpty) {
@@ -267,26 +267,24 @@ class _StoreProductDialogContentState extends State<StoreProductDialogContent> {
                         )).toList();
 
                         int productIndex = products.indexWhere((element) => element.sr == widget.sr);
-
                         if (productIndex != -1) {
                           ProductsModel product = products[productIndex];
                           product.retail = widget.rates1[0].consumerPrice;
                           product.netRate = widget.shopServiceController.netRate.value;
                           product.quantity = widget.shopServiceController.quantity.value;
-                          product.subTotal = widget.rates1[0].netRate * widget.shopServiceController.quantity.value;
-                          product.weight = product.wgm;
-                          product.tonnage = double.tryParse(product.tonnageperpcs!)!;
-
+                          product.subTotal = double.tryParse(widget.shopServiceController.netRate.value)! * widget.shopServiceController.quantity.value;
+                          product.fixedRate = widget.rates1[0].netRate.toStringAsFixed(6);
+                          product.weight = double.tryParse(product.wgm.toString())! * widget.shopServiceController.quantity.value;
+                          product.tonnage = double.tryParse(product.tonnageperpcs ?? "0.0")! * widget.shopServiceController.quantity.value;
                           products[productIndex] = product;
-
                           // Update the productsList in the shopServiceController
                           widget.shopServiceController.productsList.value = products;
 
                           // Update the specific product in the Hive box
-                          box.put("products", widget.shopServiceController.productsList);
+                          box.put("products", products);
                           List<dynamic> data = box.get("products") ?? [];
                           if(data.isNotEmpty){
-                            widget.shopServiceController.productsList.value = data.map((e) => ProductsModel(sr: e.sr,pname: e.pname,wgm: e.wgm,brandName: e.brandName,tonnageperpcs: e.tonnageperpcs,retail: e.retail,netRate: e.netRate,subTotal: e.subTotal,quantity: e.quantity)).toList();
+                            widget.shopServiceController.productsList.value = data.map((e) => ProductsModel(sr: e.sr,pname: e.pname,wgm: e.wgm,brandName: e.brandName,tonnageperpcs: e.tonnageperpcs,retail: e.retail,netRate: e.netRate,subTotal: e.subTotal,quantity: e.quantity,weight: e.weight,tonnage: e.tonnage,fixedRate: e.fixedRate)).toList();
                             Get.back();
                           }
                         }else{

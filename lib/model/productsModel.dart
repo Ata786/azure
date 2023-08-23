@@ -2,6 +2,7 @@ import 'package:hive/hive.dart';
 
 class ProductsModel {
   dynamic sr;
+  dynamic rateId;
   String? pname;
   dynamic wgm;
   String? brandName;
@@ -12,9 +13,11 @@ class ProductsModel {
   dynamic subTotal;
   dynamic weight;
   dynamic tonnage;
+  dynamic fixedRate;
 
   ProductsModel(
       {this.sr,
+        this.rateId,
         this.pname,
         this.wgm,
         this.brandName,
@@ -24,11 +27,13 @@ class ProductsModel {
       this.quantity,
       this.subTotal,
       this.weight,
-      this.tonnage
+      this.tonnage,
+        this.fixedRate
       });
 
   ProductsModel.fromJson(Map<dynamic, dynamic> json) {
     sr = json['sr'];
+    rateId = json['rateId'];
     pname = json['pname'];
     wgm = json['wgm'];
     brandName = json['brandName'];
@@ -39,11 +44,13 @@ class ProductsModel {
     subTotal = json['subTotal'];
     weight = json['weight'];
     tonnage = json['tonnage'];
+    fixedRate = json['fixedRate'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['sr'] = this.sr;
+    data['rateId'] = this.rateId;
     data['pname'] = this.pname;
     data['wgm'] = this.wgm;
     data['brandName'] = this.brandName;
@@ -54,6 +61,7 @@ class ProductsModel {
     data['subTotal'] = this.subTotal;
     data['weight'] = this.weight;
     data['tonnage'] = this.tonnage;
+    data['fixedRate'] = this.fixedRate;
     return data;
   }
 }

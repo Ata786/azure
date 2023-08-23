@@ -88,6 +88,7 @@ class SignIn extends StatelessWidget {
                           var box8 = await Hive.openBox("product");
                           var box9 = await Hive.openBox("orderBox");
                           var box10 = await Hive.openBox("attendance");
+                          var box11 = await Hive.openBox("orderCalculateBox");
                           box1.delete("syncDown");
                           box2.delete("week");
                           box3.delete("month");
@@ -98,6 +99,7 @@ class SignIn extends StatelessWidget {
                           box8.delete("productRate");
                           box9.delete("order");
                           box10.delete("markAttendance");
+                          box11.delete("orderCalculate");
                           signInApi(nameCtr.text, passCtr.text,context);
                         },
                         child: button(

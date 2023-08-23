@@ -4,13 +4,17 @@ class OrderCalculationModel {
   double? bookingValue;
   double? llpc;
   double? qty;
+  double? weight;
+  double? tonnage;
 
-  OrderCalculationModel({this.bookingValue, this.llpc, this.qty});
+  OrderCalculationModel({this.bookingValue, this.llpc, this.qty, this.weight,this.tonnage});
 
   OrderCalculationModel.fromJson(Map<String, dynamic> json) {
     bookingValue = json['bookingValue'];
     llpc = json['llpc'];
     qty = json['qty'];
+    weight = json['weight'];
+    tonnage = json['tonnage'];
   }
 
   Map<String, dynamic> toJson() {
@@ -18,6 +22,8 @@ class OrderCalculationModel {
     data['bookingValue'] = this.bookingValue;
     data['llpc'] = this.llpc;
     data['qty'] = this.qty;
+    data['weight'] = this.weight;
+    data['tonnage'] = this.tonnage;
     return data;
   }
 }
@@ -33,6 +39,8 @@ class OrderCalculationModelAdapter extends TypeAdapter<OrderCalculationModel> {
       bookingValue: reader.read(),
       llpc: reader.read(),
       qty: reader.read(),
+      weight: reader.read(),
+      tonnage: reader.read(),
     );
   }
 
@@ -41,5 +49,7 @@ class OrderCalculationModelAdapter extends TypeAdapter<OrderCalculationModel> {
     writer.write(obj.bookingValue);
     writer.write(obj.llpc);
     writer.write(obj.qty);
+    writer.write(obj.weight);
+    writer.write(obj.tonnage);
   }
 }

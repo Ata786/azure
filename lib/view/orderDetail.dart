@@ -1,7 +1,6 @@
 import 'package:SalesUp/controllers/UserController.dart';
 import 'package:SalesUp/controllers/shopServiceController.dart';
 import 'package:SalesUp/controllers/syncNowController.dart';
-import 'package:SalesUp/controllers/syncNowController.dart';
 import 'package:SalesUp/model/orderCalculations.dart';
 import 'package:SalesUp/res/base/fetch_pixels.dart';
 import 'package:SalesUp/res/colors.dart';
@@ -38,8 +37,7 @@ class _OrderDetailState extends State<OrderDetail> {
     List<dynamic> data = box.get("products") ?? [];
     List<dynamic> list = data.where((element) => element.subTotal != null).toList();
     productsList = list.map((e) => ProductsModel(sr: e.sr,pname: e.pname,wgm: e.wgm,brandName: e.brandName,
-        netRate: e.netRate,quantity: e.quantity,subTotal: e.subTotal,retail: e.retail)).toList();
-
+        netRate: e.netRate,quantity: e.quantity,subTotal: e.subTotal,retail: e.retail,weight: e.weight,tonnage: e.tonnage,fixedRate: e.fixedRate,tonnageperpcs: e.tonnageperpcs)).toList();
     for(int i=0; i<productsList.length; i++){
       totalWeight += double.tryParse(productsList[i].wgm.toString())!;
       totalAmount += double.tryParse(productsList[i].subTotal.toString())!;
@@ -263,35 +261,70 @@ class _OrderDetailState extends State<OrderDetail> {
                 alignment: Alignment.centerRight,
                 child: InkWell(
                   onTap: ()async{
+
+                    ShopServiceController shopServiceController = Get.find<ShopServiceController>();
                     SyncNowController syncNowController = Get.find<SyncNowController>();
+
+                    dynamic shId = shopServiceController.orderList[0].shopId;
+
+                    List<OrderModel> list = await HiveDatabase.getOrderData("orderBox", "order");
+
+                    int orderIndex = list.indexWhere((element) => element.shopId.toString() == shId.toString());
+
+                    if(orderIndex != -1){
+                      list.removeWhere((element) => element.shopId.toString() == shId.toString());
+                      HiveDatabase.setOrderData("orderBox", "order", list);
+                    }
+
+                    List<OrderModel> ordersList= [];
+                    OrderModel orderModel = shopServiceController.orderList[0];
+
+                    for(int i=0; i<productsList.length; i++){
+                     OrderModel order = OrderModel(image: orderModel.image,shopId: orderModel.shopId,pjpNo: orderModel.pjpNo,pjpDate: orderModel.pjpDate,
+                         invoiceStatus: orderModel.invoiceStatus,userId: orderModel.userId,reason: "Invoice",replace: orderModel.replace,
+                         tonnage: productsList[i].tonnage,weight: productsList[i].weight,orderNumber: orderModel.orderNumber,orderDataModel: OrderDataModel(fixedRate: productsList[i].fixedRate,productId: productsList[i].sr,netRate: productsList[i].netRate,rateId: productsList[i].rateId,quantity: productsList[i].quantity));
+                     ordersList.add(order);
+                    }
+
+                   HiveDatabase.setOrderData("orderBox", "order", ordersList);
+
                     List<OrderModel> orderList = await HiveDatabase.getOrderData("orderBox", "order");
 
                     OrderCalculationModel orderCalculate = await HiveDatabase.getOrderCalculation("orderCalculateBox", "orderCalculate");
                     double bookingValue = orderCalculate.bookingValue ?? 0.0;
-                    double llpc = orderCalculate.llpc ?? 0.0;
+                    // double llpc = orderCalculate.llpc ?? 0.0;
+                   double llpc = 0.0;
                     double qty = orderCalculate.qty ?? 0.0;
+                    double weight = orderCalculate.weight ?? 0.0;
+                    double tonnage = orderCalculate.tonnage ?? 0.0;
 
                     double sum = 0.0;
                     double quantitySum = 0.0;
+                    double weightSum = 0.0;
+                    double tonnageSum = 0.0;
 
                     for (int i = 0; i < orderList.length; i++) {
-                      orderList[i].reason = "Invoice";
-                      sum += double.tryParse(orderList[i].orderDataModel!.netRate)! * double.tryParse(orderList[i].orderDataModel!.quantity)!;
-                      quantitySum += double.tryParse(orderList[i].orderDataModel!.quantity)!;
+                      sum += double.tryParse(orderList[i].orderDataModel!.netRate)! * double.tryParse(orderList[i].orderDataModel!.quantity.toString())!;
+                      quantitySum += double.tryParse(orderList[i].orderDataModel!.quantity.toString())!;
+                      weightSum += double.tryParse(orderList[i].weight.toString())!;
+                      tonnageSum += double.tryParse(orderList[i].tonnage.toString())!;
                     }
 
                     double updatedBookingValue = bookingValue + sum;
                     double updatedQuantity = qty + quantitySum;
+                    double updatedWeight = weight + weightSum;
+                    double updatedTonnage = tonnage + tonnageSum;
                     orderCalculate.bookingValue = updatedBookingValue;
                     orderCalculate.qty = updatedQuantity;
-
+                    orderCalculate.weight = updatedWeight;
+                    orderCalculate.tonnage = updatedTonnage;
                     var box = await Hive.openBox("orderBox");
                     box.put("order", orderList);
 
                     UserController userController = Get.find<UserController>();
-                    ShopServiceController shopServiceController = Get.find<ShopServiceController>();
+
                     List<OrderModel> orders = shopServiceController.orderList;
-                    int shopId = orders[0].shopId;
+                    dynamic shopId = orders[0].shopId;
                     String checkIn = orders[0].checkIn;
                     String image = orders[0].image;
 
@@ -299,8 +332,8 @@ class _OrderDetailState extends State<OrderDetail> {
                     List<dynamic> syncDownData = box2.get("syncDown") ?? [];
 
                     List<SyncDownModel> syncDownList = syncDownData.map((e) => SyncDownModel(shopname: e.shopname,address: e.address,salesInvoiceDate: e.salesInvoiceDate,gprs: e.gprs,shopCode: e.shopCode,sr: e.sr,phone: e.phone,owner: e.owner,catagoryId: e.catagoryId,productive: e.productive)).toList();
-                    SyncDownModel syncDownModel = syncDownList.firstWhere((element) => element.sr == shopId);
-                    int index = syncDownList.indexWhere((element) => element.sr == shopId);
+                    SyncDownModel syncDownModel = syncDownList.firstWhere((element) => element.sr.toString() == shopId.toString());
+                    int index = syncDownList.indexWhere((element) => element.sr.toString() == shopId.toString());
 
                     syncDownList[index].productive = true;
 
@@ -323,10 +356,10 @@ class _OrderDetailState extends State<OrderDetail> {
 
                     int orderListLength = shopServiceController.orderList.length;
                     int reasonLength = syncNowController.reasonModelList.where((p0) => p0.reason == "Invoice").length;
-
                     double llpLength = orderListLength/reasonLength;
 
                     orderCalculate.llpc = llpc + llpLength;
+
 
                     syncNowController.orderCalculationModel.value = orderCalculate;
                     HiveDatabase.setOrderCalculation("orderCalculateBox", "orderCalculate", orderCalculate);

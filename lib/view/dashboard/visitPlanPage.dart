@@ -156,19 +156,19 @@ class _VisitPlanState extends State<VisitPlan> {
                       children: [
                         Obx(() => textWidget(
                           textColor: Colors.white,
-                          text: syncNowController.orderCalculationModel.value.bookingValue == null ? "" : "${syncNowController.orderCalculationModel.value.bookingValue!.toStringAsFixed(3) ?? 0}",
+                          text: syncNowController.orderCalculationModel.value.bookingValue == null ? "0" : "${syncNowController.orderCalculationModel.value.bookingValue!.toStringAsFixed(3) ?? 0}",
                           fontSize: FetchPixels.getPixelHeight(11),
                           fontWeight: FontWeight.w400,
                         )),
                         Obx(() => textWidget(
                           textColor: Colors.white,
-                          text: syncNowController.orderCalculationModel.value.llpc == null ? "" :"${syncNowController.orderCalculationModel.value.llpc!.toStringAsFixed(3) ?? 0}",
+                          text: syncNowController.orderCalculationModel.value.llpc == null ? "0" :"${syncNowController.orderCalculationModel.value.llpc!.toStringAsFixed(3) ?? 0}",
                           fontSize: FetchPixels.getPixelHeight(11),
                           fontWeight: FontWeight.w400,
                         )),
                         Obx(() => textWidget(
                           textColor: Colors.white,
-                          text: syncNowController.orderCalculationModel.value.qty == null ? "" :"${syncNowController.orderCalculationModel.value.qty!.toStringAsFixed(3) ?? 0}",
+                          text: syncNowController.orderCalculationModel.value.qty == null ? "0" :"${syncNowController.orderCalculationModel.value.qty!.toStringAsFixed(0) ?? 0}",
                           fontSize: FetchPixels.getPixelHeight(11),
                           fontWeight: FontWeight.w400,
                         )),
@@ -209,24 +209,24 @@ class _VisitPlanState extends State<VisitPlan> {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        textWidget(
+                        Obx(() => textWidget(
                           textColor: Colors.white,
                           text: "${syncNowController.reasonModelList.length}/${syncNowController.syncDownList.length}",
                           fontSize: FetchPixels.getPixelHeight(11),
                           fontWeight: FontWeight.w400,
-                        ),
-                        textWidget(
+                        )),
+                        Obx(() => textWidget(
                           textColor: Colors.white,
-                          text: "0",
+                          text: syncNowController.orderCalculationModel.value.weight == null ? "0" :"${syncNowController.orderCalculationModel.value.weight!.toStringAsFixed(4) ?? 0}",
                           fontSize: FetchPixels.getPixelHeight(11),
                           fontWeight: FontWeight.w400,
-                        ),
-                        textWidget(
+                        )),
+                        Obx(() => textWidget(
                           textColor: Colors.white,
-                          text: "0",
+                          text: syncNowController.orderCalculationModel.value.tonnage == null ? "0" :"${syncNowController.orderCalculationModel.value.tonnage!.toStringAsFixed(4) ?? 0}",
                           fontSize: FetchPixels.getPixelHeight(11),
                           fontWeight: FontWeight.w400,
-                        ),
+                        )),
                       ],
                     ),
                   ],
@@ -250,12 +250,12 @@ class _VisitPlanState extends State<VisitPlan> {
                       pageController.animateToPage(page, duration:Duration(milliseconds: 500), curve: Curves.easeInOut);
                     });
                   },
-                  child: textWidget(
+                  child: Obx(() => textWidget(
                     textColor: page == 0 ? primaryColor : Color(0xffd2d2d2),
                     text: "All Shops ${syncNowController.syncDownList.length}",
                     fontSize: FetchPixels.getPixelHeight(15),
                     fontWeight: FontWeight.w400,
-                  ),
+                  )),
                 ),
                 Container(
                   height: FetchPixels.getPixelHeight(15),
