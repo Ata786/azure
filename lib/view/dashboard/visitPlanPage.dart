@@ -84,6 +84,8 @@ class _VisitPlanState extends State<VisitPlan> {
                               onTap: (){
                                 setState(() {
                                   search = false;
+                                  searchCtr.text = '';
+                                  syncNowController.searchList.value = syncNowController.allList;
                                 });
                               },
                               child: Icon(Icons.close)),
@@ -94,9 +96,9 @@ class _VisitPlanState extends State<VisitPlan> {
                 ),
                 InkWell(
                   onTap: (){
-                    Get.dialog(
-                      SessionTimeOut()
-                    );
+                    // Get.dialog(
+                    //   SessionTimeOut()
+                    // );
                   },
                   child: buttonWithIcon(
                       color: themeColor,

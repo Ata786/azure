@@ -214,7 +214,7 @@ void showShopEditSheet(
                                 pname: e.pname,
                                 wgm: e.wgm,
                                 brandName: e.brandName,
-                                tonnageperpcs: e.tonnageperpcs,
+                        tonagePerPcs: e.tonagePerPcs,
                                 netRate: null,
                                 quantity: null,
                                 subTotal: null,
@@ -235,7 +235,8 @@ void showShopEditSheet(
                       "shopName": shopName,
                       "sr": sr,
                       "gprs": gprs,
-                      "phone": phone
+                      "phone": phone,
+                      "isEdit": false
                     });
                   },
                   child: button(

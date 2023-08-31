@@ -1,6 +1,8 @@
 import 'package:SalesUp/controllers/dashboardController.dart';
 import 'package:SalesUp/model/NewShopModel.dart';
 import 'package:SalesUp/model/categoryName.dart';
+import 'package:SalesUp/model/creditModel.dart';
+import 'package:SalesUp/model/historyModel.dart';
 import 'package:SalesUp/model/monthPerformanceModel.dart';
 import 'package:SalesUp/model/orderCalculations.dart';
 import 'package:SalesUp/model/productsModel.dart';
@@ -122,7 +124,7 @@ class HiveDatabase {
               createdOn: e.createdOn,
               reason: e.reason,
               image: e.image,
-              payment: e.image,
+              payment: e.payment,
               pjpnumber: e.pjpnumber)).toList();
     }
   }
@@ -143,7 +145,8 @@ class HiveDatabase {
     if (data.isNotEmpty) {
       shopServiceController.productsList.value = data.map((e) =>
           ProductsModel(
-              sr: e.sr, pname: e.pname, wgm: e.wgm, brandName: e.brandName))
+              sr: e.sr, pname: e.pname, wgm: e.wgm, brandName: e.brandName,rateId: e.rateId,tonagePerPcs: e.tonagePerPcs,retail: e.retail,
+          netRate: e.netRate,quantity: e.quantity,subTotal: e.subTotal,weight: e.weight,fixedRate: e.fixedRate,tonnage: e.tonnage))
           .toList();
       shopServiceController.checkProducts.value = true;
     }
@@ -350,11 +353,63 @@ class HiveDatabase {
     var data = box.get(key);
     OrderCalculationModel orderCalculationModel = OrderCalculationModel();
     if(data != null){
-      orderCalculationModel = OrderCalculationModel(bookingValue: data.bookingValue,llpc: data.llpc,qty: data.qty);
+      orderCalculationModel = OrderCalculationModel(bookingValue: data.bookingValue,llpc: data.llpc,qty: data.qty,weight: data.weight,tonnage: data.tonnage);
     }
 
     return orderCalculationModel;
   }
+
+
+
+  // set history
+  static Future setHistory(String boxName, String key, var data) async {
+    var box = await Hive.openBox(boxName);
+    await box.put(key, data);
+  }
+
+
+
+  static Future<List<HistoryModel>> getHistory(String boxName,
+      String key) async {
+    var box = await Hive.openBox(boxName);
+    var data = box.get(key);
+    List<HistoryModel> historyList = [];
+    if (data != null) {
+      List<dynamic> list = data;
+      historyList = list.map((e) =>
+          HistoryModel(sr: e.sr,shopId: e.shopId,createdOn: e.createdOn,reason: e.reason)).toList();
+    }
+    return historyList;
+  }
+
+
+
+  // set credits list
+  static Future setCreditList(String boxName, String key, var data) async {
+    var box = await Hive.openBox(boxName);
+    await box.put(key, data);
+  }
+
+
+  // get credit list
+  static Future<List<CreditModel>> getCreditList(String boxName,
+      String key) async {
+    var box = await Hive.openBox(boxName);
+    var data = box.get(key);
+    List<CreditModel> creditModelList = [];
+    if (data != null) {
+      List<dynamic> list = data;
+      creditModelList = list.map((e) =>
+          CreditModel(sr: e.sr,shopId: e.shopId,realisedAmount: e.realisedAmount,recieveableDate: e.recieveableDate,isRecovered: e.isRecovered,
+          pjpNoId: e.pjpNoId,vanId: e.vanId,bookerId: e.bookerId,bankId: e.bankId,billAmount: e.billAmount,billNoId: e.billNoId,
+              bouncedDate: e.bouncedDate,chequeDate: e.chequeDate,chequeNo: e.chequeNo,companyId: e.companyId,currentDistId: e.currentDistId,
+          type: e.type,isBounced: e.isBounced,recovery: e.recovery)).toList();
+    }
+    return creditModelList;
+  }
+
+
+
 
 
 

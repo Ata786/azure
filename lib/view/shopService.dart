@@ -246,6 +246,7 @@ class _ShopServiceState extends State<ShopService> {
                           HiveDatabase.setReasonData("reasonNo", "reason", reasonModelList);
                           HiveDatabase.getReasonData("reasonNo", "reason");
 
+
                           var syncDown = await Hive.openBox("syncDownList");
                           List<dynamic> syncDownList = syncDown.get("syncDown") ?? [];
                           if(syncDownList.isNotEmpty){

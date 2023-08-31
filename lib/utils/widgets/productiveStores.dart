@@ -3,9 +3,9 @@ import 'package:SalesUp/controllers/syncNowController.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
-import 'package:intl/intl.dart';
 import '../../controllers/shopServiceController.dart';
 import '../../data/hiveDb.dart';
+import '../../model/orderCalculations.dart';
 import '../../model/orderModel.dart';
 import '../../model/productsModel.dart';
 import '../../model/reasonName.dart';
@@ -14,6 +14,7 @@ import '../../model/syncDownModel.dart';
 import '../../res/base/fetch_pixels.dart';
 import '../../res/colors.dart';
 import '../../res/images.dart';
+import '../../view/invoiceScreen.dart';
 import '../routes/routePath.dart';
 import 'appWidgets.dart';
 
@@ -46,15 +47,95 @@ Widget productiveStore({required SyncNowController syncNowController}) {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      textWidget(
-                                        textColor: Colors.black,
-                                        text: syncNowController
-                                                .reasonModelList[index]
-                                                .shopName ??
-                                            "",
-                                        fontSize:
-                                            FetchPixels.getPixelHeight(17),
-                                        fontWeight: FontWeight.w600,
+                                      InkWell(
+                                        onTap:syncNowController.reasonModelList[index].reason ==
+                                            "Invoice" ? (){
+
+                                          Get.dialog(AlertDialog(
+                                            content: Container(
+                                              height:
+                                              FetchPixels.getPixelHeight(100),
+                                              width: FetchPixels.width,
+                                              child: Column(
+                                                children: [
+                                                  textWidget(
+                                                    textColor: Colors.black,
+                                                    text:
+                                                    "Do you want to preview this order?",
+                                                    fontSize:
+                                                    FetchPixels.getPixelHeight(
+                                                        16),
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                  SizedBox(
+                                                    height:
+                                                    FetchPixels.getPixelHeight(
+                                                        20),
+                                                  ),
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceEvenly,
+                                                    children: [
+                                                      InkWell(
+                                                        onTap: () {
+                                                          Get.back();
+                                                        },
+                                                        child: Card(
+                                                          child: Padding(
+                                                            padding:
+                                                            EdgeInsets.all(5.0),
+                                                            child: textWidget(
+                                                                text: "No",
+                                                                fontSize: FetchPixels
+                                                                    .getPixelHeight(
+                                                                    15),
+                                                                fontWeight:
+                                                                FontWeight.w600,
+                                                                textColor:
+                                                                Colors.red),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      InkWell(
+                                                        onTap: () async {
+                                                          Get.back();
+                                                         Get.to(InvoiceScreen(shopId: syncNowController.reasonModelList[index].shopId!));
+                                                        },
+                                                        child: Card(
+                                                          child: Padding(
+                                                            padding:
+                                                            EdgeInsets.all(5.0),
+                                                            child: textWidget(
+                                                                text: "Yes",
+                                                                fontSize: FetchPixels
+                                                                    .getPixelHeight(
+                                                                    15),
+                                                                fontWeight:
+                                                                FontWeight.w600,
+                                                                textColor:
+                                                                Colors.green),
+                                                          ),
+                                                        ),
+                                                      )
+                                                    ],
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                          ));
+
+                                        } : (){},
+                                        child: textWidget(
+                                          textColor: Colors.black,
+                                          text: syncNowController
+                                                  .reasonModelList[index]
+                                                  .shopName ??
+                                              "",
+                                          fontSize:
+                                              FetchPixels.getPixelHeight(17),
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
                                       textWidget(
                                         textColor: Colors.black,
@@ -207,86 +288,188 @@ Widget productiveStore({required SyncNowController syncNowController}) {
                                       ));
                                     } else {
 
-                                      ShopServiceController shopCtr =
-                                          Get.find<ShopServiceController>();
-                                      UserController userController =
-                                          Get.find<UserController>();
-                                      shopCtr.orderList = [];
+                                      Get.dialog(AlertDialog(
+                                        content: Container(
+                                          height:
+                                          FetchPixels.getPixelHeight(100),
+                                          width: FetchPixels.width,
+                                          child: Column(
+                                            children: [
+                                              textWidget(
+                                                textColor: Colors.black,
+                                                text:
+                                                "Do you want to edit this record?",
+                                                fontSize:
+                                                FetchPixels.getPixelHeight(
+                                                    16),
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                              SizedBox(
+                                                height:
+                                                FetchPixels.getPixelHeight(
+                                                    20),
+                                              ),
+                                              Row(
+                                                mainAxisAlignment:
+                                                MainAxisAlignment
+                                                    .spaceEvenly,
+                                                children: [
+                                                  InkWell(
+                                                    onTap: () {
+                                                      Get.back();
+                                                    },
+                                                    child: Card(
+                                                      child: Padding(
+                                                        padding:
+                                                        EdgeInsets.all(5.0),
+                                                        child: textWidget(
+                                                            text: "No",
+                                                            fontSize: FetchPixels
+                                                                .getPixelHeight(
+                                                                15),
+                                                            fontWeight:
+                                                            FontWeight.w600,
+                                                            textColor:
+                                                            Colors.red),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  InkWell(
+                                                    onTap: () async {
+                                                      Get.back();
 
-                                      // String formattedDate =
-                                      //     DateFormat('yyyy-MM-dd HH:mm:ss')
-                                      //         .format(DateTime.now());
+                                                      ShopServiceController shopCtr =
+                                                      Get.find<ShopServiceController>();
 
-                                      List<OrderModel> orderList =
-                                          await HiveDatabase.getOrderData(
-                                              "orderBox", "order");
-
-                                      HiveDatabase.getReasonData("reasonNo", "reason");
-
-                                      ReasonModel reasonModel = syncNowController.reasonModelList.where((p0) => p0.shopId == syncNowController.reasonModelList[index].shopId).first;
-
-                                      OrderModel orderModel = OrderModel(shopId: reasonModel.shopId,pjpNo: reasonModel.pjpnumber,bookerId: reasonModel.bookerId,image: reasonModel.image,
-                                        invoiceStatus: "Pending",reason: "Pending",userId: userController.user!.value.id,replace: "0",checkIn: reasonModel.checkIn);
-
-                                      shopCtr.orderList.add(orderModel);
-
-                                      /////////////////////
-
-                                      OrderModel order = orderList.where((element) => element.shopId.toString() == syncNowController.reasonModelList[index].shopId.toString()).first;
-
-  var box = await Hive.openBox("productsBox");
-  List<dynamic> data = box.get("products") ?? [];
-  if (data.isNotEmpty) {
-    List<ProductsModel> products = data.map((e) =>
-        ProductsModel(
-            sr: e.sr,
-            pname: e.pname,
-            wgm: e.wgm,
-            brandName: e.brandName,
-            tonnageperpcs: e.tonnageperpcs,
-            netRate: e.netRate,
-            quantity: e.quantity,
-            subTotal: e.subTotal,
-            retail: e.retail,
-            weight: e.weight,
-            tonnage: e.tonnage,
-            fixedRate: e.fixedRate
-        )).toList();
+                                                      var box2 = await Hive.openBox("productsBox");
+                                                      List<dynamic> data1 = box2.get("products") ?? [];
+                                                      if (data1.isNotEmpty) {
+                                                        List<
+                                                            ProductsModel> products = data1
+                                                            .map((e) =>
+                                                            ProductsModel(
+                                                              sr: e.sr,
+                                                              pname: e.pname,
+                                                              wgm: e.wgm,
+                                                              brandName: e
+                                                                  .brandName,
+                                                              tonagePerPcs: e
+                                                                  .tonagePerPcs,
+                                                              netRate: null,
+                                                              quantity: null,
+                                                              subTotal: null,
+                                                              retail: null,
+                                                            ))
+                                                            .toList();
+                                                        shopCtr.productsList
+                                                            .value = products;
+                                                        box2.put("products",
+                                                            products);
+                                                      }
 
 
-    int productIndex = products.indexWhere((element) =>
-    element.sr == order.orderDataModel!.productId);
+                                                      UserController userController =
+                                                      Get.find<UserController>();
+                                                      shopCtr.orderList = [];
+
+                                                      List<OrderModel> orderList =
+                                                      await HiveDatabase.getOrderData(
+                                                          "orderBox", "order");
+
+                                                      HiveDatabase.getReasonData("reasonNo", "reason");
+
+                                                      ReasonModel reasonModel = syncNowController.reasonModelList.where((p0) => p0.shopId == syncNowController.reasonModelList[index].shopId).first;
+
+                                                      OrderModel orderModel = OrderModel(shopId: reasonModel.shopId,pjpNo: reasonModel.pjpnumber,bookerId: reasonModel.bookerId,image: reasonModel.image,
+                                                          invoiceStatus: "Pending",reason: "Pending",userId: userController.user!.value.id,replace: "0",checkIn: reasonModel.checkIn,orderDataModel: OrderDataModel());
+
+                                                      shopCtr.orderList.add(orderModel);
+
+                                                      /////////////////////
+
+                                                      //print('>>> ${syncNowController.reasonModelList[index].shopId}');
+
+                                                      OrderModel order = orderList.where((element) => element.shopId.toString() == syncNowController.reasonModelList[index].shopId.toString()).first;
+
+                                                      // print('>>> ${order.shopId}');
+
+                                                      var box = await Hive.openBox("productsBox");
+                                                      List<dynamic> data = box.get("products") ?? [];
+                                                      if (data.isNotEmpty) {
+                                                        List<ProductsModel> products = data.map((e) =>
+                                                            ProductsModel(
+                                                                sr: e.sr,
+                                                                pname: e.pname,
+                                                                wgm: e.wgm,
+                                                                brandName: e.brandName,
+                                                                tonagePerPcs: e.tonagePerPcs,
+                                                                netRate: e.netRate,
+                                                                quantity: e.quantity,
+                                                                subTotal: e.subTotal,
+                                                                retail: e.retail,
+                                                                weight: e.weight,
+                                                                tonnage: e.tonnage,
+                                                                fixedRate: e.fixedRate,
+                                                              rateId: e.rateId
+                                                            )).toList();
+
+                                                        int productIndex = products.indexWhere((element) =>
+                                                        element.sr == order.orderDataModel!.productId);
+
+                                                        if (productIndex != -1) {
+                                                          ProductsModel product = products[productIndex];
+                                                          product.quantity = order.orderDataModel!.quantity;
+                                                          product.netRate = order.orderDataModel!.netRate;
+                                                          product.fixedRate = order.orderDataModel!.fixedRate;
+                                                          product.subTotal = int.tryParse(order.orderDataModel!.quantity.toString())! * double.tryParse(product.fixedRate)!;
+
+                                                          products[productIndex] = product;
+
+                                                          await box.put('products',products);
+                                                          HiveDatabase.getProducts("productsBox", "products");
+
+                                                            Get.back();
+                                                            Get.toNamed(STORE, arguments: {
+                                                              "shopName": syncNowController
+                                                                  .reasonModelList[index].shopName,
+                                                              "sr": syncNowController
+                                                                  .reasonModelList[index].shopId,
+                                                              "gprs": syncNowController
+                                                                  .reasonModelList[index].checkIn,
+                                                              "phone": "",
+                                                              "isEdit": true,
+                                                              "image": order.image,
+                                                              "orderProductId": order.orderDataModel!.productId
+                                                            });
 
 
-    if (productIndex != -1) {
-      ProductsModel product = products[productIndex];
-      product.quantity = order.orderDataModel!.quantity;
-      product.netRate = order.orderDataModel!.netRate;
-      product.fixedRate = order.orderDataModel!.fixedRate;
-      product.subTotal = int.tryParse(order.orderDataModel!.quantity.toString())! * double.tryParse(product.fixedRate)!;
+                                                          }
 
-      products[productIndex] = product;
+                                                        }
 
-      await box.put('products',products);
-
-      Get.back();
-      Get.toNamed(STORE, arguments: {
-        "shopName": syncNowController
-            .reasonModelList[index].shopName,
-        "sr": syncNowController
-            .reasonModelList[index].shopId,
-        "gprs": syncNowController
-            .reasonModelList[index].checkIn,
-        "phone": "",
-        "isEdit": true,
-      });
-
-    }
-
-  }
-
-  ////////////////
-
+                                                    },
+                                                    child: Card(
+                                                      child: Padding(
+                                                        padding:
+                                                        EdgeInsets.all(5.0),
+                                                        child: textWidget(
+                                                            text: "Yes",
+                                                            fontSize: FetchPixels
+                                                                .getPixelHeight(
+                                                                15),
+                                                            fontWeight:
+                                                            FontWeight.w600,
+                                                            textColor:
+                                                            Colors.green),
+                                                      ),
+                                                    ),
+                                                  )
+                                                ],
+                                              )
+                                            ],
+                                          ),
+                                        ),
+                                      ));
 
                                     }
                                   },
@@ -346,6 +529,23 @@ Widget productiveStore({required SyncNowController syncNowController}) {
                                                 ),
                                                 InkWell(
                                                   onTap: () async {
+
+                                                    OrderCalculationModel getOrderCalculate = await HiveDatabase.getOrderCalculation("orderCalculateBox", "orderCalculate");
+                                                    List<OrderModel> list =
+                                                    await HiveDatabase.getOrderData(
+                                                        "orderBox", "order");
+                                                    OrderModel order = list.where((element) => element.shopId.toString() == syncNowController.reasonModelList[index].shopId.toString()).first;
+                                                    double qty = getOrderCalculate.qty! - double.tryParse(order.orderDataModel!.quantity.toString())!;
+                                                    double weight = getOrderCalculate.weight! - double.tryParse(order.weight.toString())!;
+                                                    double tonnage = getOrderCalculate.tonnage! - double.tryParse(order.tonnage.toString())!;
+                                                    getOrderCalculate.weight = weight;
+                                                    getOrderCalculate.qty = qty;
+                                                    getOrderCalculate.tonnage = tonnage;
+
+                                                    await HiveDatabase.setOrderCalculation("orderCalculateBox", "orderCalculate", getOrderCalculate);
+                                                    OrderCalculationModel orderCalculated = await HiveDatabase.getOrderCalculation("orderCalculateBox", "orderCalculate");
+                                                    syncNowController.orderCalculationModel.value = orderCalculated;
+
                                                     String shopId =
                                                         syncNowController
                                                             .reasonModelList[
@@ -436,6 +636,7 @@ Widget productiveStore({required SyncNowController syncNowController}) {
                                                             .reasonModelList);
                                                     HiveDatabase.getReasonData(
                                                         "reasonNo", "reason");
+
                                                     Get.back();
                                                   },
                                                   child: Card(

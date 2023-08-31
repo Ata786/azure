@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:SalesUp/controllers/UserController.dart';
 import 'package:SalesUp/controllers/shopServiceController.dart';
 import 'package:SalesUp/controllers/syncNowController.dart';
@@ -37,7 +39,8 @@ class _OrderDetailState extends State<OrderDetail> {
     List<dynamic> data = box.get("products") ?? [];
     List<dynamic> list = data.where((element) => element.subTotal != null).toList();
     productsList = list.map((e) => ProductsModel(sr: e.sr,pname: e.pname,wgm: e.wgm,brandName: e.brandName,
-        netRate: e.netRate,quantity: e.quantity,subTotal: e.subTotal,retail: e.retail,weight: e.weight,tonnage: e.tonnage,fixedRate: e.fixedRate,tonnageperpcs: e.tonnageperpcs)).toList();
+        netRate: e.netRate,rateId: e.rateId,quantity: e.quantity,subTotal: e.subTotal,retail: e.retail,weight: e.weight,tonnage: e.tonnage,fixedRate: e.fixedRate,tonagePerPcs: e.tonagePerPcs)).toList();
+
     for(int i=0; i<productsList.length; i++){
       totalWeight += double.tryParse(productsList[i].wgm.toString())!;
       totalAmount += double.tryParse(productsList[i].subTotal.toString())!;
@@ -261,22 +264,63 @@ class _OrderDetailState extends State<OrderDetail> {
                 alignment: Alignment.centerRight,
                 child: InkWell(
                   onTap: ()async{
-
+                    Get.put(ShopServiceController());
+                    Get.put(SyncNowController());
                     ShopServiceController shopServiceController = Get.find<ShopServiceController>();
                     SyncNowController syncNowController = Get.find<SyncNowController>();
 
                     dynamic shId = shopServiceController.orderList[0].shopId;
 
                     List<OrderModel> list = await HiveDatabase.getOrderData("orderBox", "order");
+                    var box0 = await Hive.openBox("reasonNo");
+                    List<dynamic> data1 = box0.get("reason") ?? [];
+                      syncNowController.reasonModelList.value = data1.map((e) =>
+                          ReasonModel(shopName: e.shopName,
+                              shopId: e.shopId,
+                              bookerId: e.bookerId,
+                              checkIn: e.checkIn,
+                              createdOn: e.createdOn,
+                              reason: e.reason,
+                              image: e.image,
+                              payment: e.payment,
+                              pjpnumber: e.pjpnumber)).toList();
+
+                    // print('>>> 1st ${list.length} and ${syncNowController.reasonModelList.length}');
 
                     int orderIndex = list.indexWhere((element) => element.shopId.toString() == shId.toString());
+                    int reasonIndex = syncNowController.reasonModelList.indexWhere((element) => element.shopId.toString() == shId.toString());
 
-                    if(orderIndex != -1){
-                      list.removeWhere((element) => element.shopId.toString() == shId.toString());
+                    if (orderIndex != -1) {
+                      // print('.>>> yes');
+                      list.removeAt(orderIndex);
                       HiveDatabase.setOrderData("orderBox", "order", list);
                     }
 
-                    List<OrderModel> ordersList= [];
+                    if (reasonIndex != -1) {
+                      // print('.>>> yes');
+                      syncNowController.reasonModelList.removeAt(reasonIndex);
+                      HiveDatabase.setReasonData("reasonNo", "reason", syncNowController.reasonModelList);
+                    }
+
+                    // print('>>> 2nd ${list.length} and ${syncNowController.reasonModelList.length}');
+
+                    List<OrderModel> list2 = await HiveDatabase.getOrderData("orderBox", "order");
+                    var box01 = await Hive.openBox("reasonNo");
+                    List<dynamic> data2 = box01.get("reason") ?? [];
+                    syncNowController.reasonModelList.value = data2.map((e) =>
+                        ReasonModel(shopName: e.shopName,
+                            shopId: e.shopId,
+                            bookerId: e.bookerId,
+                            checkIn: e.checkIn,
+                            createdOn: e.createdOn,
+                            reason: e.reason,
+                            image: e.image,
+                            payment: e.payment,
+                            pjpnumber: e.pjpnumber)).toList();
+
+                    // print('>>> 3rd ${list2.length} and ${syncNowController.reasonModelList.length}');
+                    List<OrderModel> ordersList = await HiveDatabase.getOrderData("orderBox", "order");
+                    // List<OrderModel> ordersList= [];
                     OrderModel orderModel = shopServiceController.orderList[0];
 
                     for(int i=0; i<productsList.length; i++){
@@ -310,14 +354,15 @@ class _OrderDetailState extends State<OrderDetail> {
                       tonnageSum += double.tryParse(orderList[i].tonnage.toString())!;
                     }
 
-                    double updatedBookingValue = bookingValue + sum;
-                    double updatedQuantity = qty + quantitySum;
-                    double updatedWeight = weight + weightSum;
-                    double updatedTonnage = tonnage + tonnageSum;
-                    orderCalculate.bookingValue = updatedBookingValue;
-                    orderCalculate.qty = updatedQuantity;
-                    orderCalculate.weight = updatedWeight;
-                    orderCalculate.tonnage = updatedTonnage;
+                    // double updatedBookingValue = bookingValue + sum;
+                    // double updatedQuantity = qty + quantitySum;
+                    // double updatedWeight = weight + weightSum;
+                    // double updatedTonnage = tonnage + tonnageSum;
+                    orderCalculate.bookingValue = sum;
+                    orderCalculate.qty = quantitySum;
+                    orderCalculate.weight = weightSum;
+                    orderCalculate.tonnage = tonnageSum;
+                    orderCalculate.shopId = orderModel.shopId;
                     var box = await Hive.openBox("orderBox");
                     box.put("order", orderList);
 
@@ -356,13 +401,20 @@ class _OrderDetailState extends State<OrderDetail> {
 
                     int orderListLength = shopServiceController.orderList.length;
                     int reasonLength = syncNowController.reasonModelList.where((p0) => p0.reason == "Invoice").length;
-                    double llpLength = orderListLength/reasonLength;
+                    double llpLength = 0.0;
+
+                    if (reasonLength != 0) {
+                      llpLength = orderListLength / reasonLength;
+                    } else {
+                      llpLength = 0.0; // or any other value you prefer
+                    }
 
                     orderCalculate.llpc = llpc + llpLength;
 
-
-                    syncNowController.orderCalculationModel.value = orderCalculate;
                     HiveDatabase.setOrderCalculation("orderCalculateBox", "orderCalculate", orderCalculate);
+                    OrderCalculationModel getOrderCalculate = await HiveDatabase.getOrderCalculation("orderCalculateBox", "orderCalculate");
+
+                    syncNowController.orderCalculationModel.value = getOrderCalculate;
 
                     Get.back();
                     Get.back();

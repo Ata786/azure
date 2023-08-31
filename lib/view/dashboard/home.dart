@@ -23,6 +23,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../controllers/shopServiceController.dart';
 import '../../data/postApis.dart';
 import '../../model/orderCalculations.dart';
+import '../../model/orderModel.dart';
 import '../../res/images.dart';
 import '../../utils/widgets/appWidgets.dart';
 
@@ -132,8 +133,6 @@ class _HomeState extends State<Home> {
   }
 
 
-
-
   @override
   Widget build(BuildContext context) {
     UserController userController = Get.find<UserController>();
@@ -211,7 +210,7 @@ class _HomeState extends State<Home> {
                 ),
               ),
             Obx(() => ListTile(
-              onTap: syncNowController.check.value == true ? (){} : ()async{
+              onTap: syncNowController.checkSyncUp.value == true || syncNowController.check.value == true ? (){} : ()async{
                 var box = await Hive.openBox("attendance");
                 String attendance = box.get('markAttendance');
 
@@ -250,7 +249,7 @@ class _HomeState extends State<Home> {
               ),
             )),
               Obx(() => ListTile(
-                onTap: syncNowController.check.value == true ? (){} : (){
+                onTap: syncNowController.checkSyncUp.value == true || syncNowController.check.value == true ? (){} : (){
                   setState(() {
                     page = 0;
                     _scaffoldKey.currentState!.closeDrawer();
@@ -268,8 +267,8 @@ class _HomeState extends State<Home> {
                   width: FetchPixels.getPixelWidth(20),
                 ),
               )),
-              ListTile(
-                onTap: (){
+              Obx(() => ListTile(
+                onTap: syncNowController.checkSyncUp.value == true ? (){} : (){
                   showSyncDownDialog(onTap: ()async{
                     Get.back();
                     var box1 = await Hive.openBox("syncDownList");
@@ -298,14 +297,11 @@ class _HomeState extends State<Home> {
                     box11.delete("shopSector");
                     box12.delete("shopStatus");
                     box13.delete("orderCalculate");
-                    // syncDownApi(context);
-                    // await getWeekPerformance(context: context);
-                    // getMonthlyPerformance(context: context);
-                    // getProducts(context: context);
-                    // getReasons(context);
-                    // getCategoryName(context);
-                    // getRateDetails(context);
-                    // await getShopTexData(context);
+                    syncNowController.syncDownList.clear();
+                    syncNowController.reasonModelList.clear();
+                    syncNowController.nonProductiveList.clear();
+                    syncNowController.searchList.clear();
+                    syncNowController.orderCalculationModel.value = OrderCalculationModel();
                     allApis();
                   });
                 },
@@ -336,9 +332,9 @@ class _HomeState extends State<Home> {
                   height: FetchPixels.getPixelHeight(20),
                   width: FetchPixels.getPixelWidth(20),
                 ),
-              ),
+              )),
               Obx(() => ListTile(
-                onTap: syncNowController.check.value == true ? (){} : (){
+                onTap: syncNowController.checkSyncUp.value == true || syncNowController.check.value == true ? (){} : (){
                   setState(() {
                     page = 1;
                     _scaffoldKey.currentState!.closeDrawer();
@@ -358,7 +354,7 @@ class _HomeState extends State<Home> {
                 ),
               )),
               Obx(() => ListTile(
-                onTap: syncNowController.check.value == true ? (){} : (){
+                onTap: syncNowController.checkSyncUp.value == true || syncNowController.check.value == true ? (){} : (){
                   setState(() {
                     page = 2;
                     _scaffoldKey.currentState!.closeDrawer();
@@ -379,7 +375,15 @@ class _HomeState extends State<Home> {
               )),
               Obx(() => ListTile(
                 onTap: syncNowController.check.value == true ? (){} : (){
-                  HiveDatabase.getReasonData("reasonNo", "reason");
+                  // HiveDatabase.getReasonData("reasonNo", "reason");
+                  showSyncUpDialog(onTap: (){
+                    if(syncNowController.checkSyncUp.value == true){
+                      syncNowController.checkSyncUp.value = false;
+                    }else{
+                      syncNowController.checkSyncUp.value = true;
+                    }
+                    Get.back();
+                  });
                 },
                 minLeadingWidth: FetchPixels.getPixelWidth(20),
                 title: textWidget(
@@ -394,7 +398,7 @@ class _HomeState extends State<Home> {
                 ),
               )),
               Obx(() => ListTile(
-                onTap: syncNowController.check.value == true ? (){} : (){
+                onTap: syncNowController.checkSyncUp.value == true || syncNowController.check.value == true ? (){} : (){
                   Get.toNamed(CREDIT_LIST);
                 },
                 minLeadingWidth: FetchPixels.getPixelWidth(20),
@@ -410,7 +414,7 @@ class _HomeState extends State<Home> {
                 ),
               )),
               Obx(() => ListTile(
-                onTap: syncNowController.check.value == true ? (){} : ()async{
+                onTap: syncNowController.checkSyncUp.value == true || syncNowController.check.value == true ? (){} : ()async{
                   Get.dialog(
                       AlertDialog(content: Container(
                         height: FetchPixels.getPixelHeight(100),
@@ -480,7 +484,7 @@ class _HomeState extends State<Home> {
         items: [
           BottomNavigationBarItem(
               icon: Image.asset(performance,
-                  color: page == 0 ? themeColor : null,
+                  color: page == 0 ? themeColor : Color(0xffE0E0E0),
                   height: FetchPixels.getPixelHeight(page == 0 ? 45 : 35),
                   width: FetchPixels.getPixelWidth(page == 0 ? 45 : 35)),
               label: "Performance"),

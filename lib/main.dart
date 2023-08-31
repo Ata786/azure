@@ -1,6 +1,7 @@
 import 'package:SalesUp/controllers/UserController.dart';
 import 'package:SalesUp/model/NewShopModel.dart';
 import 'package:SalesUp/model/categoryName.dart';
+import 'package:SalesUp/model/historyModel.dart';
 import 'package:SalesUp/model/monthPerformanceModel.dart';
 import 'package:SalesUp/model/orderCalculations.dart';
 import 'package:SalesUp/model/orderModel.dart';
@@ -16,6 +17,7 @@ import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'model/creditModel.dart';
 import 'model/reasonName.dart';
 import 'model/reasonsModel.dart';
 import 'model/reateDetailModel.dart';
@@ -36,14 +38,15 @@ void main() async {
     ..registerAdapter(ReasonsModelAdapter())
     ..registerAdapter(CategoryNameModelAdapter())
     ..registerAdapter(RateDetailModelAdapter())
-    ..registerAdapter(RateDetailAdapter())
     ..registerAdapter(OrderModelAdapter())
     ..registerAdapter(OrderDataModelAdapter())
     ..registerAdapter(ShopsStatusModelAdapter())
     ..registerAdapter(ShopTypeModelAdapter())
     ..registerAdapter(ShopSectorModelAdapter())
     ..registerAdapter(NewShopModelHiveAdapter())
-    ..registerAdapter(OrderCalculationModelAdapter());
+    ..registerAdapter(OrderCalculationModelAdapter())
+    ..registerAdapter(HistoryModelHiveAdapter())
+    ..registerAdapter(CreditModelAdapter());
 
   runApp(MyApp());
 }

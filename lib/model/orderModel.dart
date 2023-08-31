@@ -125,6 +125,7 @@ class OrderModelAdapter extends TypeAdapter<OrderModel> {
       orderNumber: reader.read(),
       weight: reader.read(),
       tonnage: reader.read(),
+      orderDataModel: reader.read()
     );
   }
 
@@ -143,6 +144,7 @@ class OrderModelAdapter extends TypeAdapter<OrderModel> {
     writer.write(obj.orderNumber);
     writer.write(obj.weight);
     writer.write(obj.tonnage);
+    writer.write(obj.orderDataModel);
   }
 }
 

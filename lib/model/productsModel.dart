@@ -6,7 +6,7 @@ class ProductsModel {
   String? pname;
   dynamic wgm;
   String? brandName;
-  String? tonnageperpcs;
+  double? tonagePerPcs;
   dynamic retail;
   dynamic netRate;
   dynamic quantity;
@@ -21,7 +21,7 @@ class ProductsModel {
         this.pname,
         this.wgm,
         this.brandName,
-      this.tonnageperpcs,
+      this.tonagePerPcs,
       this.retail,
       this.netRate,
       this.quantity,
@@ -37,7 +37,7 @@ class ProductsModel {
     pname = json['pname'];
     wgm = json['wgm'];
     brandName = json['brandName'];
-    tonnageperpcs = json['tonnageperpcs'];
+    tonagePerPcs = json['tonagePerPcs'];
     retail = json['retail'];
     netRate = json['netRate'];
     quantity = json['quantity'];
@@ -54,7 +54,7 @@ class ProductsModel {
     data['pname'] = this.pname;
     data['wgm'] = this.wgm;
     data['brandName'] = this.brandName;
-    data['tonnageperpcs'] = this.tonnageperpcs;
+    data['tonagePerPcs'] = this.tonagePerPcs;
     data['retail'] = this.retail;
     data['netRate'] = this.netRate;
     data['quantity'] = this.quantity;

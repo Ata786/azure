@@ -39,7 +39,7 @@ class _SplashState extends State<Splash> {
      OfficeCodeModel officeCodeModel = OfficeCodeModel.fromJson(officeData);
      userController.officeCode = officeCodeModel.obs;
      if(officeCodeModel.isCode == false){
-       Get.toNamed(OFFICE_CODE_SCREEN);
+       Get.offNamed(OFFICE_CODE_SCREEN);
      }else{
        String? user = await getUserDataSp('user');
        if(user != null){
@@ -51,19 +51,19 @@ class _SplashState extends State<Splash> {
            UserModel userModel = UserModel.fromJson(userMap);
            userController.user = userModel.obs;
            if(userModel.isLogin == true){
-             Get.toNamed(HOME);
+             Get.offNamed(HOME);
            }else{
-             Get.toNamed(SIGN_IN_SCREEN);
+             Get.offNamed(SIGN_IN_SCREEN);
            }
 
          });
        }else{
-         Get.toNamed(SIGN_IN_SCREEN);
+         Get.offNamed(SIGN_IN_SCREEN);
        }
       }
 
     }else{
-      Get.toNamed(OFFICE_CODE_SCREEN);
+      Get.offNamed(OFFICE_CODE_SCREEN);
     }
 
   }

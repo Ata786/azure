@@ -11,6 +11,7 @@ import '../../model/categoryName.dart';
 import '../../model/reasonName.dart';
 import '../../res/base/fetch_pixels.dart';
 import '../../res/colors.dart';
+import '../../view/NewShops.dart';
 import '../routes/routePath.dart';
 import 'appWidgets.dart';
 
@@ -115,15 +116,82 @@ Widget allStores({required SyncNowController syncNowController,required UserCont
                           child: InkWell(
                             onTap: (){
                               if(syncNowController.searchList[index].gprs == null || syncNowController.searchList[index].gprs!.isEmpty || syncNowController.searchList[index].gprs == "0" ){
-                                Fluttertoast.showToast(
-                                    msg: "Location is not define",
-                                    toastLength: Toast.LENGTH_LONG,
-                                    gravity: ToastGravity.CENTER,
-                                    timeInSecForIosWeb: 1,
-                                    backgroundColor: themeColor,
-                                    textColor: Colors.white,
-                                    fontSize: 16.0
-                                );
+                                Get.dialog(AlertDialog(
+                                  content: Container(
+                                    height:
+                                    FetchPixels.getPixelHeight(100),
+                                    width: FetchPixels.width,
+                                    child: Column(
+                                      children: [
+                                        textWidget(
+                                          textColor: Colors.black,
+                                          text:
+                                          "Do you want to edit this shop record?",
+                                          fontSize:
+                                          FetchPixels.getPixelHeight(
+                                              16),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                        SizedBox(
+                                          height:
+                                          FetchPixels.getPixelHeight(
+                                              20),
+                                        ),
+                                        Row(
+                                          mainAxisAlignment:
+                                          MainAxisAlignment
+                                              .spaceEvenly,
+                                          children: [
+                                            InkWell(
+                                              onTap: () {
+                                                Get.back();
+                                              },
+                                              child: Card(
+                                                child: Padding(
+                                                  padding:
+                                                  EdgeInsets.all(5.0),
+                                                  child: textWidget(
+                                                      text: "No",
+                                                      fontSize: FetchPixels
+                                                          .getPixelHeight(
+                                                          15),
+                                                      fontWeight:
+                                                      FontWeight.w600,
+                                                      textColor:
+                                                      Colors.red),
+                                                ),
+                                              ),
+                                            ),
+                                            InkWell(
+                                              onTap: () async {
+                                                Get.back();
+                                                await HiveDatabase.getShopType("shopTypeBox", "shopType");
+                                                await HiveDatabase.getShopSector("shopSectorBox", "shopSector");
+                                                await HiveDatabase.getShopStatus('shopStatusBox', "shopStatus");
+                                                Get.to(NewShops(sr: syncNowController.searchList[index].sr,));
+                                                 },
+                                              child: Card(
+                                                child: Padding(
+                                                  padding:
+                                                  EdgeInsets.all(5.0),
+                                                  child: textWidget(
+                                                      text: "Yes",
+                                                      fontSize: FetchPixels
+                                                          .getPixelHeight(
+                                                          15),
+                                                      fontWeight:
+                                                      FontWeight.w600,
+                                                      textColor:
+                                                      Colors.green),
+                                                ),
+                                              ),
+                                            )
+                                          ],
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                ));
                               }else{
                                 String lat = userController.latitude.toString();
                                 String lon = userController.longitude.toString();

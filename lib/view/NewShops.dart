@@ -95,9 +95,11 @@ class _NewShopsState extends State<NewShops> {
       ownerCnicCtr = TextEditingController(text: syncDownModel.cnic ?? "");
       strnCtr = TextEditingController(text: syncDownModel.tax ?? "");
       ntnCtr = TextEditingController(text: syncDownModel.myntn);
-      latLng = syncDownModel.gprs!.split(',');
-      lat = double.tryParse(latLng[0])!;
-      lon = double.tryParse(latLng[1])!;
+     if(syncDownModel.gprs != null){
+       latLng = syncDownModel.gprs!.split(',');
+       lat = double.tryParse(latLng[0])!;
+       lon = double.tryParse(latLng[1])!;
+     }
     }
 
     if(widget.todayShopEdit == true){
@@ -495,6 +497,7 @@ class _NewShopsState extends State<NewShops> {
                                                 syncNowController.searchList[dataIndex].picture = shopImage;
                                                 syncNowController.searchList[dataIndex].statusId =
                                                     salesTaxSr;
+                                                syncNowController.searchList[dataIndex].isEdit = true;
 
                                                 box.put(
                                                     "syncDown", syncNowController.searchList);

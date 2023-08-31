@@ -1,15 +1,17 @@
 import 'package:hive/hive.dart';
 
 class OrderCalculationModel {
+  int? shopId;
   double? bookingValue;
   double? llpc;
   double? qty;
   double? weight;
   double? tonnage;
 
-  OrderCalculationModel({this.bookingValue, this.llpc, this.qty, this.weight,this.tonnage});
+  OrderCalculationModel({this.shopId,this.bookingValue, this.llpc, this.qty, this.weight,this.tonnage});
 
   OrderCalculationModel.fromJson(Map<String, dynamic> json) {
+    shopId = json['shopId'];
     bookingValue = json['bookingValue'];
     llpc = json['llpc'];
     qty = json['qty'];
@@ -19,6 +21,7 @@ class OrderCalculationModel {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['shopId'] = this.shopId;
     data['bookingValue'] = this.bookingValue;
     data['llpc'] = this.llpc;
     data['qty'] = this.qty;
@@ -36,6 +39,7 @@ class OrderCalculationModelAdapter extends TypeAdapter<OrderCalculationModel> {
   @override
   OrderCalculationModel read(BinaryReader reader) {
     return OrderCalculationModel(
+      shopId: reader.read(),
       bookingValue: reader.read(),
       llpc: reader.read(),
       qty: reader.read(),
@@ -46,6 +50,7 @@ class OrderCalculationModelAdapter extends TypeAdapter<OrderCalculationModel> {
 
   @override
   void write(BinaryWriter writer, OrderCalculationModel obj) {
+    writer.write(obj.shopId);
     writer.write(obj.bookingValue);
     writer.write(obj.llpc);
     writer.write(obj.qty);

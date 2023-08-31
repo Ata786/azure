@@ -1,7 +1,10 @@
+import 'dart:developer';
+
 import 'package:SalesUp/controllers/UserController.dart';
 import 'package:SalesUp/controllers/shopServiceController.dart';
 import 'package:SalesUp/data/hiveDb.dart';
 import 'package:SalesUp/model/orderModel.dart';
+import 'package:SalesUp/model/productsModel.dart';
 import 'package:SalesUp/model/reateDetailModel.dart';
 import 'package:SalesUp/res/base/fetch_pixels.dart';
 import 'package:SalesUp/res/colors.dart';
@@ -30,12 +33,30 @@ class _StoreScreenState extends State<StoreScreen> {
   double distance = 0.0;
   String imagePath = '';
   OrderModel? orderModel;
+  Map<String,dynamic> argument = {};
+  late ShopServiceController shopServiceController;
+  late bool isEdit;
+  String searchQuery = '';
+
+  @override
+  void initState() {
+    getArgs();
+    super.initState();
+  }
+
+  void getArgs(){
+    shopServiceController = Get.find<ShopServiceController>();
+    argument = Get.arguments as Map<String,dynamic>;
+    isEdit = argument['isEdit'];
+    if(argument['isEdit'] == true){
+      shopServiceController.checkIn.value = int.tryParse(argument['sr'])!;
+      imagePath = argument['image'];
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     UserController userController = Get.find<UserController>();
-    ShopServiceController shopServiceController = Get.find<ShopServiceController>();
-    Map<String,dynamic> argument = Get.arguments as Map<String,dynamic>;
     FetchPixels(context);
     return Scaffold(
       bottomSheet: Padding(
@@ -84,26 +105,29 @@ class _StoreScreenState extends State<StoreScreen> {
                       if(imagePath == ""){
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Image is required"),behavior: SnackBarBehavior.floating,));
                       }else{
-                        // if(shopServiceController.checkIn.value == argument['sr']){
-                        //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Your are already in order"),behavior: SnackBarBehavior.floating,));
-                        // }else{
-                        //
-                        // }
-                        shopServiceController.checkIn.value = argument['sr'];
-                        String gprs = argument['gprs'];
-                        List<String> gprsLatLng = gprs.split(',');
-                        double? lat = double.tryParse(gprsLatLng[0]);
-                        double? lon = double.tryParse(gprsLatLng[1]);
-                        double dis = Geolocator.distanceBetween(userController.latitude, userController.longitude, lat ?? 0.0, lon ?? 0.0);
-                        distance = dis;
-                        String formattedDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
-                        List<OrderModel> orderList = await HiveDatabase.getOrderData("orderBox", "order");
-                        int length = orderList.where((element) => element.shopId == argument['sr']).length;
-                        orderModel = OrderModel(shopId: argument['sr'],pjpNo: "0",pjpDate: formattedDate,
-                            bookerId: userController.user!.value.catagoryId,invoiceStatus: "Pending",orderNumber: length+1,
-                            userId: userController.user!.value.id,replace: "0",reason: "Pending",checkIn: distance.toString(),
-                            image: imagePath,orderDataModel: OrderDataModel());
-                        shopServiceController.orderList.add(orderModel!);
+                        if(argument['isEdit'] == false){
+                          shopServiceController.checkIn.value = argument['sr'];
+                          String gprs = argument['gprs'];
+                          List<String> gprsLatLng = gprs.split(',');
+                          double? lat = double.tryParse(gprsLatLng[0]);
+                          double? lon = double.tryParse(gprsLatLng[1]);
+                          double dis = Geolocator.distanceBetween(userController.latitude, userController.longitude, lat ?? 0.0, lon ?? 0.0);
+                          distance = dis;
+                          String formattedDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
+                          List<OrderModel> orderList = await HiveDatabase.getOrderData("orderBox", "order");
+                          int length = orderList.where((element) => element.shopId == argument['sr']).length;
+                          orderModel = OrderModel(shopId: argument['sr'],pjpNo: "0",pjpDate: formattedDate,
+                              bookerId: userController.user!.value.catagoryId,invoiceStatus: "Pending",orderNumber: length+1,
+                              userId: userController.user!.value.id,replace: "0",reason: "Pending",checkIn: distance.toString(),
+                              image: imagePath,orderDataModel: OrderDataModel());
+                          shopServiceController.orderList.add(orderModel!);
+                        }else{
+                          distance = double.tryParse(argument['gprs'])!;
+                          if(imagePath != ''){
+                            shopServiceController.orderList[0].image = imagePath;
+                          }
+                          shopServiceController.orderList[0].checkIn = distance.toString();
+                        }
                         setState(() {
 
                         });
@@ -133,7 +157,36 @@ class _StoreScreenState extends State<StoreScreen> {
                             },
                             child: Icon(Icons.search)),
                       )
-                      : searchTextField(controller: searchCtr, hintText: "Search SKU",),
+                      : Container(
+                        height: FetchPixels.getPixelHeight(50),
+                        width: FetchPixels.getPixelWidth(300),
+                        padding: EdgeInsets.only(left: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(7),
+                          border: Border.all(color: Colors.black,width: 1)
+                        ),
+                        child: TextField(
+                          onChanged: (v) {
+                            setState(() {
+                              searchQuery = v.toLowerCase();
+                            });
+                          },
+                          controller: searchCtr,
+                          decoration: InputDecoration(
+                            hintText: "Search SKU",
+                            suffixIcon: InkWell(
+                                onTap: (){
+                                  setState(() {
+                                    search = false;
+                                    searchCtr.text = '';
+                                    searchQuery = '';
+                                  });
+                                },
+                                child: Icon(Icons.close)),
+                          ),
+                        ),
+                      ),
                       SizedBox(height: FetchPixels.getPixelHeight(10),),
                       Align(
                         alignment: Alignment.centerLeft,
@@ -159,17 +212,17 @@ class _StoreScreenState extends State<StoreScreen> {
                         itemBuilder: (context,index){
                           return Obx(() => InkWell(
                             onTap: ()async{
-                              if(shopServiceController.checkIn.value == argument['sr']){
-                                if(orderModel != null){
+                              if(int.tryParse(shopServiceController.checkIn.value.toString())! == int.tryParse(argument['sr'].toString())!){
+                                if(shopServiceController.orderList.length != 0){
                                   Get.dialog(Center(child: CircularProgressIndicator(color: themeColor,)));
                                   List<RateDetailModel> rateDetails = await HiveDatabase.getProductRateDetails("product", "productRate");
                                   Get.back();
                                   shopServiceController.radio.value = 0;
                                   shopServiceController.netRate.value = "";
                                   shopServiceController.quantity.value = 0;
-                                  showStoreProductDialog(argumentSr: argument['sr'],order: orderModel!,shopServiceController: shopServiceController,sr: shopServiceController.productsList[index].sr,productName: shopServiceController.productsList[index].pname ?? "",rateDetail: rateDetails);
+                                  showStoreProductDialog(argumentSr: int.tryParse(argument['sr'].toString())!,shopServiceController: shopServiceController,sr: shopServiceController.productsList[index].sr,productName: shopServiceController.productsList[index].pname ?? "",rateDetail: rateDetails);
                                 }else{
-                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Please CheckIn First"),behavior: SnackBarBehavior.floating,));
+                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("CheckIn First"),behavior: SnackBarBehavior.floating,));
                                 }
                                 }else{
                                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Please CheckIn First"),behavior: SnackBarBehavior.floating,));
@@ -188,13 +241,13 @@ class _StoreScreenState extends State<StoreScreen> {
                                         Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            textWidget(text: shopServiceController.productsList[index].pname ?? '', fontSize: FetchPixels.getPixelHeight(16), fontWeight: FontWeight.w600,textColor: shopServiceController.productsList[index].subTotal == null ? primaryColor : Colors.green),
+                                            textWidget(text: shopServiceController.productsList[index].pname!.trim() ?? '', fontSize: FetchPixels.getPixelHeight(16), fontWeight: FontWeight.w600,textColor: shopServiceController.productsList[index].subTotal != null ? Colors.green : primaryColor),
                                             SizedBox(height: FetchPixels.getPixelHeight(7),),
-                                            textWidget(text: '${shopServiceController.productsList[index].wgm}', fontSize: FetchPixels.getPixelHeight(13), fontWeight: FontWeight.w500,textColor: shopServiceController.productsList[index].subTotal == null ? primaryColor : Colors.green),
+                                            textWidget(text: '${shopServiceController.productsList[index].wgm!.toString().trim()}', fontSize: FetchPixels.getPixelHeight(13), fontWeight: FontWeight.w500,textColor: shopServiceController.productsList[index].subTotal != null ? Colors.green : primaryColor),
                                             SizedBox(height: FetchPixels.getPixelHeight(7),),
-                                            textWidget(text: shopServiceController.productsList[index].brandName ?? '', fontSize: FetchPixels.getPixelHeight(13), fontWeight: FontWeight.w500,textColor: shopServiceController.productsList[index].subTotal == null ? primaryColor : Colors.green),
+                                            textWidget(text: shopServiceController.productsList[index].brandName!.trim() ?? '', fontSize: FetchPixels.getPixelHeight(13), fontWeight: FontWeight.w500,textColor: shopServiceController.productsList[index].subTotal != null ? Colors.green : primaryColor),
                                             SizedBox(height: FetchPixels.getPixelHeight(7),),
-                                            textWidget(text: "${shopServiceController.productsList[index].sr}", fontSize: FetchPixels.getPixelHeight(13), fontWeight: FontWeight.w500,textColor: shopServiceController.productsList[index].subTotal == null ? primaryColor : Colors.green)
+                                            textWidget(text: "${shopServiceController.productsList[index].sr.toString().trim()}", fontSize: FetchPixels.getPixelHeight(13), fontWeight: FontWeight.w500,textColor: shopServiceController.productsList[index].subTotal != null ? Colors.green : primaryColor)
                                           ],
                                         ),
                                         Column(
@@ -205,28 +258,28 @@ class _StoreScreenState extends State<StoreScreen> {
                                             Row(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
-                                                textWidget(text: "Retail", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: shopServiceController.productsList[index].subTotal == null ? primaryColor : Colors.green),
+                                                textWidget(text: "Retail", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: shopServiceController.productsList[index].subTotal != null ? Colors.green : primaryColor),
                                                 SizedBox(width: FetchPixels.getPixelWidth(10),),
-                                                textWidget(text: shopServiceController.productsList[index].retail ==  null ? "0" : "${shopServiceController.productsList[index].retail}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: shopServiceController.productsList[index].subTotal == null ? primaryColor : Colors.green),
+                                                textWidget(text: shopServiceController.productsList[index].retail ==  null ? "0" : "${shopServiceController.productsList[index].retail.toString().trim()}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: shopServiceController.productsList[index].subTotal != null ? Colors.green : primaryColor),
                                               ],
                                             ),
                                             SizedBox(height: FetchPixels.getPixelHeight(7),),
                                             Row(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
-                                                textWidget(text: "Net", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: shopServiceController.productsList[index].subTotal == null ? primaryColor : Colors.green),
+                                                textWidget(text: "Net", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: shopServiceController.productsList[index].subTotal != null ? Colors.green : primaryColor),
                                                 SizedBox(width: FetchPixels.getPixelWidth(10),),
-                                                textWidget(text: shopServiceController.productsList[index].netRate == null ? "0" : "${shopServiceController.productsList[index].netRate}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: shopServiceController.productsList[index].subTotal == null ? primaryColor : Colors.green),
+                                                textWidget(text: shopServiceController.productsList[index].netRate == null ? "0" : "${shopServiceController.productsList[index].netRate.toString().trim()}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: shopServiceController.productsList[index].subTotal != null ? Colors.green : primaryColor),
                                               ],
                                             ),
                                             SizedBox(height: FetchPixels.getPixelHeight(30),),
-                                            textWidget(text: shopServiceController.productsList[index].quantity ==  null ? "0" : "${shopServiceController.productsList[index].quantity}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: shopServiceController.productsList[index].subTotal == null ? primaryColor : Colors.green),
+                                            textWidget(text: shopServiceController.productsList[index].quantity ==  null ? "0" : "${shopServiceController.productsList[index].quantity.toString().trim()}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: shopServiceController.productsList[index].subTotal != null ? Colors.green : primaryColor),
                                             Row(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
-                                                textWidget(text: "Subtotal:", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: shopServiceController.productsList[index].subTotal == null ? primaryColor : Colors.green),
+                                                textWidget(text: "Subtotal:", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: shopServiceController.productsList[index].subTotal != null ? Colors.green : primaryColor),
                                                 SizedBox(width: FetchPixels.getPixelWidth(10),),
-                                                textWidget(text: shopServiceController.productsList[index].subTotal == null ? "0" : "${shopServiceController.productsList[index].subTotal}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: shopServiceController.productsList[index].subTotal == null ? primaryColor : Colors.green),
+                                                textWidget(text: shopServiceController.productsList[index].subTotal == null ? "0" : "${double.tryParse(shopServiceController.productsList[index].subTotal.toString())!.toStringAsFixed(6)}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: shopServiceController.productsList[index].subTotal != null ? Colors.green : primaryColor),
                                               ],
                                             ),
                                           ],
@@ -296,7 +349,6 @@ class _StoreScreenState extends State<StoreScreen> {
       throw 'Could not launch $url';
     }
   }
-
 
 }
 
