@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:SalesUp/res/base/fetch_pixels.dart';
 import 'package:SalesUp/res/colors.dart';
 import 'package:SalesUp/utils/widgets/appWidgets.dart';
@@ -106,7 +108,10 @@ class Dashboard extends StatelessWidget {
             Expanded(
                 child: PageView(
               controller: pageController,
-              physics: NeverScrollableScrollPhysics(),
+              onPageChanged: (p){
+                dashBoardController
+                    .performanceDay.value = p;
+              },
               children: [
                 Obx(() => dashBoardController.weekCheck.value == true ? Center(child: CircularProgressIndicator(color: themeColor,))
                   : dashBoardController.weekPerformanceModel.value.currentPjPShops == null ? SizedBox() : Container(

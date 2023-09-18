@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:SalesUp/controllers/UserController.dart';
@@ -12,16 +13,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive/hive.dart';
-import 'package:image_picker/image_picker.dart';
-
 import '../model/NewShopModel.dart';
-import '../res/fieldvalidation.dart';
 import '../utils/FieldVlidation.dart';
 import '../utils/routes/routePath.dart';
-import '../utils/routes/routes.dart';
 import '../utils/userCurrentLocation.dart';
 import '../utils/widgets/imagePickerDialog.dart';
-import 'dashboard/dashboardPage.dart';
 import 'dashboard/home.dart';
 
 class NewShops extends StatefulWidget {
@@ -75,6 +71,13 @@ class _NewShopsState extends State<NewShops> {
         latLng = widget.newShopModel!.gprs!.split(',');
         lat = double.tryParse(latLng[0])!;
         lon = double.tryParse(latLng[1])!;
+        shopImage = widget.newShopModel!.picture ?? '';
+        salesText = widget.newShopModel!.salesTax!;
+        sector = widget.newShopModel!.sector!;
+        shopType = widget.newShopModel!.shopType!;
+        shopTypeSr = widget.newShopModel!.shopTypeSr!;
+        salesTaxSr = widget.newShopModel!.salesTaxSr!;
+        sectorSr = widget.newShopModel!.sectorSr!;
 
       }else{
         shopNameCtr = TextEditingController();
@@ -336,11 +339,11 @@ class _NewShopsState extends State<NewShops> {
                     ),
                   ),
                   dropDownWidget1("Sales Tax Registered",
-                      syncNowController.shopStatusList, salesText),
+                      syncNowController.shopStatusList, salesText,syncNowController),
                   dropDownWidget2(
-                      "Sector", syncNowController.shopSectorList, sector),
+                      "Sector", syncNowController.shopSectorList, sector,syncNowController),
                   dropDownWidget3(
-                      "Shop Type", syncNowController.shopTypeList, shopType),
+                      "Shop Type", syncNowController.shopTypeList, shopType,syncNowController),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -424,6 +427,9 @@ class _NewShopsState extends State<NewShops> {
                               widget.newShopModel!.myntn = ntnCtr.text;
                               widget.newShopModel!.salesTax = salesText;
                               widget.newShopModel!.picture = shopImage;
+                              widget.newShopModel!.sectorSr = sectorSr;
+                              widget.newShopModel!.salesTaxSr = salesTaxSr;
+                              widget.newShopModel!.shopTypeSr = shopTypeSr;
 
                               List<NewShopModel> newShopsList = await  HiveDatabase.getNewShops("NewShopsBox", "NewShops");
                               int index = newShopsList.indexWhere((element) => element.sr == widget.newShopModel!.sr);
@@ -435,7 +441,8 @@ class _NewShopsState extends State<NewShops> {
                               List<NewShopModel> newShopsList = await  HiveDatabase.getNewShops("NewShopsBox", "NewShops");
                               NewShopModel newShop = NewShopModel(sr: newShopsList.length,shopCode: newShopsList.length,shopType: shopType,sector: sector,salesTax: salesText,
                                   strn: strnCtr.text,shopAddress: shopAddressCtr.text,shopName: shopNameCtr.text,ownerCnic: ownerCnicCtr.text,
-                                  ownerName: ownerNameCtr.text,ownerPhone: ownerNameCtr.text,myntn: ntnCtr.text,picture: shopImage,gprs: '${lat},${lon}');
+                                  ownerName: ownerNameCtr.text,ownerPhone: ownerPhoneCtr.text,myntn: ntnCtr.text,picture: shopImage,gprs: '${lat},${lon}',shopTypeSr: shopTypeSr,salesTaxSr: salesTaxSr,sectorSr: sectorSr);
+                              log('>>> ${newShop.toJson()}');
                               newShopsList.add(newShop);
                               HiveDatabase.setNewShop("NewShopsBox", "NewShops", newShopsList);
                               Get.offNamed(TODAY_NEW_SHOP);
@@ -569,7 +576,7 @@ class _NewShopsState extends State<NewShops> {
     return {marker};
   }
 
-  Widget dropDownWidget1(String label, List<ShopsStatusModel> list, String value) {
+  Widget dropDownWidget1(String label, List<ShopsStatusModel> list, String value,SyncNowController syncNowController) {
     return Container(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -600,10 +607,12 @@ class _NewShopsState extends State<NewShops> {
             value: value,
             onChanged: (newValue) {
               setState(() {
-                value = newValue!;
+                salesText = newValue ?? "";
+                ShopsStatusModel salesSr = syncNowController.shopStatusList.where((p0) => p0.name == newValue).first;
+                salesTaxSr = salesSr.sr ?? 1;
               });
             },
-            items: list.map<DropdownMenuItem<String>>((value) {
+            items: list.map<DropdownMenuItem<String>>((ShopsStatusModel value) {
               return DropdownMenuItem<String>(
                 value: value.name,
                 child: Text(value.name ?? ""),
@@ -616,7 +625,7 @@ class _NewShopsState extends State<NewShops> {
   }
 
 
-  Widget dropDownWidget2(String label, List<ShopSectorModel> list, String value) {
+  Widget dropDownWidget2(String label, List<ShopSectorModel> list, String value,SyncNowController syncNowController) {
     return Container(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -647,7 +656,9 @@ class _NewShopsState extends State<NewShops> {
             value: value,
             onChanged: (newValue) {
               setState(() {
-                value = newValue!;
+                sector = newValue!;
+                ShopSectorModel shopSector = syncNowController.shopSectorList.where((p0) => p0.name == newValue).first;
+                sectorSr = shopSector.sr ?? 1;
               });
             },
             items: list.map<DropdownMenuItem<String>>((value) {
@@ -664,7 +675,7 @@ class _NewShopsState extends State<NewShops> {
 
 
 
-  Widget dropDownWidget3(String label, List<ShopTypeModel> list, String value) {
+  Widget dropDownWidget3(String label, List<ShopTypeModel> list, String value,SyncNowController syncNowController) {
     return Container(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -695,7 +706,9 @@ class _NewShopsState extends State<NewShops> {
             value: value,
             onChanged: (newValue) {
               setState(() {
-                value = newValue!;
+                shopType = newValue!;
+                ShopTypeModel shopTypeModel = syncNowController.shopTypeList.where((p0) => p0.name == newValue).first;
+                shopTypeSr = shopTypeModel.sr ?? 1;
               });
             },
             items: list.map<DropdownMenuItem<String>>((value) {

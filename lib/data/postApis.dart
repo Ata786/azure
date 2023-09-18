@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:SalesUp/data/getApis.dart';
 import 'package:SalesUp/data/sharedPreference.dart';
 import 'package:SalesUp/model/attendenceModel.dart';
@@ -53,6 +54,7 @@ void signInApi(String email,String password,BuildContext context)async{
     );
 
     if(res.statusCode == 200){
+      log(">> error ${res.body}");
       Get.back();
       Map<String,dynamic> dataMap = jsonDecode(res.body);
       dataMap.putIfAbsent("isLogin", () => true);

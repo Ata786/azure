@@ -1,5 +1,3 @@
-import 'package:intl/intl.dart';
-
 class UserModel {
   String? id;
   String? email;
@@ -7,6 +5,7 @@ class UserModel {
   String? userType;
   String? designation;
   int? catagoryId;
+  int? pjpId;
   dynamic attendance;
   bool? isLogin;
 
@@ -18,6 +17,7 @@ class UserModel {
         this.designation,
         this.catagoryId,
         this.attendance,
+        this.pjpId,
       this.isLogin});
 
   UserModel.fromJson(Map<String, dynamic> json) {
@@ -29,6 +29,7 @@ class UserModel {
     catagoryId = json['catagoryId'];
     attendance = json['attendance'] ?? "";
     isLogin = json['isLogin'];
+    pjpId = json['pjpId'];
   }
 
   Map<String, dynamic> toJson() {
@@ -40,6 +41,7 @@ class UserModel {
     data['designation'] = this.designation;
     data['catagoryId'] = this.catagoryId;
     data['attendance'] = this.attendance;
+    data['pjpId'] = this.pjpId;
     return data;
   }
 

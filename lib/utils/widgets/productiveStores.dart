@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:SalesUp/controllers/UserController.dart';
 import 'package:SalesUp/controllers/syncNowController.dart';
 import 'package:flutter/material.dart';
@@ -27,7 +29,7 @@ Widget productiveStore({required SyncNowController syncNowController}) {
             ),
           )
         : ListView.builder(
-            itemCount: syncNowController.reasonModelList.length,
+            itemCount: syncNowController.filteredReasonList.length,
             itemBuilder: (context, index) {
               return Container(
                   height: FetchPixels.getPixelHeight(50),
@@ -48,7 +50,7 @@ Widget productiveStore({required SyncNowController syncNowController}) {
                                         CrossAxisAlignment.start,
                                     children: [
                                       InkWell(
-                                        onTap:syncNowController.reasonModelList[index].reason ==
+                                        onTap:syncNowController.filteredReasonList[index].reason ==
                                             "Invoice" ? (){
 
                                           Get.dialog(AlertDialog(
@@ -100,7 +102,7 @@ Widget productiveStore({required SyncNowController syncNowController}) {
                                                       InkWell(
                                                         onTap: () async {
                                                           Get.back();
-                                                         Get.to(InvoiceScreen(shopId: syncNowController.reasonModelList[index].shopId!));
+                                                         Get.to(InvoiceScreen(shopId: syncNowController.filteredReasonList[index].shopId!));
                                                         },
                                                         child: Card(
                                                           child: Padding(
@@ -129,7 +131,7 @@ Widget productiveStore({required SyncNowController syncNowController}) {
                                         child: textWidget(
                                           textColor: Colors.black,
                                           text: syncNowController
-                                                  .reasonModelList[index]
+                                                  .filteredReasonList[index]
                                                   .shopName ??
                                               "",
                                           fontSize:
@@ -140,7 +142,7 @@ Widget productiveStore({required SyncNowController syncNowController}) {
                                       textWidget(
                                         textColor: Colors.black,
                                         text: syncNowController
-                                                .reasonModelList[index]
+                                                .filteredReasonList[index]
                                                 .reason ??
                                             "",
                                         fontSize:
@@ -155,7 +157,7 @@ Widget productiveStore({required SyncNowController syncNowController}) {
                           ),
                           Row(
                             children: [
-                              syncNowController.reasonModelList[index].reason ==
+                              syncNowController.filteredReasonList[index].reason ==
                                       "Invoice"
                                   ? Image.asset(
                                       checked,
@@ -173,7 +175,7 @@ Widget productiveStore({required SyncNowController syncNowController}) {
                               InkWell(
                                   onTap: () async {
                                     if (syncNowController
-                                            .reasonModelList[index].reason !=
+                                            .filteredReasonList[index].reason !=
                                         "Invoice") {
                                       Get.dialog(AlertDialog(
                                         content: Container(
@@ -234,33 +236,33 @@ Widget productiveStore({required SyncNowController syncNowController}) {
                                                           arguments: {
                                                             "shopName":
                                                                 syncNowController
-                                                                    .reasonModelList[
+                                                                    .filteredReasonList[
                                                                         index]
                                                                     .shopName,
                                                             "reasons": reasons,
                                                             "gprs": syncNowController
-                                                                .reasonModelList[
+                                                                .filteredReasonList[
                                                                     index]
                                                                 .checkIn,
                                                             "shopId":
                                                                 syncNowController
-                                                                    .reasonModelList[
+                                                                    .filteredReasonList[
                                                                         index]
                                                                     .shopId,
                                                             "image":
                                                                 syncNowController
-                                                                    .reasonModelList[
+                                                                    .filteredReasonList[
                                                                         index]
                                                                     .image,
                                                             "isEdit": true,
                                                             "isReason":
                                                                 syncNowController
-                                                                    .reasonModelList[
+                                                                    .filteredReasonList[
                                                                         index]
                                                                     .reason,
                                                             "updateReason":
                                                                 syncNowController
-                                                                        .reasonModelList[
+                                                                        .filteredReasonList[
                                                                     index]
                                                           });
                                                     },
@@ -349,12 +351,16 @@ Widget productiveStore({required SyncNowController syncNowController}) {
                                                             .map((e) =>
                                                             ProductsModel(
                                                               sr: e.sr,
+                                                              rateId: e.rateId,
                                                               pname: e.pname,
                                                               wgm: e.wgm,
                                                               brandName: e
                                                                   .brandName,
                                                               tonagePerPcs: e
                                                                   .tonagePerPcs,
+                                                              weight: e.weight,
+                                                              tonnage: e.tonnage,
+                                                              fixedRate: e.fixedRate,
                                                               netRate: null,
                                                               quantity: null,
                                                               subTotal: null,
@@ -376,9 +382,15 @@ Widget productiveStore({required SyncNowController syncNowController}) {
                                                       await HiveDatabase.getOrderData(
                                                           "orderBox", "order");
 
+                                                      log('>>>> order ${orderList.length}');
+
+                                                      for(int i=0; i<orderList.length; i++){
+                                                        log('>>>> order ${orderList[i].toJson()}');
+                                                      }
+
                                                       HiveDatabase.getReasonData("reasonNo", "reason");
 
-                                                      ReasonModel reasonModel = syncNowController.reasonModelList.where((p0) => p0.shopId == syncNowController.reasonModelList[index].shopId).first;
+                                                      ReasonModel reasonModel = syncNowController.filteredReasonList.where((p0) => p0.shopId == syncNowController.filteredReasonList[index].shopId).first;
 
                                                       OrderModel orderModel = OrderModel(shopId: reasonModel.shopId,pjpNo: reasonModel.pjpnumber,bookerId: reasonModel.bookerId,image: reasonModel.image,
                                                           invoiceStatus: "Pending",reason: "Pending",userId: userController.user!.value.id,replace: "0",checkIn: reasonModel.checkIn,orderDataModel: OrderDataModel());
@@ -387,9 +399,9 @@ Widget productiveStore({required SyncNowController syncNowController}) {
 
                                                       /////////////////////
 
-                                                      //print('>>> ${syncNowController.reasonModelList[index].shopId}');
+                                                      //print('>>> ${syncNowController.filteredReasonList[index].shopId}');
 
-                                                      OrderModel order = orderList.where((element) => element.shopId.toString() == syncNowController.reasonModelList[index].shopId.toString()).first;
+                                                      List<OrderModel> order = orderList.where((element) => element.shopId.toString() == syncNowController.filteredReasonList[index].shopId.toString()).toList();
 
                                                       // print('>>> ${order.shopId}');
 
@@ -413,33 +425,34 @@ Widget productiveStore({required SyncNowController syncNowController}) {
                                                               rateId: e.rateId
                                                             )).toList();
 
-                                                        int productIndex = products.indexWhere((element) =>
-                                                        element.sr == order.orderDataModel!.productId);
+                                                        for (int i = 0; i < products.length; i++) {
+                                                          for (int j = 0; j < order.length; j++) {
+                                                            if (products[i].sr == order[j].orderDataModel!.productId) {
+                                                              ProductsModel product = products[i];
+                                                              product.quantity = order[j].orderDataModel!.quantity;
+                                                              product.netRate = order[j].orderDataModel!.netRate;
+                                                              product.fixedRate = order[j].orderDataModel!.fixedRate;
+                                                              product.subTotal = int.tryParse(order[j].orderDataModel!.quantity.toString())! * double.tryParse(product.fixedRate)!;
+                                                              products[i] = product;
+                                                              break; // No need to continue searching for this product
+                                                            }
+                                                          }
 
-                                                        if (productIndex != -1) {
-                                                          ProductsModel product = products[productIndex];
-                                                          product.quantity = order.orderDataModel!.quantity;
-                                                          product.netRate = order.orderDataModel!.netRate;
-                                                          product.fixedRate = order.orderDataModel!.fixedRate;
-                                                          product.subTotal = int.tryParse(order.orderDataModel!.quantity.toString())! * double.tryParse(product.fixedRate)!;
-
-                                                          products[productIndex] = product;
-
-                                                          await box.put('products',products);
+                                                          await box.put('products', products);
                                                           HiveDatabase.getProducts("productsBox", "products");
 
                                                             Get.back();
                                                             Get.toNamed(STORE, arguments: {
                                                               "shopName": syncNowController
-                                                                  .reasonModelList[index].shopName,
+                                                                  .filteredReasonList[index].shopName,
                                                               "sr": syncNowController
-                                                                  .reasonModelList[index].shopId,
+                                                                  .filteredReasonList[index].shopId,
                                                               "gprs": syncNowController
-                                                                  .reasonModelList[index].checkIn,
+                                                                  .filteredReasonList[index].checkIn,
                                                               "phone": "",
                                                               "isEdit": true,
-                                                              "image": order.image,
-                                                              "orderProductId": order.orderDataModel!.productId
+                                                              "image": order[0].image,
+                                                              "checkIn": double.tryParse(orderModel.checkIn)
                                                             });
 
 
@@ -534,7 +547,7 @@ Widget productiveStore({required SyncNowController syncNowController}) {
                                                     List<OrderModel> list =
                                                     await HiveDatabase.getOrderData(
                                                         "orderBox", "order");
-                                                    OrderModel order = list.where((element) => element.shopId.toString() == syncNowController.reasonModelList[index].shopId.toString()).first;
+                                                    OrderModel order = list.where((element) => element.shopId.toString() == syncNowController.filteredReasonList[index].shopId.toString()).first;
                                                     double qty = getOrderCalculate.qty! - double.tryParse(order.orderDataModel!.quantity.toString())!;
                                                     double weight = getOrderCalculate.weight! - double.tryParse(order.weight.toString())!;
                                                     double tonnage = getOrderCalculate.tonnage! - double.tryParse(order.tonnage.toString())!;
@@ -548,7 +561,7 @@ Widget productiveStore({required SyncNowController syncNowController}) {
 
                                                     String shopId =
                                                         syncNowController
-                                                            .reasonModelList[
+                                                            .filteredReasonList[
                                                                 index]
                                                             .shopId!;
                                                     var syncDownBox =

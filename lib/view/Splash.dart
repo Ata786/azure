@@ -44,8 +44,10 @@ class _SplashState extends State<Splash> {
        String? user = await getUserDataSp('user');
        if(user != null){
          getLocation(context).then((value) {
-           userController.latitude = value!.latitude;
-           userController.longitude = value.longitude;
+          if(value != null){
+            userController.latitude = value.latitude;
+            userController.longitude = value.longitude;
+          }
 
            Map<String,dynamic> userMap = jsonDecode(user);
            UserModel userModel = UserModel.fromJson(userMap);

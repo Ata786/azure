@@ -1,7 +1,6 @@
-import 'dart:developer';
-
 import 'package:SalesUp/controllers/syncNowController.dart';
 import 'package:SalesUp/data/hiveDb.dart';
+import 'package:SalesUp/model/invoiceModel.dart';
 import 'package:SalesUp/model/syncDownModel.dart';
 import 'package:SalesUp/res/colors.dart';
 import 'package:flutter/material.dart';
@@ -23,8 +22,8 @@ class InvoiceScreen extends StatefulWidget {
 class _InvoiceScreenState extends State<InvoiceScreen> {
 
   OrderModel? order;
-  ProductsModel? product;
   SyncDownModel? syncDownModel;
+  List<InvoiceModel> invoiceList = [];
 
   @override
   void initState() {
@@ -39,14 +38,30 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
     List<OrderModel> list =
     await HiveDatabase.getOrderData(
         "orderBox", "order");
+
+    for(int or=0; or<list.length; or++){
+      if(list[or].shopId.toString() == widget.shopId.toString()){
+
+        String netRate = list[or].orderDataModel!.netRate;
+        int quantity = list[or].orderDataModel!.quantity;
+        double weight = list[or].weight;
+
+        var box = await Hive.openBox("productsBox");
+        List<dynamic> data = box.get("products") ?? [];
+        List<ProductsModel> productsList = data.map((e) => ProductsModel(sr: e.sr,pname: e.pname,wgm: e.wgm,brandName: e.brandName,
+            netRate: e.netRate,rateId: e.rateId,quantity: e.quantity,subTotal: e.subTotal,retail: e.retail,weight: e.weight,tonnage: e.tonnage,fixedRate: e.fixedRate,tonagePerPcs: e.tonagePerPcs)).toList();
+
+        for(int i=0; i<productsList.length; i++){
+          if(productsList[i].sr.toString() == list[or].orderDataModel!.productId.toString()){
+            String pName = productsList[i].pname ?? "";
+            invoiceList.add(InvoiceModel(skuName: pName,skuPrice: netRate,weight: weight,qty: quantity));
+          }
+        }
+
+      }
+    }
+
     order = list.where((element) => element.shopId.toString() == widget.shopId.toString()).first;
-
-    var box = await Hive.openBox("productsBox");
-    List<dynamic> data = box.get("products") ?? [];
-    List<ProductsModel> productsList = data.map((e) => ProductsModel(sr: e.sr,pname: e.pname,wgm: e.wgm,brandName: e.brandName,
-        netRate: e.netRate,rateId: e.rateId,quantity: e.quantity,subTotal: e.subTotal,retail: e.retail,weight: e.weight,tonnage: e.tonnage,fixedRate: e.fixedRate,tonagePerPcs: e.tonagePerPcs)).toList();
-    product = productsList.where((element) => element.sr.toString() == order!.orderDataModel!.productId.toString()).first;
-
     syncDownModel = syncNowController.syncDownList.where((p0) => p0.sr.toString() == order!.shopId.toString()).first;
 
     setState(() {
@@ -98,25 +113,27 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                 ],
               ),
             ),
-            Container(
-              height: FetchPixels.getPixelHeight(70),
-              width: FetchPixels.width,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Expanded(
-                      flex: 2,
-                      child: Center(child: Padding(
-                        padding: EdgeInsets.all(3.0),
-                        child: textWidget(textAlign: TextAlign.center,maxLines: 2,text: product == null ? "" : "${product!.pname}", fontSize: FetchPixels.getPixelHeight(13), fontWeight: FontWeight.w500,textColor: primaryColor),
-                      ))),
-                  Expanded(
-                      flex: 2,
-                      child: Center(child: textWidget(text: product == null ? "" : "${order!.orderDataModel!.netRate}", fontSize: FetchPixels.getPixelHeight(13), fontWeight: FontWeight.w500,textColor: primaryColor))),
-                  Expanded(flex: 1,child: Center(child: textWidget(text: "${order == null ? "" : order!.orderDataModel!.quantity}", fontSize: FetchPixels.getPixelHeight(13), fontWeight: FontWeight.w500,textColor: primaryColor))),
-                  Expanded(flex: 2,child: Center(child: textWidget(text: "${order == null ? "" : order!.weight}", fontSize: FetchPixels.getPixelHeight(13), fontWeight: FontWeight.w500,textColor: primaryColor))),
-                ],
-              ),
+            Expanded(
+              child: ListView.builder(
+                  itemCount: invoiceList.length,
+                  itemBuilder: (context,index){
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Expanded(
+                        flex: 2,
+                        child: Center(child: Padding(
+                          padding: EdgeInsets.all(3.0),
+                          child: textWidget(textAlign: TextAlign.center,maxLines: 2,text: "${invoiceList[index].skuName}", fontSize: FetchPixels.getPixelHeight(13), fontWeight: FontWeight.w500,textColor: primaryColor),
+                        ))),
+                    Expanded(
+                        flex: 2,
+                        child: Center(child: textWidget(text: "${invoiceList[index].skuPrice}", fontSize: FetchPixels.getPixelHeight(13), fontWeight: FontWeight.w500,textColor: primaryColor))),
+                    Expanded(flex: 1,child: Center(child: textWidget(text: "${invoiceList[index].qty}", fontSize: FetchPixels.getPixelHeight(13), fontWeight: FontWeight.w500,textColor: primaryColor))),
+                    Expanded(flex: 2,child: Center(child: textWidget(text: "${invoiceList[index].weight}", fontSize: FetchPixels.getPixelHeight(13), fontWeight: FontWeight.w500,textColor: primaryColor))),
+                  ],
+                );
+              }),
             ),
           ],
         ),

@@ -1,5 +1,6 @@
 import 'package:SalesUp/controllers/UserController.dart';
 import 'package:SalesUp/model/NewShopModel.dart';
+import 'package:SalesUp/model/attendenceModel.dart';
 import 'package:SalesUp/model/categoryName.dart';
 import 'package:SalesUp/model/historyModel.dart';
 import 'package:SalesUp/model/monthPerformanceModel.dart';
@@ -46,7 +47,9 @@ void main() async {
     ..registerAdapter(NewShopModelHiveAdapter())
     ..registerAdapter(OrderCalculationModelAdapter())
     ..registerAdapter(HistoryModelHiveAdapter())
-    ..registerAdapter(CreditModelAdapter());
+    ..registerAdapter(CreditModelAdapter())
+    ..registerAdapter(CheckInAdapter())
+    ..registerAdapter(CheckOutAdapter());
 
   runApp(MyApp());
 }

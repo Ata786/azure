@@ -5,6 +5,7 @@ import 'package:SalesUp/res/colors.dart';
 import 'package:SalesUp/utils/widgets/allStoresWidget.dart';
 import 'package:SalesUp/utils/widgets/appWidgets.dart';
 import 'package:SalesUp/view/NonProductive.dart';
+import 'package:SalesUp/view/distributerScreen.dart';
 import 'package:SalesUp/view/sessionTimeOut.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -73,9 +74,15 @@ class _VisitPlanState extends State<VisitPlan> {
                       width: FetchPixels.getPixelWidth(200),
                       child: TextField(
                         onChanged: (v) {
-                          syncNowController.searchList.value = syncNowController.allList
-                              .where((item) => item.shopname!.toLowerCase().contains(v.toLowerCase()))
-                              .toList();
+                          if(page == 1){
+                            syncNowController.filteredReasonList.value = syncNowController.reasonModelList
+                                .where((item) => item.shopName!.toLowerCase().contains(v.toLowerCase()))
+                                .toList();
+                          }else{
+                            syncNowController.searchList.value = syncNowController.allList
+                                .where((item) => item.shopname!.toLowerCase().contains(v.toLowerCase()))
+                                .toList();
+                          }
                         },
                         controller: searchCtr,
                         decoration: InputDecoration(
@@ -85,7 +92,11 @@ class _VisitPlanState extends State<VisitPlan> {
                                 setState(() {
                                   search = false;
                                   searchCtr.text = '';
-                                  syncNowController.searchList.value = syncNowController.allList;
+                                  if(page == 1){
+                                    syncNowController.filteredReasonList.value = syncNowController.reasonModelList;
+                                  }else{
+                                    syncNowController.searchList.value = syncNowController.allList;
+                                  }
                                 });
                               },
                               child: Icon(Icons.close)),
@@ -99,6 +110,9 @@ class _VisitPlanState extends State<VisitPlan> {
                     // Get.dialog(
                     //   SessionTimeOut()
                     // );
+                    Get.dialog(
+                      DistributerScreen()
+                    );
                   },
                   child: buttonWithIcon(
                       color: themeColor,
@@ -310,7 +324,11 @@ class _VisitPlanState extends State<VisitPlan> {
           ),
           Expanded(
             child: PageView(
-              physics: NeverScrollableScrollPhysics(),
+              onPageChanged: (p){
+                setState(() {
+                  page = p;
+                });
+              },
               controller: pageController,
               children: [
                 allStores(syncNowController: syncNowController, userController: userController),

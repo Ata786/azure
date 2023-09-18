@@ -1,5 +1,8 @@
+import 'dart:developer';
+
 import 'package:SalesUp/controllers/dashboardController.dart';
 import 'package:SalesUp/model/NewShopModel.dart';
+import 'package:SalesUp/model/attendenceModel.dart';
 import 'package:SalesUp/model/categoryName.dart';
 import 'package:SalesUp/model/creditModel.dart';
 import 'package:SalesUp/model/historyModel.dart';
@@ -48,7 +51,10 @@ class HiveDatabase {
               myntn: e.myntn,
               typeId: e.typeId,
               statusId: e.statusId,
-              sectorId: e.sectorId)).toList();
+              sectorId: e.sectorId,
+            distributerId: e.distributerId,
+            picture: e.picture
+          )).toList();
       syncNowController.allList.value = syncNowController.syncDownList;
       syncNowController.searchList.value = syncNowController.allList;
     }
@@ -126,6 +132,7 @@ class HiveDatabase {
               image: e.image,
               payment: e.payment,
               pjpnumber: e.pjpnumber)).toList();
+      syncNowController.filteredReasonList.value = syncNowController.reasonModelList;
     }
   }
 
@@ -148,6 +155,7 @@ class HiveDatabase {
               sr: e.sr, pname: e.pname, wgm: e.wgm, brandName: e.brandName,rateId: e.rateId,tonagePerPcs: e.tonagePerPcs,retail: e.retail,
           netRate: e.netRate,quantity: e.quantity,subTotal: e.subTotal,weight: e.weight,fixedRate: e.fixedRate,tonnage: e.tonnage))
           .toList();
+      shopServiceController.filteredProductsList.value = shopServiceController.productsList;
       shopServiceController.checkProducts.value = true;
     }
   }
@@ -335,7 +343,11 @@ class HiveDatabase {
               strn: e.strn,
               salesTax: e.salesTax,
               sector: e.sector,
-              shopType: e.shopType)).toList();
+              shopType: e.shopType,
+            salesTaxSr: e.salesTaxSr,
+            sectorSr: e.sectorSr,
+            shopTypeSr: e.shopTypeSr
+          )).toList();
     }
     return newShops;
   }
@@ -408,6 +420,41 @@ class HiveDatabase {
     return creditModelList;
   }
 
+
+  static Future<void> setCheckInAttendance(String boxName, String key,
+      var data) async {
+    var box = await Hive.openBox(boxName);
+    await box.put(key, data);
+  }
+
+  static Future<CheckIn> getCheckInAttendance(String boxName,
+      String key) async {
+    var box = await Hive.openBox(boxName);
+    var data = box.get(key);
+    CheckIn checkIn = CheckIn();
+    if (data != null) {
+      checkIn = CheckIn(userId: data.userId,latitude: data.latitude,longitude: data.longitude,date: data.date);
+    }
+    return checkIn;
+  }
+
+
+  static Future<void> setCheckOutAttendance(String boxName, String key,
+      var data) async {
+    var box = await Hive.openBox(boxName);
+    await box.put(key, data);
+  }
+
+  static Future<CheckOut> getCheckOutAttendance(String boxName,
+      String key) async {
+    var box = await Hive.openBox(boxName);
+    var data = box.get(key);
+    CheckOut checkOut = CheckOut();
+    if (data != null) {
+      checkOut = CheckOut(userId: data.userId,latitude: data.latitude,longitude: data.longitude,date: data.date);
+    }
+    return checkOut;
+  }
 
 
 

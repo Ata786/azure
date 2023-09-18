@@ -13,8 +13,7 @@ class SyncNowController extends GetxController{
   RxList<SyncDownModel> allList = <SyncDownModel>[].obs;
   RxList<SyncDownModel> searchList = <SyncDownModel>[].obs;
   RxList<ReasonModel> reasonModelList = <ReasonModel>[].obs;
-  RxList<ReasonModel> reasonAllList = <ReasonModel>[].obs;
-  RxList<ReasonModel> reasonSearchList = <ReasonModel>[].obs;
+  RxList<ReasonModel> filteredReasonList = <ReasonModel>[].obs;
   RxList<SyncDownModel> nonProductiveList = <SyncDownModel>[].obs;
 
   RxList<ShopsStatusModel> shopStatusList = <ShopsStatusModel>[].obs;
@@ -22,6 +21,7 @@ class SyncNowController extends GetxController{
   RxList<ShopTypeModel> shopTypeList = <ShopTypeModel>[].obs;
 
   Rx<OrderCalculationModel> orderCalculationModel = OrderCalculationModel().obs;
+
 
 
 }

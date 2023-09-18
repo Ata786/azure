@@ -6,7 +6,6 @@ import 'package:SalesUp/res/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
-import '../../data/hiveDb.dart';
 import '../../model/orderModel.dart';
 import '../../model/productsModel.dart';
 import '../../model/reateDetailModel.dart';
@@ -18,7 +17,9 @@ void showStoreProductDialog({required int argumentSr,required ShopServiceControl
   shopServiceController.netRate.value = rates1[0].netRate!.toStringAsFixed(6);
   Get.dialog(
       AlertDialog(
-        content: StoreProductDialogContent(argumentSr: argumentSr,rates1: rates1,shopServiceController: shopServiceController, sr: sr, productName: productName, rateDetail: rateDetail,),
+        content: Container(
+            height: FetchPixels.height/1.8,
+            child: StoreProductDialogContent(argumentSr: argumentSr,rates1: rates1,shopServiceController: shopServiceController, sr: sr, productName: productName, rateDetail: rateDetail,)),
       )
   );
 
@@ -206,7 +207,6 @@ class _StoreProductDialogContentState extends State<StoreProductDialogContent> {
                     }else{
 
                       int index = widget.shopServiceController.orderList.indexWhere((element) => element.shopId.toString() == widget.argumentSr.toString());
-
                       if (index != -1) {
 
                         OrderModel updatedOrder = widget.shopServiceController.orderList[index];
@@ -234,8 +234,11 @@ class _StoreProductDialogContentState extends State<StoreProductDialogContent> {
                               retail: e.retail,
                               weight: e.weight,
                               tonnage: e.tonnage,
-                              rateId: e.rateId
+                              rateId: e.rateId,
+                            fixedRate: e.fixedRate,
                           )).toList();
+
+
 
                           int productIndex = products.indexWhere((element) => element.sr == widget.sr);
                           if (productIndex != -1) {
@@ -248,15 +251,18 @@ class _StoreProductDialogContentState extends State<StoreProductDialogContent> {
                             product.fixedRate = widget.rates1[widget.shopServiceController.radio.value].netRate!.toStringAsFixed(6);
                             product.weight = double.tryParse(product.wgm.toString())! * int.tryParse(qtyController.text)!;
                             product.tonnage = product.tonagePerPcs ?? 0.0 * int.tryParse(qtyController.text)!;
+
                             products[productIndex] = product;
                             // Update the productsList in the shopServiceController
                             widget.shopServiceController.productsList.value = products;
 
-                            // Update the specific product in the Hive box
-                            box.put("products", products);
+                            //Update the specific product in the Hive box
+                            box.put("products", widget.shopServiceController.productsList);
                             List<dynamic> data = box.get("products") ?? [];
                             if(data.isNotEmpty){
-                              widget.shopServiceController.productsList.value = data.map((e) => ProductsModel(sr: e.sr,pname: e.pname,wgm: e.wgm,brandName: e.brandName,tonagePerPcs: e.tonagePerPcs,retail: e.retail,netRate: e.netRate,subTotal: e.subTotal,quantity: e.quantity,weight: e.weight,tonnage: e.tonnage,fixedRate: e.fixedRate)).toList();
+                              widget.shopServiceController.productsList.value = data.map((e) => ProductsModel(sr: e.sr,pname: e.pname,wgm: e.wgm,brandName: e.brandName,tonagePerPcs: e.tonagePerPcs,retail: e.retail,netRate: e.netRate,subTotal: e.subTotal,quantity: e.quantity,weight: e.weight,tonnage: e.tonnage,fixedRate: e.fixedRate,rateId: e.rateId)).toList();
+                              widget.shopServiceController.filteredProductsList.value = widget.shopServiceController.productsList;
+
                               Get.back();
                             }
                           }else{

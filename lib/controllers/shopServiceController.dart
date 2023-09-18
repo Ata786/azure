@@ -9,6 +9,7 @@ class ShopServiceController extends GetxController{
   Rx<String> image = ''.obs;
 
   RxList<ProductsModel> productsList = <ProductsModel>[].obs;
+  RxList<ProductsModel> filteredProductsList = <ProductsModel>[].obs;
   Rx<bool> checkProducts = false.obs;
   Rx<int> checkIn = 0.obs;
 

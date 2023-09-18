@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:SalesUp/controllers/syncNowController.dart';
 import 'package:SalesUp/data/hiveDb.dart';
 import 'package:SalesUp/model/syncDownModel.dart';
@@ -205,9 +207,10 @@ class _CreditListState extends State<CreditList> {
                                   onTap: (){
                                     double restAmount = billAmount - relisedAmount;
                                     double recoveryAmount = double.tryParse(recoveryControllers[index].text) ?? 0.0;
-
                                     if(recoveryAmount > restAmount){
                                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(behavior: SnackBarBehavior.floating,content: textWidget(text: "Recover Amount should be not increase from Rest Amount",textColor: Colors.white, fontSize: FetchPixels.getPixelHeight(14), fontWeight:FontWeight.w600),));
+                                    }else if(recoveryAmount == 0.0){
+                                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(behavior: SnackBarBehavior.floating,content: textWidget(text: "Recover Amount should be not Empty",textColor: Colors.white, fontSize: FetchPixels.getPixelHeight(14), fontWeight:FontWeight.w600),));
                                     }else{
                                       int creditIndex = creditList.indexWhere((element) => element.shopId == filteredCreditList[index].shopId);
                                       if(creditIndex != -1){
@@ -236,7 +239,7 @@ class _CreditListState extends State<CreditList> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   textWidget(text: "Shop Name",textColor: primaryColor, fontSize: FetchPixels.getPixelHeight(14), fontWeight:FontWeight.w600),
-                                  textWidget(text: "${shopModel.shopname}",textColor: primaryColor, fontSize: FetchPixels.getPixelHeight(14), fontWeight:FontWeight.w600),
+                                  textWidget(text: "${shopModel.shopname!.trim()}",textColor: primaryColor, fontSize: FetchPixels.getPixelHeight(14), fontWeight:FontWeight.w600),
                                 ],
                               )
                             ],),

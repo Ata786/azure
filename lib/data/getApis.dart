@@ -1,4 +1,5 @@
 import "dart:convert";
+import "dart:developer";
 import "package:SalesUp/controllers/UserController.dart";
 import "package:SalesUp/controllers/dashboardController.dart";
 import "package:SalesUp/controllers/shopServiceController.dart";
@@ -6,6 +7,7 @@ import "package:SalesUp/controllers/syncNowController.dart";
 import "package:SalesUp/data/hiveDb.dart";
 import "package:SalesUp/model/categoryName.dart";
 import "package:SalesUp/model/monthPerformanceModel.dart" as month;
+import "package:SalesUp/model/orderModel.dart";
 import "package:SalesUp/model/reasonName.dart";
 import "package:SalesUp/model/reateDetailModel.dart";
 import "package:SalesUp/model/syncDownModel.dart";
@@ -56,7 +58,8 @@ void allApis()async{
         sectorId: e['shops']['sectorId'],
         statusId: e['shops']['statusId'],
         isEdit: false,
-        picture: e['shops']['picture']
+        picture: e['shops']['picture'],
+      distributerId: e['shops']['distributerId']
     ))
         .toList();
     await HiveDatabase.setData("syncDownList", "syncDown", syncDownList);
@@ -147,6 +150,7 @@ void allApis()async{
     HiveDatabase.setProducts("productsBox", "products", productList);
     shopServiceController.checkProducts.value = true;
     shopServiceController.productsList.value = productList;
+    shopServiceController.filteredProductsList.value = shopServiceController.productsList;
 
 
 
@@ -227,6 +231,110 @@ void allApis()async{
         .showSnackBar(SnackBar(content: Text("Error:- ${res.body}")));
   }
 
+}
+
+
+void syncUpApi(Map<String,dynamic> data)async{
+  SyncNowController syncNowController = Get.find<SyncNowController>();
+  try{
+    syncNowController.checkSyncUp.value = true;
+
+    var uri = Uri.parse("$BASE_URL/MobileMaster");
+    var request = http.MultipartRequest('POST', uri);
+
+    request.fields['UserId'] = data['UserId'];
+    request.fields['PjpDate'] = data['PjpDate'];
+    request.fields['InvoiceStatus'] = data['InvoiceStatus'];
+    request.fields['OrderNo'] = data['OrderNo'].toString();
+    request.fields['ShopId'] = data['ShopId'].toString();
+    request.fields['BookerId'] = data['BookerId'].toString();
+    request.fields['CreatedOn'] = data['CreatedOn'];
+    request.fields['ShopImage'] = data['ShopImage'];
+    request.fields['PjPNo'] = data['PjPNo'].toString();
+    request.fields['Reason'] = data['Reason'];
+    request.fields['PaymentType'] = data['PaymentType'];
+    request.fields['PjpNoId'] = data['PjpNoId'].toString();
+    request.fields['CheckIn'] = data['CheckIn'].toString();
+
+    var file = await http.MultipartFile.fromPath(
+      'ShopImage',
+      data['ShopImage'],
+    );
+
+
+    request.files.add(file);
+
+    log('>>> data ${data}');
+
+    // Send the request
+    var response = await request.send();
+    log('>>> ${response.statusCode}');
+    if(response.statusCode == 200){
+      syncNowController.checkSyncUp.value = false;
+      var responseData = await response.stream.toBytes();
+      var responseString = utf8.decode(responseData);
+      Map<String,dynamic> mapData = jsonDecode(responseString);
+      log('>>>> MobileMaster ${mapData}');
+      int masterId = mapData['data']['sr'];
+
+      List<Map<String,dynamic>> list = [];
+
+      Map<String,dynamic> masterDetail = {
+        "mobileMasterId": masterId,
+        "productId": data['productId'],
+        "rateId": data['rateId'] ?? 1,
+        "fixedRate": data['fixedRate'],
+        "netRate": data['netRate'],
+        "quantity": data['quantity'],
+        "replace": data['replace']
+      };
+
+      list.clear();
+      list.add(masterDetail);
+
+      sendMasterDetail(list);
+      
+    }else{
+      syncNowController.checkSyncUp.value = false;
+      ScaffoldMessenger.of(Get.context!)
+          .showSnackBar(SnackBar(content: Text(" 1 Error:- ${response.statusCode}")));
+    }
+  }catch(e){
+    syncNowController.checkSyncUp.value = false;
+    ScaffoldMessenger.of(Get.context!)
+        .showSnackBar(SnackBar(content: Text(" 1 Exception:- ${e.toString()}")));
+  }
+
+}
+
+
+void sendMasterDetail(List<Map<String,dynamic>> data)async{
+  log('>>>> ${data[0]}');
+  SyncNowController syncNowController = Get.find<SyncNowController>();
+  syncNowController.checkSyncUp.value = true;
+  try{
+    
+    var res = await http.post(Uri.parse("$BASE_URL/MobileMaster/MobileDetail"), headers: {'Content-Type': 'application/json'},body: jsonEncode(data));
+
+    log(">>> MobileDetail ${res.statusCode}");
+    if(res.statusCode == 200){
+      syncNowController.checkSyncUp.value = false;
+      ScaffoldMessenger.of(Get.context!)
+          .showSnackBar(SnackBar(content: Text("Data Send Successfully")));
+    }else{
+      log(">>> 2 error ${res.body}");
+      syncNowController.checkSyncUp.value = false;
+      ScaffoldMessenger.of(Get.context!)
+          .showSnackBar(SnackBar(content: Text(" 2 Error:- ${res.body}")));
+    }
+
+  }catch(e){
+    log(">>> 2 exception ${e.toString()}");
+    syncNowController.checkSyncUp.value = false;
+    ScaffoldMessenger.of(Get.context!)
+        .showSnackBar(SnackBar(content: Text(" 2 Exception:- ${e.toString()}")));
+  }
+  
 }
 
 

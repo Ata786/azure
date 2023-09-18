@@ -42,6 +42,7 @@ class _OrderDetailState extends State<OrderDetail> {
         netRate: e.netRate,rateId: e.rateId,quantity: e.quantity,subTotal: e.subTotal,retail: e.retail,weight: e.weight,tonnage: e.tonnage,fixedRate: e.fixedRate,tonagePerPcs: e.tonagePerPcs)).toList();
 
     for(int i=0; i<productsList.length; i++){
+      log('>>>> ${productsList[i].toJson()}');
       totalWeight += double.tryParse(productsList[i].wgm.toString())!;
       totalAmount += double.tryParse(productsList[i].subTotal.toString())!;
       totalQuantity += int.tryParse(productsList[i].quantity.toString())!;
@@ -330,9 +331,13 @@ class _OrderDetailState extends State<OrderDetail> {
                      ordersList.add(order);
                     }
 
+                    log('>>>> length ${ordersList.length}');
+
                    HiveDatabase.setOrderData("orderBox", "order", ordersList);
 
                     List<OrderModel> orderList = await HiveDatabase.getOrderData("orderBox", "order");
+
+                    log('>>>> order length ${orderList.length}');
 
                     OrderCalculationModel orderCalculate = await HiveDatabase.getOrderCalculation("orderCalculateBox", "orderCalculate");
                     double bookingValue = orderCalculate.bookingValue ?? 0.0;
@@ -362,7 +367,7 @@ class _OrderDetailState extends State<OrderDetail> {
                     orderCalculate.qty = quantitySum;
                     orderCalculate.weight = weightSum;
                     orderCalculate.tonnage = tonnageSum;
-                    orderCalculate.shopId = orderModel.shopId;
+                    orderCalculate.shopId = int.tryParse(orderModel.shopId.toString());
                     var box = await Hive.openBox("orderBox");
                     box.put("order", orderList);
 
@@ -390,7 +395,7 @@ class _OrderDetailState extends State<OrderDetail> {
                     syncNowController.searchList.value = syncNowController.allList;
 
                     String formattedDateTime = DateFormat("yyyy-MM-dd HH:mm:ss").format(DateTime.now());
-                    ReasonModel reasonModel = ReasonModel(shopName: syncDownModel.shopname,shopId: syncDownModel.sr.toString(),bookerId: userController.user!.value.catagoryId,checkIn: checkIn.toString(),createdOn: formattedDateTime,image: image,payment: "Nun",reason: "Invoice" ?? '',pjpnumber: "0");
+                    ReasonModel reasonModel = ReasonModel(shopName: syncDownModel.shopname,shopId: syncDownModel.sr.toString(),bookerId: userController.user!.value.catagoryId,checkIn: checkIn.toString(),createdOn: formattedDateTime,image: image,payment: radio == 0 ? "Credit" : radio == 1 ? "Cash" : "Check" ,reason: "Invoice" ?? '',pjpnumber: "0");
                     var box3 = await Hive.openBox("reasonNo");
                     List<dynamic> data = box3.get("reason") ?? [];
                     List<ReasonModel> reasonModelList = data.map((e) => ReasonModel(shopName: e.shopName,shopId: e.shopId,bookerId: e.bookerId,

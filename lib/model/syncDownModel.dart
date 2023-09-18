@@ -56,7 +56,10 @@ class SyncDownModel extends HiveObject implements Comparable<SyncDownModel> {
   @HiveField(17)
   String? picture;
 
-  SyncDownModel({this.shopname, this.address, this.salesInvoiceDate,this.gprs,this.shopCode,this.phone,this.owner,this.sr,this.catagoryId,this.productive,this.cnic,this.tax,this.myntn,this.sectorId,this.statusId,this.typeId,this.isEdit,this.picture});
+  @HiveField(18)
+  int? distributerId;
+
+  SyncDownModel({this.shopname, this.address, this.salesInvoiceDate,this.gprs,this.shopCode,this.phone,this.owner,this.sr,this.catagoryId,this.productive,this.cnic,this.tax,this.myntn,this.sectorId,this.statusId,this.typeId,this.isEdit,this.picture,this.distributerId});
 
   SyncDownModel.fromJson(Map<String, dynamic> json) {
      shopname = json['shops']['shopname'] as String;
@@ -76,6 +79,7 @@ class SyncDownModel extends HiveObject implements Comparable<SyncDownModel> {
      sectorId = json['shops']['sectorId'] as int;
      statusId = json['shops']['statusId'] as int;
      statusId = json['shops']['picture'] as int;
+     statusId = json['shops']['distributerId'] as int;
      isEdit = json['isEdit'] as bool;
   }
 
@@ -99,6 +103,7 @@ class SyncDownModel extends HiveObject implements Comparable<SyncDownModel> {
     data['typeId'] = this.typeId;
     data['statusId'] = this.statusId;
     data['picture'] = this.picture;
+    data['distributerId'] = this.distributerId;
     return data;
   }
 
@@ -134,7 +139,8 @@ class SyncDownModelAdapter extends TypeAdapter<SyncDownModel> {
       ..sectorId = reader.readInt()
       ..typeId = reader.readInt()
       ..isEdit = reader.readBool()
-      ..picture = reader.readString();
+      ..picture = reader.readString()
+      ..distributerId = reader.readInt();
   }
 
   @override
@@ -157,5 +163,6 @@ class SyncDownModelAdapter extends TypeAdapter<SyncDownModel> {
     writer.writeInt(obj.sectorId ?? 0);
     writer.writeBool(obj.isEdit ?? false);
     writer.writeString(obj.picture ?? "");
+    writer.writeInt(obj.distributerId ?? 0);
   }
 }

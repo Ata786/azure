@@ -1,6 +1,7 @@
 import 'package:SalesUp/utils/routes/routePath.dart';
 import 'package:SalesUp/view/NewShops.dart';
 import 'package:SalesUp/view/Splash.dart';
+import 'package:SalesUp/view/attendance.dart';
 import 'package:SalesUp/view/dashboard/home.dart';
 import 'package:SalesUp/view/history.dart';
 import 'package:SalesUp/view/officeCode.dart';
@@ -27,6 +28,7 @@ class Routes{
     GetPage(name: ORDER_DETAIL, page: ()=> OrderDetail()),
     GetPage(name: CREDIT_LIST, page: ()=> CreditList()),
     GetPage(name: TODAY_NEW_SHOP, page: ()=> TodayNewShops()),
+    GetPage(name: ATTENDANCE, page: ()=> AttendanceScreen()),
   ];
 
 }

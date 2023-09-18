@@ -15,6 +15,9 @@ class NewShopModel {
   String? shopType;
   String? picture;
   String? gprs;
+  int? salesTaxSr;
+  int? sectorSr;
+  int? shopTypeSr;
 
   NewShopModel(
       {this.sr,
@@ -30,7 +33,11 @@ class NewShopModel {
         this.sector,
         this.shopType,
         this.picture,
-        this.gprs});
+        this.gprs,
+        this.shopTypeSr,
+        this.sectorSr,
+        this.salesTaxSr
+      });
 
   NewShopModel.fromJson(Map<String, dynamic> json) {
     sr = json['sr'];
@@ -47,6 +54,9 @@ class NewShopModel {
     shopType = json['shopType'];
     picture = json['picture'];
     gprs = json['gprs'];
+    shopTypeSr = json['shopTypeSr'];
+    sectorSr = json['sectorSr'];
+    salesTaxSr = json['salesTaxSr'];
   }
 
   Map<String, dynamic> toJson() {
@@ -65,6 +75,9 @@ class NewShopModel {
     data['shopType'] = this.shopType;
     data['picture'] = this.picture;
     data['gprs'] = this.gprs;
+    data['salesTaxSr'] = this.salesTaxSr;
+    data['shopTypeSr'] = this.shopTypeSr;
+    data['sectorSr'] = this.sectorSr;
     return data;
   }
 }
@@ -92,6 +105,9 @@ class NewShopModelHiveAdapter extends TypeAdapter<NewShopModel> {
     newShop.shopType = reader.readString();
     newShop.picture = reader.readString();
     newShop.gprs = reader.readString();
+    newShop.shopTypeSr = reader.readInt();
+    newShop.sectorSr = reader.readInt();
+    newShop.salesTaxSr = reader.readInt();
     return newShop;
   }
 
@@ -111,5 +127,8 @@ class NewShopModelHiveAdapter extends TypeAdapter<NewShopModel> {
     writer.writeString(newShop.shopType ?? '');
     writer.writeString(newShop.picture ?? '');
     writer.writeString(newShop.gprs ?? '');
+    writer.writeInt(newShop.shopTypeSr ?? 0);
+    writer.writeInt(newShop.sectorSr ?? 0);
+    writer.writeInt(newShop.salesTaxSr ?? 0);
   }
 }
