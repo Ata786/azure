@@ -237,11 +237,11 @@ class _ShopServiceState extends State<ShopService> {
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Image and Distance is required"),behavior: SnackBarBehavior.floating,));
                         }else{
                           String formattedDateTime = DateFormat("yyyy-MM-dd HH:mm:ss").format(DateTime.now());
-                          ReasonModel reasonModel = ReasonModel(shopName: arguments['shopName'],shopId: arguments['shopId'].toString(),bookerId: userController.user!.value.catagoryId,checkIn: distance.toString(),createdOn: formattedDateTime,image: shopServiceController.image.value,payment: "Nun",reason: selectedItem ?? '',pjpnumber: "0");
+                          ReasonModel reasonModel = ReasonModel(shopName: arguments['shopName'],shopId: arguments['shopId'].toString(),bookerId: userController.user!.value.catagoryId,checkIn: distance.toString(),createdOn: formattedDateTime,image: shopServiceController.image.value,payment: "Payment",reason: selectedItem ?? '',pjpnumber: "0");
                           var box = await Hive.openBox("reasonNo");
                           List<dynamic> data = box.get("reason") ?? [];
                           List<ReasonModel> reasonModelList = data.map((e) => ReasonModel(shopName: e.shopName,shopId: e.shopId,bookerId: e.bookerId,
-                              checkIn: e.checkIn,createdOn: e.createdOn,reason: e.reason,image: e.image,payment: "payment",pjpnumber: e.pjpnumber)).toList();
+                              checkIn: e.checkIn,createdOn: e.createdOn,reason: e.reason,image: e.image,payment: e.payment,pjpnumber: e.pjpnumber)).toList();
                           reasonModelList.add(reasonModel);
                           HiveDatabase.setReasonData("reasonNo", "reason", reasonModelList);
                           HiveDatabase.getReasonData("reasonNo", "reason");
@@ -250,12 +250,12 @@ class _ShopServiceState extends State<ShopService> {
                           var syncDown = await Hive.openBox("syncDownList");
                           List<dynamic> syncDownList = syncDown.get("syncDown") ?? [];
                           if(syncDownList.isNotEmpty){
-                            List<SyncDownModel> syncDownModelList = syncDownList.map((e) => SyncDownModel(shopname: e.shopname,address: e.address,salesInvoiceDate: e.salesInvoiceDate,gprs: e.gprs,shopCode: e.shopCode,sr: e.sr,phone: e.phone,owner: e.owner,catagoryId: e.catagoryId,productive: e.productive)).toList();
+                            List<SyncDownModel> syncDownModelList = syncDownList.map((e) => SyncDownModel(shopname: e.shopname,address: e.address,salesInvoiceDate: e.salesInvoiceDate,gprs: e.gprs,shopCode: e.shopCode,sr: e.sr,phone: e.phone,owner: e.owner,catagoryId: e.catagoryId,productive: e.productive,distributerId: e.distributerId,sectorId: e.sectorId,typeId: e.typeId,statusId: e.statusId,salesTax: e.salesTax,tax: e.tax,shopType: e.shopType,picture: e.picture,sector: e.sector,cnic: e.cnic,myntn: e.myntn,isEdit: e.isEdit)).toList();
                             int shopIndex = syncDownModelList.indexWhere((element) => element.sr == arguments['shopId']);
                             syncDownModelList[shopIndex].productive = true;
                             await syncDown.put("syncDown", syncDownModelList);
                             List<dynamic> syncDownUpdatedList = syncDown.get("syncDown") ?? [];
-                            syncNowController.syncDownList.value = syncDownUpdatedList.map((e) => SyncDownModel(shopname: e.shopname,address: e.address,salesInvoiceDate: e.salesInvoiceDate,gprs: e.gprs,shopCode: e.shopCode,sr: e.sr,phone: e.phone,owner: e.owner,catagoryId: e.catagoryId,productive: e.productive)).toList();
+                            syncNowController.syncDownList.value = syncDownUpdatedList.map((e) => SyncDownModel(shopname: e.shopname,address: e.address,salesInvoiceDate: e.salesInvoiceDate,gprs: e.gprs,shopCode: e.shopCode,sr: e.sr,phone: e.phone,owner: e.owner,catagoryId: e.catagoryId,productive: e.productive,distributerId: e.distributerId,sectorId: e.sectorId,typeId: e.typeId,statusId: e.statusId,salesTax: e.salesTax,tax: e.tax,shopType: e.shopType,picture: e.picture,sector: e.sector,cnic: e.cnic,myntn: e.myntn,isEdit: e.isEdit)).toList();
                             syncNowController.allList.value = syncNowController.syncDownList;
                             syncNowController.searchList.value = syncNowController.allList;
                             shopServiceController.image.value = '';

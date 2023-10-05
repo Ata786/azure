@@ -28,7 +28,17 @@ Widget productiveStore({required SyncNowController syncNowController}) {
               color: themeColor,
             ),
           )
-        : ListView.builder(
+        : syncNowController.filteredReasonList.isEmpty
+        ? Center(child: textWidget(
+      textColor: Colors.black,
+      text:
+      "No Productive Shop Found",
+      fontSize:
+      FetchPixels.getPixelHeight(
+          16),
+      fontWeight: FontWeight.w600,
+    ),)
+    : ListView.builder(
             itemCount: syncNowController.filteredReasonList.length,
             itemBuilder: (context, index) {
               return Container(

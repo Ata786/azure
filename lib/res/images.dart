@@ -23,3 +23,4 @@ String basket = "assets/images/basket.png";
 String attReport = "assets/images/attReport.png";
 String dropSize = "assets/images/dropSize.png";
 String sale = "assets/images/sale.png";
+String target = "assets/images/target.png";

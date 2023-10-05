@@ -24,18 +24,21 @@ Widget textWidget(
   );
 }
 
+
 // app text field
 Widget textField(
-    {required controller, required hintText, keyboardType, helperText,suffix,validator}) {
+    {required controller, hintText, keyboardType, helperText,suffix,validator,labelText,onChange,readOnly}) {
   return TextFormField(
     validator: validator,
       controller: controller,
       keyboardType: keyboardType,
+      readOnly: readOnly ?? false,
       autovalidateMode: AutovalidateMode.onUserInteraction,
+      onChanged: onChange,
       decoration: InputDecoration(
         isDense: true,
-        hintText: hintText,
         helperText: helperText,
+        labelText: hintText,
         border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(FetchPixels.getPixelHeight(8)),
             borderSide: BorderSide(color: Colors.black, width: 1)),

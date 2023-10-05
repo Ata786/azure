@@ -2,9 +2,11 @@ import 'dart:developer';
 
 import 'package:SalesUp/controllers/dashboardController.dart';
 import 'package:SalesUp/model/NewShopModel.dart';
+import 'package:SalesUp/model/SetUserLocationModel.dart';
 import 'package:SalesUp/model/attendenceModel.dart';
 import 'package:SalesUp/model/categoryName.dart';
 import 'package:SalesUp/model/creditModel.dart';
+import 'package:SalesUp/model/distributionModel.dart';
 import 'package:SalesUp/model/historyModel.dart';
 import 'package:SalesUp/model/monthPerformanceModel.dart';
 import 'package:SalesUp/model/orderCalculations.dart';
@@ -18,6 +20,7 @@ import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import '../controllers/shopServiceController.dart';
 import '../controllers/syncNowController.dart';
+import '../model/financialYearModel.dart';
 import '../model/orderModel.dart';
 import '../model/reasonName.dart';
 
@@ -27,7 +30,7 @@ class HiveDatabase {
     await box.put(key, data);
   }
 
-  static void getData(String boxName, String key) async {
+  static Future getData(String boxName, String key) async {
     SyncNowController syncNowController = Get.find<SyncNowController>();
     syncNowController.check.value = true;
     var box = await Hive.openBox(boxName);
@@ -53,7 +56,10 @@ class HiveDatabase {
               statusId: e.statusId,
               sectorId: e.sectorId,
             distributerId: e.distributerId,
-            picture: e.picture
+            picture: e.picture,
+            sector: e.sector,
+            salesTax: e.salesTax,
+            shopType: e.shopType
           )).toList();
       syncNowController.allList.value = syncNowController.syncDownList;
       syncNowController.searchList.value = syncNowController.allList;
@@ -433,7 +439,7 @@ class HiveDatabase {
     var data = box.get(key);
     CheckIn checkIn = CheckIn();
     if (data != null) {
-      checkIn = CheckIn(userId: data.userId,latitude: data.latitude,longitude: data.longitude,date: data.date);
+      checkIn = CheckIn(userId: data.userId,latitude: data.latitude,longitude: data.longitude,attendanceDateTime: data.attendanceDateTime,id: data.id);
     }
     return checkIn;
   }
@@ -451,13 +457,76 @@ class HiveDatabase {
     var data = box.get(key);
     CheckOut checkOut = CheckOut();
     if (data != null) {
-      checkOut = CheckOut(userId: data.userId,latitude: data.latitude,longitude: data.longitude,date: data.date);
+      checkOut = CheckOut(userId: data.userId,outLatitude: data.outLatitude,outLongitude: data.outLongitude,outAttendanceDateTime: data.outAttendanceDateTime);
     }
     return checkOut;
   }
 
 
+  ///////////////////////////////////////
 
+
+
+
+  static Future<void> setDistributionList(String boxName, String key,
+      var data) async {
+    var box = await Hive.openBox(boxName);
+    await box.put(key, data);
+  }
+
+
+  static Future<List<DistributionModel>> getDistributionList(String boxName,
+      String key) async {
+    var box = await Hive.openBox(boxName);
+    var data = box.get(key);
+    List<DistributionModel> distributionList = [];
+    if (data != null) {
+      List<dynamic> list = data;
+      distributionList = list.map((e) => DistributionModel(distributorId: e.distributorId,distributorName: e.distributorName,assignedId: e.assignedId)).toList();
+    }
+    return distributionList;
+  }
+
+
+  static Future<void> setFinancialYearList(String boxName, String key,
+      var data) async {
+    var box = await Hive.openBox(boxName);
+    await box.put(key, data);
+  }
+
+
+  static Future<List<FinancialYearModel>> getFinancialYearList(String boxName,
+      String key) async {
+    var box = await Hive.openBox(boxName);
+    var data = box.get(key);
+    List<FinancialYearModel> financialYearList = [];
+    if (data != null) {
+      List<dynamic> list = data;
+      financialYearList = list.map((e) => FinancialYearModel(id: e.id,value: e.value)).toList();
+    }
+    return financialYearList;
+  }
+
+
+
+  static Future<void> setUserLocation(String boxName, String key,
+      var data) async {
+    var box = await Hive.openBox(boxName);
+    await box.put(key, data);
+  }
+
+  static Future<SetUserLocationModel> getUserLocation(String boxName, String key,
+      var data) async {
+
+    var box = await Hive.openBox(boxName);
+    var data = box.get(key);
+
+    SetUserLocationModel setUserLocationModel = SetUserLocationModel();
+    if(data != null){
+      setUserLocationModel = SetUserLocationModel(name: data.name,latitude: data.latitude,longitude: data.longitude,location: data.location);
+    }
+    return setUserLocationModel;
+  }
 
 
 }

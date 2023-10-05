@@ -59,7 +59,9 @@ class SyncDownModel extends HiveObject implements Comparable<SyncDownModel> {
   @HiveField(18)
   int? distributerId;
 
-  SyncDownModel({this.shopname, this.address, this.salesInvoiceDate,this.gprs,this.shopCode,this.phone,this.owner,this.sr,this.catagoryId,this.productive,this.cnic,this.tax,this.myntn,this.sectorId,this.statusId,this.typeId,this.isEdit,this.picture,this.distributerId});
+  String? salesTax,sector,shopType;
+
+  SyncDownModel({this.shopname, this.address, this.salesInvoiceDate,this.gprs,this.shopCode,this.phone,this.owner,this.sr,this.catagoryId,this.productive,this.cnic,this.tax,this.myntn,this.sectorId,this.statusId,this.typeId,this.isEdit,this.picture,this.distributerId,this.salesTax,this.sector,this.shopType});
 
   SyncDownModel.fromJson(Map<String, dynamic> json) {
      shopname = json['shops']['shopname'] as String;
@@ -81,6 +83,9 @@ class SyncDownModel extends HiveObject implements Comparable<SyncDownModel> {
      statusId = json['shops']['picture'] as int;
      statusId = json['shops']['distributerId'] as int;
      isEdit = json['isEdit'] as bool;
+     salesTax = json['shop']['salesTax'] as String;
+     sector = json['shops']['sector'] as String;
+     shopType = json['shops']['shopType'] as String;
   }
 
   Map<String, dynamic> toJson() {
@@ -104,6 +109,9 @@ class SyncDownModel extends HiveObject implements Comparable<SyncDownModel> {
     data['statusId'] = this.statusId;
     data['picture'] = this.picture;
     data['distributerId'] = this.distributerId;
+    data['salesTax'] = this.salesTax;
+    data['sector'] = this.sector;
+    data['shopType'] = this.shopType;
     return data;
   }
 
@@ -140,7 +148,10 @@ class SyncDownModelAdapter extends TypeAdapter<SyncDownModel> {
       ..typeId = reader.readInt()
       ..isEdit = reader.readBool()
       ..picture = reader.readString()
-      ..distributerId = reader.readInt();
+      ..distributerId = reader.readInt()
+      ..salesTax = reader.readString()
+      ..sector = reader.readString()
+      ..shopType = reader.readString();
   }
 
   @override
@@ -158,11 +169,14 @@ class SyncDownModelAdapter extends TypeAdapter<SyncDownModel> {
     writer.writeString(obj.tax ?? '');
     writer.writeString(obj.cnic ?? '');
     writer.writeString(obj.myntn ?? '');
-    writer.writeInt(obj.typeId ?? 0);
     writer.writeInt(obj.statusId ?? 0);
     writer.writeInt(obj.sectorId ?? 0);
+    writer.writeInt(obj.typeId ?? 0);
     writer.writeBool(obj.isEdit ?? false);
     writer.writeString(obj.picture ?? "");
     writer.writeInt(obj.distributerId ?? 0);
+    writer.writeString(obj.salesTax ?? '');
+    writer.writeString(obj.sector ?? '');
+    writer.writeString(obj.shopType ?? '');
   }
 }

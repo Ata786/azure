@@ -14,10 +14,11 @@ class AttendanceReportScreen extends StatefulWidget {
 }
 
 class _AttendanceReportScreenState extends State<AttendanceReportScreen> {
-  List<String> typeDropDown = ["Value","Pcs","Tonnage"];
+  List<String> typeDropDown = ["Select Person"];
 
-  String typeValue = "Value";
-  TextEditingController dateCtr = TextEditingController();
+  String typeValue = "Select Person";
+  TextEditingController fromDateCtr = TextEditingController();
+  TextEditingController toDateCtr = TextEditingController();
   DateTime now = DateTime.now();
 
   @override
@@ -44,15 +45,38 @@ class _AttendanceReportScreenState extends State<AttendanceReportScreen> {
                 ).then((selectedDate) {
                   if(selectedDate != null){
                     String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
-                    dateCtr.text = formattedDate;
+                    fromDateCtr.text = formattedDate;
                   }
                 });
               },
               decoration: InputDecoration(
-                hintText: "Select Date",
+                hintText: "From Date",
                 suffixIcon: Icon(Icons.calendar_month)
               ),
-              controller: dateCtr,
+              controller: fromDateCtr,
+            ),
+            SizedBox(height: FetchPixels.getPixelHeight(20),),
+            TextField(
+              readOnly: true,
+              enabled: true,
+              onTap: (){
+                showDatePicker(
+                  context: context,
+                  initialDate: now,
+                  firstDate: DateTime(1950),
+                  lastDate: DateTime(2050),
+                ).then((selectedDate) {
+                  if(selectedDate != null){
+                    String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
+                    toDateCtr.text = formattedDate;
+                  }
+                });
+              },
+              decoration: InputDecoration(
+                  hintText: "To Date",
+                  suffixIcon: Icon(Icons.calendar_month)
+              ),
+              controller: toDateCtr,
             ),
             SizedBox(height: FetchPixels.getPixelHeight(20),),
             Row(
@@ -68,7 +92,7 @@ class _AttendanceReportScreenState extends State<AttendanceReportScreen> {
                         borderRadius: BorderRadius.circular(7)),
                     child: Text(
                       "Late Arrival",
-                      style: TextStyle(color: Colors.white,fontSize: FetchPixels.getPixelHeight(17),fontWeight: FontWeight.w600),
+                      style: TextStyle(color: blackBrown,fontSize: FetchPixels.getPixelHeight(17),fontWeight: FontWeight.w600),
                     ),
                   ),
                 ),
@@ -83,7 +107,7 @@ class _AttendanceReportScreenState extends State<AttendanceReportScreen> {
                         borderRadius: BorderRadius.circular(7)),
                     child: Text(
                       "List",
-                      style: TextStyle(color: Colors.white,fontSize: FetchPixels.getPixelHeight(17),fontWeight: FontWeight.w600),
+                      style: TextStyle(color: blackBrown,fontSize: FetchPixels.getPixelHeight(17),fontWeight: FontWeight.w600),
                     ),
                   ),
                 ),
@@ -124,7 +148,7 @@ class _AttendanceReportScreenState extends State<AttendanceReportScreen> {
                   borderRadius: BorderRadius.circular(7)),
               child: Text(
                 "Detail",
-                style: TextStyle(color: Colors.white,fontSize: FetchPixels.getPixelHeight(17),fontWeight: FontWeight.w600),
+                style: TextStyle(color: blackBrown,fontSize: FetchPixels.getPixelHeight(17),fontWeight: FontWeight.w600),
               ),
             )
           ],

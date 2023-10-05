@@ -1,8 +1,10 @@
+import 'package:SalesUp/controllers/syncNowController.dart';
 import 'package:SalesUp/res/base/fetch_pixels.dart';
 import 'package:SalesUp/res/colors.dart';
 import 'package:SalesUp/utils/routes/routePath.dart';
 import 'package:SalesUp/utils/widgets/appWidgets.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 
 import '../../data/hiveDb.dart';
@@ -36,10 +38,23 @@ class NewShop extends StatelessWidget {
                     Spacer(),
                     InkWell(
                         onTap: ()async{
-                          await HiveDatabase.getShopType("shopTypeBox", "shopType");
-                          await HiveDatabase.getShopSector("shopSectorBox", "shopSector");
-                          await HiveDatabase.getShopStatus('shopStatusBox', "shopStatus");
-                          Get.to(NewShops(isEdit: false));
+                          SyncNowController syncNowController = Get.find<SyncNowController>();
+                          if(syncNowController.searchList.isEmpty){
+                            Fluttertoast.showToast(
+                                msg: "Please Sync Down",
+                                toastLength: Toast.LENGTH_LONG,
+                                gravity: ToastGravity.CENTER,
+                                timeInSecForIosWeb: 1,
+                                backgroundColor: themeColor,
+                                textColor: Colors.white,
+                                fontSize: 16.0
+                            );
+                          }else{
+                            await HiveDatabase.getShopType("shopTypeBox", "shopType");
+                            await HiveDatabase.getShopSector("shopSectorBox", "shopSector");
+                            await HiveDatabase.getShopStatus('shopStatusBox', "shopStatus");
+                            Get.to(NewShops(isEdit: false));
+                          }
                         },
                         child: Icon(Icons.add,color: themeColor,size: FetchPixels.getPixelHeight(30),))
                   ],

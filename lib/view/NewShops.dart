@@ -1,6 +1,5 @@
 import 'dart:developer';
 import 'dart:io';
-
 import 'package:SalesUp/controllers/UserController.dart';
 import 'package:SalesUp/controllers/syncNowController.dart';
 import 'package:SalesUp/data/hiveDb.dart';
@@ -24,7 +23,9 @@ class NewShops extends StatefulWidget {
   int? sr;
   bool? isEdit,todayShopEdit;
   NewShopModel? newShopModel;
-  NewShops({super.key, this.sr,this.isEdit,this.newShopModel,this.todayShopEdit});
+  SyncDownModel? shop;
+  int? sectorId,statusId,typeId;
+  NewShops({super.key, this.sr,this.isEdit,this.newShopModel,this.todayShopEdit,this.shop,this.sectorId,this.statusId,this.typeId});
 
   @override
   State<NewShops> createState() => _NewShopsState();
@@ -60,7 +61,7 @@ class _NewShopsState extends State<NewShops> {
     SyncNowController syncNowController = Get.find<SyncNowController>();
     if(widget.isEdit == false){
       if(widget.todayShopEdit == true){
-
+        log('>>>> 111');
         shopNameCtr = TextEditingController(text: widget.newShopModel!.shopName ?? "");
         shopAddressCtr = TextEditingController(text: widget.newShopModel!.shopAddress ?? "");
         ownerPhoneCtr = TextEditingController(text: widget.newShopModel!.ownerPhone ?? "");
@@ -78,7 +79,6 @@ class _NewShopsState extends State<NewShops> {
         shopTypeSr = widget.newShopModel!.shopTypeSr!;
         salesTaxSr = widget.newShopModel!.salesTaxSr!;
         sectorSr = widget.newShopModel!.sectorSr!;
-
       }else{
         shopNameCtr = TextEditingController();
         shopAddressCtr = TextEditingController();
@@ -87,8 +87,15 @@ class _NewShopsState extends State<NewShops> {
         ownerCnicCtr = TextEditingController();
         strnCtr = TextEditingController();
         ntnCtr = TextEditingController();
+        salesText = syncNowController.shopStatusList[0].name!;
+        sector = syncNowController.shopSectorList[0].name!;
+        shopType = syncNowController.shopTypeList[0].name!;
+        salesTaxSr = syncNowController.shopStatusList[0].sr!;
+        sectorSr = syncNowController.shopSectorList[0].sr!;
+        shopTypeSr = syncNowController.shopTypeList[0].sr!;
       }
     }else{
+      log('>>> 222');
       syncDownModel = syncNowController.searchList
           .firstWhere((element) => element.sr == widget.sr);
       shopNameCtr = TextEditingController(text: syncDownModel.shopname ?? "");
@@ -98,6 +105,24 @@ class _NewShopsState extends State<NewShops> {
       ownerCnicCtr = TextEditingController(text: syncDownModel.cnic ?? "");
       strnCtr = TextEditingController(text: syncDownModel.tax ?? "");
       ntnCtr = TextEditingController(text: syncDownModel.myntn);
+
+      List<ShopSectorModel> shopSector = syncNowController.shopSectorList.where((p0) => p0.sr.toString() == widget.sectorId.toString()).toList();
+      List<ShopTypeModel> shopTypeModel = syncNowController.shopTypeList.where((p0) => p0.sr.toString() == widget.typeId.toString()).toList();
+      List<ShopsStatusModel> shopsStatusModel = syncNowController.shopStatusList.where((p0) => p0.sr.toString() == widget.statusId.toString()).toList();
+
+      sector = shopSector[0].name!;
+      sectorSr = shopSector[0].sr!;
+
+      shopType = shopTypeModel[0].name!;
+      shopTypeSr = shopTypeModel[0].sr!;
+
+      salesText = shopsStatusModel[0].name!;
+      salesTaxSr = shopsStatusModel[0].sr!;
+
+      if(widget.shop!.picture != null || widget.shop!.picture != ''){
+        shopImage = widget.shop!.picture!;
+      }
+
      if(syncDownModel.gprs != null){
        latLng = syncDownModel.gprs!.split(',');
        lat = double.tryParse(latLng[0])!;
@@ -105,20 +130,11 @@ class _NewShopsState extends State<NewShops> {
      }
     }
 
-    if(widget.todayShopEdit == true){
-      salesText = widget.newShopModel!.salesTax!;
-      sector = widget.newShopModel!.sector!;
-      shopType = widget.newShopModel!.shopType!;
-    }else{
-      salesText = syncNowController.shopStatusList[0].name!;
-      sector = syncNowController.shopSectorList[0].name!;
-      shopType = syncNowController.shopTypeList[0].name!;
-      salesTaxSr = syncNowController.shopStatusList[0].sr!;
-      sectorSr = syncNowController.shopSectorList[0].sr!;
-      shopTypeSr = syncNowController.shopTypeList[0].sr!;
-    }
+
 
   }
+
+  GoogleMapController? googleMapController;
 
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -153,14 +169,14 @@ class _NewShopsState extends State<NewShops> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        textWidget(
-                            text: "Customer Info",
-                            fontSize: FetchPixels.getPixelHeight(13),
-                            fontWeight: FontWeight.w600,
-                            textColor: Colors.black),
-                        SizedBox(
-                          height: FetchPixels.getPixelHeight(5),
-                        ),
+                        // textWidget(
+                        //     text: "Customer Info",
+                        //     fontSize: FetchPixels.getPixelHeight(13),
+                        //     fontWeight: FontWeight.w600,
+                        //     textColor: Colors.black),
+                        // SizedBox(
+                        //   height: FetchPixels.getPixelHeight(5),
+                        // ),
                         textField(
                           validator: (value)=> FieldValidators.validateCustomerInfo(value),
                             controller: shopNameCtr,
@@ -173,14 +189,14 @@ class _NewShopsState extends State<NewShops> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        textWidget(
-                            text: "Customer Address",
-                            fontSize: FetchPixels.getPixelHeight(13),
-                            fontWeight: FontWeight.w600,
-                            textColor: Colors.black),
-                        SizedBox(
-                          height: FetchPixels.getPixelHeight(5),
-                        ),
+                        // textWidget(
+                        //     text: "Customer Address",
+                        //     fontSize: FetchPixels.getPixelHeight(13),
+                        //     fontWeight: FontWeight.w600,
+                        //     textColor: Colors.black),
+                        // SizedBox(
+                        //   height: FetchPixels.getPixelHeight(5),
+                        // ),
                         textField(
                             validator: (value)=> FieldValidators.validateCustomerAddress(value),
                             controller: shopAddressCtr,
@@ -193,14 +209,14 @@ class _NewShopsState extends State<NewShops> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        textWidget(
-                            text: "Owner Phone",
-                            fontSize: FetchPixels.getPixelHeight(13),
-                            fontWeight: FontWeight.w600,
-                            textColor: Colors.black),
-                        SizedBox(
-                          height: FetchPixels.getPixelHeight(5),
-                        ),
+                        // textWidget(
+                        //     text: "Owner Phone",
+                        //     fontSize: FetchPixels.getPixelHeight(13),
+                        //     fontWeight: FontWeight.w600,
+                        //     textColor: Colors.black),
+                        // SizedBox(
+                        //   height: FetchPixels.getPixelHeight(5),
+                        // ),
                         textField(
                             validator: (value)=> FieldValidators.validatePhone(value),
                             controller: ownerPhoneCtr,
@@ -213,14 +229,14 @@ class _NewShopsState extends State<NewShops> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        textWidget(
-                            text: "Owner Name",
-                            fontSize: FetchPixels.getPixelHeight(13),
-                            fontWeight: FontWeight.w600,
-                            textColor: Colors.black),
-                        SizedBox(
-                          height: FetchPixels.getPixelHeight(5),
-                        ),
+                        // textWidget(
+                        //     text: "Owner Name",
+                        //     fontSize: FetchPixels.getPixelHeight(13),
+                        //     fontWeight: FontWeight.w600,
+                        //     textColor: Colors.black),
+                        // SizedBox(
+                        //   height: FetchPixels.getPixelHeight(5),
+                        // ),
                         textField(
                             validator: (value)=> FieldValidators.validateOwnerName(value),
                             controller: ownerNameCtr,
@@ -233,14 +249,14 @@ class _NewShopsState extends State<NewShops> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        textWidget(
-                            text: "Owner Cnic",
-                            fontSize: FetchPixels.getPixelHeight(13),
-                            fontWeight: FontWeight.w600,
-                            textColor: Colors.black),
-                        SizedBox(
-                          height: FetchPixels.getPixelHeight(5),
-                        ),
+                        // textWidget(
+                        //     text: "Owner Cnic",
+                        //     fontSize: FetchPixels.getPixelHeight(13),
+                        //     fontWeight: FontWeight.w600,
+                        //     textColor: Colors.black),
+                        // SizedBox(
+                        //   height: FetchPixels.getPixelHeight(5),
+                        // ),
                         textField(
                             validator: (value)=> FieldValidators.validateOwnerCnic(value),
                             controller: ownerCnicCtr,
@@ -255,19 +271,18 @@ class _NewShopsState extends State<NewShops> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      textWidget(
-                          text: "Shop Location",
-                          fontSize: FetchPixels.getPixelHeight(13),
-                          fontWeight: FontWeight.w500,
-                          textColor: Colors.black),
+                      SizedBox(),
                       Container(
-                        height: FetchPixels.getPixelHeight(100),
-                        width: FetchPixels.getPixelWidth(100),
+                        height: FetchPixels.getPixelHeight(150),
+                        width: FetchPixels.getPixelWidth(150),
                         child: GoogleMap(
                           zoomControlsEnabled: false,
                           initialCameraPosition:
                               CameraPosition(zoom: 12, target: LatLng(lat, lon)),
                           markers: _createMarkers(),
+                          onMapCreated: (controller){
+                            googleMapController = controller;
+                          },
                         ),
                       ),
                     ],
@@ -281,6 +296,9 @@ class _NewShopsState extends State<NewShops> {
                       onTap: () {
                         getLocation(context).then((value) async {
                           setState(() {
+                            if(googleMapController != null){
+                              googleMapController!.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(zoom: 12, target: LatLng(value!.latitude, value.longitude))));
+                            }
                             lat = value!.latitude;
                             lon = value.longitude;
                           });
@@ -304,14 +322,6 @@ class _NewShopsState extends State<NewShops> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        textWidget(
-                            text: "STRN",
-                            fontSize: FetchPixels.getPixelHeight(13),
-                            fontWeight: FontWeight.w600,
-                            textColor: Colors.black),
-                        SizedBox(
-                          height: FetchPixels.getPixelHeight(5),
-                        ),
                         textField(
                             validator: (value)=> FieldValidators.validateStrn(value),
                             controller: strnCtr,
@@ -324,14 +334,6 @@ class _NewShopsState extends State<NewShops> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        textWidget(
-                            text: "NTN",
-                            fontSize: FetchPixels.getPixelHeight(13),
-                            fontWeight: FontWeight.w600,
-                            textColor: Colors.black),
-                        SizedBox(
-                          height: FetchPixels.getPixelHeight(5),
-                        ),
                         textField(
                             validator: (value)=> FieldValidators.validateNtn(value),
                             controller: ntnCtr, hintText: "NTN", helperText: ""),
@@ -498,13 +500,15 @@ class _NewShopsState extends State<NewShops> {
                                                     ownerNameCtr.text;
                                                 syncNowController.searchList[dataIndex].gprs =
                                                 "${lat},${lon}";
-                                                syncNowController.searchList[dataIndex].typeId = shopTypeSr;
-                                                syncNowController.searchList[dataIndex].sectorId = sectorSr;
                                                 syncNowController.searchList[dataIndex].tax = strnCtr.text;
                                                 syncNowController.searchList[dataIndex].picture = shopImage;
-                                                syncNowController.searchList[dataIndex].statusId =
-                                                    salesTaxSr;
+                                                syncNowController.searchList[dataIndex].typeId = shopTypeSr;
+                                                syncNowController.searchList[dataIndex].sectorId = sectorSr;
+                                                syncNowController.searchList[dataIndex].statusId = salesTaxSr;
                                                 syncNowController.searchList[dataIndex].isEdit = true;
+                                                syncNowController.searchList[dataIndex].salesTax = salesText;
+                                                syncNowController.searchList[dataIndex].sector = sector;
+                                                syncNowController.searchList[dataIndex].shopType = shopType;
 
                                                 box.put(
                                                     "syncDown", syncNowController.searchList);

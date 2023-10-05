@@ -7,7 +7,9 @@ import 'package:SalesUp/data/hiveDb.dart';
 import 'package:SalesUp/model/creditModel.dart';
 import 'package:SalesUp/model/orderModel.dart';
 import 'package:SalesUp/model/reasonsModel.dart';
+import 'package:SalesUp/res/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -142,21 +144,34 @@ void deleteMobileMasterData(Map<String,dynamic> deletedData,ReasonModel reasonMo
 
   try{
 
+    SyncNowController syncNowController = Get.find<SyncNowController>();
+    syncNowController.checkSyncUp.value = true;
+    UserController userController = Get.find<UserController>();
+
     var res = await http.delete(Uri.parse("$BASE_URL/MobileMasterData"),body: deletedData);
 
-    Map<String,dynamic> data = {
-      "ShopId": int.tryParse(reasonModel.shopId!),
-      "BookerId": deletedData['BookerId'],
-      "CheckIn": double.tryParse(reasonModel.checkIn!),
-      "CreatedOn": deletedData['CreatedOn'],
-      "Payment": reasonModel.payment,
-      "Reason": reasonModel.reason,
-      "Picture": reasonModel.image
-    };
-    insertMobileMasterData(data,reasonModel.bookerId!);
+    log('>>>> yes 1 ${res.statusCode}');
+    syncNowController.checkSyncUp.value = false;
+
+    HiveDatabase.getReasonData("reasonNo", "reason");
+
+    List<ReasonModel> reasonList = syncNowController.reasonModelList;
+
+    for(int i=0; i<reasonList.length; i++){
+      Map<String,dynamic> data = {
+        "ShopId": int.tryParse(reasonList[i].shopId!),
+        "BookerId": userController.user!.value.id,
+        "CheckIn": double.tryParse(reasonList[i].checkIn!),
+        "CreatedOn": formatDateAndTime(reasonList[i].createdOn!),
+        "Payment": reasonList[i].payment,
+        "Reason": reasonList[i].reason,
+        "Picture": reasonList[i].image
+      };
+      insertMobileMasterData(data);
+    }
+
     if(res.statusCode == 200){
-      ScaffoldMessenger.of(Get.context!)
-          .showSnackBar(SnackBar(content: Text("Data Deleted Successfully")));
+
     }else{
     }
 
@@ -168,14 +183,16 @@ void deleteMobileMasterData(Map<String,dynamic> deletedData,ReasonModel reasonMo
 }
 
 
-void insertMobileMasterData(Map<String,dynamic> data,int bookerId)async{
+void insertMobileMasterData(Map<String,dynamic> data)async{
 
-  UserController userController = Get.find<UserController>();
+  SyncNowController syncNowController = Get.find<SyncNowController>();
+  syncNowController.checkSyncUp.value = true;
   try{
 
     var uri = Uri.parse("$BASE_URL/MobileMasterData");
     var request = http.MultipartRequest('POST', uri);
 
+    log('>>>> yes 2 ');
     request.fields['ShopId'] = data['ShopId'].toString();
     request.fields['BookerId'] = data['BookerId'].toString();
     request.fields['CheckIn'] = data['CheckIn'].toString();
@@ -193,34 +210,9 @@ void insertMobileMasterData(Map<String,dynamic> data,int bookerId)async{
 
     // Send the request
     var response = await request.send();
-
+    log('>>>> insert ${response.statusCode} ');
     if(response.statusCode == 200){
-      ScaffoldMessenger.of(Get.context!)
-          .showSnackBar(SnackBar(content: Text("Data insert successfully")));
-      List<OrderModel> orderList = await HiveDatabase.getOrderData("orderBox", "order");
-      for(int i=0; i<orderList.length; i++){
-        Map<String,dynamic> deletedData = {
-          "PjpDate": formatDateAndTime(orderList[i].pjpDate),
-          "UserId": userController.user!.value.id,
-        };
-        Map<String,dynamic> data1 = {
-          "Sr": int.tryParse(1.toString()),
-          "ShopId": int.tryParse(orderList[i].shopId.toString()),
-          "ProductId": int.tryParse(orderList[i].orderDataModel!.productId.toString()),
-          "RateId": int.tryParse(orderList[i].orderDataModel!.rateId.toString()),
-          "FixedRate": double.tryParse(orderList[i].orderDataModel!.fixedRate.toString()),
-          "NetRate": double.tryParse(orderList[i].orderDataModel!.netRate.toString()),
-          "Quantity": int.tryParse(orderList[i].orderDataModel!.quantity.toString()),
-          "PjpNoId": int.tryParse(orderList[i].pjpNo.toString()),
-          "PjpDate": formatDateAndTime(orderList[i].pjpDate),
-          "BookerId": int.tryParse(bookerId.toString()),
-          "InvoiceStatus": orderList[i].invoiceStatus.toString(),
-          "OrderNo": int.tryParse(orderList[i].orderNumber.toString()),
-          "UserId": userController.user!.value.id,
-          "Replace": int.tryParse(orderList[i].replace.toString()),
-        };
-        deleteMobileDetail(deletedData,data1);
-      }
+      syncNowController.checkSyncUp.value = false;
     }else{
       ScaffoldMessenger.of(Get.context!)
           .showSnackBar(SnackBar(content: Text("Error:- ${response.statusCode}")));
@@ -234,14 +226,40 @@ void insertMobileMasterData(Map<String,dynamic> data,int bookerId)async{
 }
 
 
-void deleteMobileDetail(Map<String,dynamic> deletedData,Map<String,dynamic> data)async{
-
+void deleteMobileDetail(Map<String,dynamic> deletedData,int bookerId)async{
+  SyncNowController syncNowController = Get.find<SyncNowController>();
+  syncNowController.checkSyncUp.value = true;
+  UserController userController = Get.find<UserController>();
   try{
     var res = await http.delete(Uri.parse("$BASE_URL/MobileDetail"),body: deletedData);
-    sendMobileDetailsData(data);
+    syncNowController.checkSyncUp.value = false;
+    log('>>> deleted ${res.statusCode}');
+
+    List<OrderModel> orderList = await HiveDatabase.getOrderData("orderBox", "order");
+
+    for(int i = 0; i<orderList.length; i++){
+      Map<String,dynamic> data1 = {
+        "Sr": int.tryParse(1.toString()),
+        "ShopId": int.tryParse(orderList[i].shopId.toString()),
+        "ProductId": int.tryParse(orderList[i].orderDataModel!.productId.toString()),
+        "RateId": int.tryParse(orderList[i].orderDataModel!.rateId.toString()),
+        "FixedRate": double.tryParse(orderList[i].orderDataModel!.fixedRate.toString()),
+        "NetRate": double.tryParse(orderList[i].orderDataModel!.netRate.toString()),
+        "Quantity": int.tryParse(orderList[i].orderDataModel!.quantity.toString()),
+        "PjpNoId": int.tryParse(userController.user!.value.pjpId.toString()),
+        "PjpDate": formatDateAndTime(orderList[i].pjpDate),
+        "BookerId": bookerId,
+        "InvoiceStatus": orderList[i].invoiceStatus.toString(),
+        "OrderNo": int.tryParse(orderList[i].orderNumber.toString()),
+        "UserId": userController.user!.value.id,
+        "Replace": int.tryParse(orderList[i].replace.toString()),
+      };
+
+      sendMobileDetailsData(data1,orderList,i);
+    }
+
     if(res.statusCode == 200){
-      ScaffoldMessenger.of(Get.context!)
-          .showSnackBar(SnackBar(content: Text("Successfully Delete")));
+
     }
 
   }catch(e){
@@ -252,23 +270,54 @@ void deleteMobileDetail(Map<String,dynamic> deletedData,Map<String,dynamic> data
 }
 
 
-void sendMobileDetailsData(Map<String,dynamic> insertData)async{
+void sendMobileDetailsData(Map<String,dynamic> insertData,List<OrderModel> orderList,int i)async{
 
-  log('>>> data is ${insertData}');
-  // try{
-    var res = await http.post(Uri.parse("$BASE_URL/MobileDetail"),body: insertData);
-    log('>>> insert status ${res.statusCode} and ${res.body}');
-    if(res.statusCode == 200){
+  SyncNowController syncNowController = Get.find<SyncNowController>();
+  syncNowController.checkSyncUp.value = true;
+  try{
+  var request = http.MultipartRequest('POST', Uri.parse("$BASE_URL/MobileDetail"));
+  request.fields['Sr'] = insertData['Sr'].toString();
+  request.fields['ShopId'] = insertData['ShopId'].toString();
+  request.fields['ProductId'] = insertData['ProductId'].toString();
+  request.fields['RateId'] = insertData['RateId'].toString();
+  request.fields['FixedRate'] = insertData['FixedRate'].toString();
+  request.fields['NetRate'] = insertData['NetRate'].toString();
+  request.fields['Quantity'] = insertData['Quantity'].toString();
+  request.fields['PjpNoId'] = insertData['PjpNoId'].toString();
+  request.fields['PjpDate'] = insertData['PjpDate'].toString();
+  request.fields['BookerId'] = insertData['BookerId'].toString();
+  request.fields['InvoiceStatus'] = insertData['InvoiceStatus'].toString();
+  request.fields['OrderNo'] = insertData['OrderNo'].toString();
+  request.fields['UserId'] = insertData['UserId'].toString();
+  request.fields['Replace'] = insertData['Replace'].toString();
 
-    }else{
+  var response = await request.send();
 
-    }
+  log('>>> inserted ${response.statusCode}');
+  syncNowController.checkSyncUp.value = false;
+  if(response.statusCode == 200){
 
-  //
-  // }catch(e){
-  //   ScaffoldMessenger.of(Get.context!)
-  //       .showSnackBar(SnackBar(content: Text("Exception:- ${e.toString()}")));
-  // }
+  }else{
+    ScaffoldMessenger.of(Get.context!)
+        .showSnackBar(SnackBar(content: Text("Error:- ${response.statusCode}")));
+  }
+
+  if(i == orderList.length-1){
+    Fluttertoast.showToast(
+        msg: "SyncUp is Completed",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 1,
+        backgroundColor: themeColor,
+        textColor: Colors.white,
+        fontSize: 16.0
+    );
+  }
+
+  }catch(e){
+    ScaffoldMessenger.of(Get.context!)
+        .showSnackBar(SnackBar(content: Text("Exception:- ${e.toString()}")));
+  }
 
 }
 

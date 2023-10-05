@@ -1,8 +1,13 @@
+import 'dart:developer';
+
+import 'package:SalesUp/model/distributionModel.dart';
 import 'package:SalesUp/res/base/fetch_pixels.dart';
 import 'package:SalesUp/res/colors.dart';
 import 'package:SalesUp/utils/widgets/appWidgets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../controllers/distributionController.dart';
+import '../data/hiveDb.dart';
 
 class DistributerScreen extends StatefulWidget {
   DistributerScreen({super.key});
@@ -14,10 +19,11 @@ class DistributerScreen extends StatefulWidget {
 class _DistributerScreenState extends State<DistributerScreen> {
   TextEditingController searchCtr = TextEditingController();
 
-  bool msValue = false;
+  bool msValue = true;
   bool galaxyValue = false;
   bool madinaValue = false;
   bool i = false;
+  List<int> checkIndex = [];
 
   List<String> companyList = ["Company1","Company2"];
   String companyValue = "Company1";
@@ -34,22 +40,58 @@ class _DistributerScreenState extends State<DistributerScreen> {
   List<String> townList = ["Town1","Town2"];
   String townValue = "Town1";
 
+  List<DistributionModel> distributionList = [];
+  String searchQuery = '';
+
+  @override
+  void initState() {
+    getDistribution();
+    super.initState();
+  }
+
+  bool show = false;
+
+  void getDistribution()async{
+    DistributionController distributionController = Get.find<DistributionController>();
+    distributionList = distributionController.distributionList;
+
+    setState(() {
+
+    });
+  }
+
+
+  void onSearchQueryChanged(String value) {
+    setState(() {
+      searchQuery = value;
+    });
+  }
+
+  List<DistributionModel> getFilteredDistributionList() {
+    return distributionList.where((distribution) => distribution.distributorName
+        !.toLowerCase()
+        .contains(searchQuery.toLowerCase())).toList();
+  }
 
 
   @override
   Widget build(BuildContext context) {
+    DistributionController distributionController = Get.find<DistributionController>();
     FetchPixels(context);
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: themeColor,
-        title:  textWidget(text: "Distributions", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w600,textColor: Colors.white),
         leading: InkWell(
             onTap: (){
+              distributionController.distributorIdList.clear();
+              List<int> selected = distributionController.selectedItems.map((e) => e.distributorId ?? 0).toList();
+              distributionController.distributorIdList.addAll(selected);
               Get.back();
             },
-            child: Center(child: textWidget(text: "Back", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w600,textColor: Colors.white))),
-      ),
+            child: Icon(Icons.arrow_back,color: Colors.white,)),
+        backgroundColor: themeColor,
+        title:  textWidget(text: "Select Distributions", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w600,textColor: Colors.white),
+        ),
       body: Container(
         height: FetchPixels.height,
         width: FetchPixels.width,
@@ -222,15 +264,26 @@ class _DistributerScreenState extends State<DistributerScreen> {
               ) : SizedBox(),
               i == true ? SizedBox(height: FetchPixels.getPixelHeight(10),) : SizedBox(),
               Row(
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Expanded(
+                  show == true ? Expanded(
                     child: Padding(
                       padding: EdgeInsets.symmetric(horizontal: FetchPixels.getPixelWidth(10)),
                       child: textField(
+                          onChange: onSearchQueryChanged,
                           controller: searchCtr,
                           hintText: "Search..."),
                     ),
-                  ),
+                  ) : SizedBox(),
+                  InkWell(
+                      onTap: (){
+                        setState(() {
+                          show = !show;
+                          searchCtr.text = '';
+                        });
+                      },
+                      child: Icon(show == true ? Icons.close : Icons.search)),
+                  SizedBox(width: FetchPixels.getPixelWidth(10)),
                   InkWell(
                     onTap: (){
                       setState(() {
@@ -255,39 +308,85 @@ class _DistributerScreenState extends State<DistributerScreen> {
                 ],
               ),
               SizedBox(height: FetchPixels.getPixelHeight(10),),
-              distributionWidget(onChange: (value){
-                setState(() {
-                  msValue = !msValue;
-                });
-              }, text: "M.S Traders",value: msValue),
-              distributionWidget(onChange: (value){
-                setState(() {
-                  galaxyValue = !galaxyValue;
-                });
-              }, text: "Galaxy United",value: galaxyValue),
-              distributionWidget(onChange: (value){
-                setState(() {
-                  madinaValue = !madinaValue;
-                });
-              }, text: "Madina Traders",value: madinaValue),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  InkWell(
+                    onTap: ()async{
+                      List<DistributionModel> list = await HiveDatabase.getDistributionList("distribution", "distributionBox");
+                      distributionController.distributionList.value = list;
+                      distributionController.distributorIdList.clear();
+                      List<int> distributorIds = list.map((e) => e.distributorId ?? 0).toList();
+                      distributionController.distributorIdList.addAll(distributorIds);
+
+                      distributionController.selectedItems.clear();
+                      distributionController.selectedItems.addAll(list);
+                      setState(() {
+
+                      });
+                    },
+                    child: Container(
+                        margin: EdgeInsets.only(right: FetchPixels.getPixelWidth(10)),
+                        width: FetchPixels.getPixelWidth(80),height: FetchPixels.getPixelHeight(40),
+                        decoration: BoxDecoration(
+                          color: themeColor,
+                        ),
+                        child: Center(
+                          child:    textWidget(text: "Select All", fontSize: FetchPixels.getPixelHeight(11), fontWeight: FontWeight.w500,textColor: Colors.white),
+                        )
+                    ),
+                  ),
+                  InkWell(
+                    onTap: (){
+                      if(distributionController.selectedItems.isNotEmpty){
+                        distributionController.selectedItems.clear();
+                        setState(() {
+
+                        });
+                      }
+                    },
+                    child: Container(
+                        margin: EdgeInsets.only(right: FetchPixels.getPixelWidth(10)),
+                        width: FetchPixels.getPixelWidth(80),height: FetchPixels.getPixelHeight(40),
+                        decoration: BoxDecoration(
+                          color: themeColor,
+                        ),
+                        child: Center(
+                          child:    textWidget(text: "UnSelect All", fontSize: FetchPixels.getPixelHeight(11), fontWeight: FontWeight.w500,textColor: Colors.white),
+                        )
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: FetchPixels.getPixelHeight(10),),
+              Column(
+                children: List.generate(getFilteredDistributionList().length,
+                    (index){
+                      final distributionItem = getFilteredDistributionList()[index];
+                  return Row(
+                    children: <Widget>[
+                      Checkbox(
+                        value: distributionController.selectedItems.contains(distributionItem),
+                        onChanged: (value){
+                          setState(() {
+                            if (value!) {
+                              distributionController.selectedItems.add(distributionItem);
+                            } else {
+                              distributionController.selectedItems.remove(distributionItem);
+                            }
+                          });
+                        },
+                      ),
+                      textWidget(text: distributionItem.distributorName ?? "",fontSize: FetchPixels.getPixelHeight(17), fontWeight: FontWeight.w500,textColor: Colors.black),
+                    ],
+                  );
+                    }),
+                ),
             ],
           ),
         ),
       ),
     );
   }
-
-  Widget distributionWidget({required Function(bool?) onChange,required String text,required bool value}){
-    return Row(
-      children: <Widget>[
-        Checkbox(
-          value: value,
-          onChanged: onChange,
-        ),
-        textWidget(text: text,fontSize: FetchPixels.getPixelHeight(17), fontWeight: FontWeight.w500,textColor: Colors.black),
-      ],
-    );
-  }
-
 
 }

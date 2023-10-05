@@ -1,4 +1,4 @@
-package com.azure.sufisales;
+package com.azure.sales;
 
 import io.flutter.embedding.android.FlutterActivity;
 

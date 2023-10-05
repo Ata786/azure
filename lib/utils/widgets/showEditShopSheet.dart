@@ -1,4 +1,9 @@
+import 'dart:developer';
+
+import 'package:SalesUp/controllers/UserController.dart';
 import 'package:SalesUp/controllers/shopServiceController.dart';
+import 'package:SalesUp/controllers/syncNowController.dart';
+import 'package:SalesUp/model/syncDownModel.dart';
 import 'package:SalesUp/res/base/fetch_pixels.dart';
 import 'package:SalesUp/res/colors.dart';
 import 'package:SalesUp/utils/widgets/appWidgets.dart';
@@ -21,7 +26,8 @@ void showShopEditSheet(
     required owner,
     required sr,
     required channel,
-    required gprs}) {
+    required gprs,
+    }) {
   showModalBottomSheet(
       context: context,
       builder: (context) {
@@ -37,10 +43,13 @@ void showShopEditSheet(
                   alignment: Alignment.centerRight,
                   child: InkWell(
                     onTap: ()async{
+                      SyncNowController syncDownCtr = Get.find<SyncNowController>();
                       await HiveDatabase.getShopType("shopTypeBox", "shopType");
                       await HiveDatabase.getShopSector("shopSectorBox", "shopSector");
                       await HiveDatabase.getShopStatus('shopStatusBox', "shopStatus");
-                      Get.to(NewShops(sr: sr,));
+                      await HiveDatabase.getData("syncDownList", "syncDown");
+                      SyncDownModel shop = syncDownCtr.searchList.where((p0) => p0.sr.toString() == sr.toString()).first;
+                      Get.to(NewShops(sr: sr,shop: shop,statusId: shop.statusId,typeId: shop.typeId,sectorId: shop.sectorId,));
                     },
                     child: button(
                         height: FetchPixels.getPixelHeight(35),

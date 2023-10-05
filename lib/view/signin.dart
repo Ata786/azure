@@ -4,6 +4,7 @@ import 'package:SalesUp/res/base/fetch_pixels.dart';
 import 'package:SalesUp/res/fieldvalidation.dart';
 import 'package:SalesUp/utils/routes/routePath.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 
@@ -68,43 +69,63 @@ class SignIn extends StatelessWidget {
                       textField(
                         validator: (value)=> FieldValidator.validateEmail(value!),
                           controller: nameCtr,
-                          hintText: "User Name"),
+                        hintText: "User Name"
+                      ),
                       SizedBox(height: FetchPixels.getPixelHeight(7),),
                       textField(
                         validator: (value)=> FieldValidator.validateEmpty(value!),
                           controller: passCtr,
                           helperText: '',
+                          hintText: "Password",
                           suffix: true,
-                          hintText: "Password"),
+                      ),
                       InkWell(
                         onTap: ()async{
-                          var box1 = await Hive.openBox("syncDownList");
-                          var box2 = await Hive.openBox("weekPerformance");
-                          var box3 = await Hive.openBox("monthPerformance");
-                          var box4 = await Hive.openBox("reasonNo");
-                          var box5 = await Hive.openBox("productsBox");
-                          var box6 = await Hive.openBox("reasonsName");
-                          var box7 = await Hive.openBox("category");
-                          var box8 = await Hive.openBox("product");
-                          var box9 = await Hive.openBox("orderBox");
-                          var box10 = await Hive.openBox("attendance");
-                          var box11 = await Hive.openBox("orderCalculateBox");
-                          var box12 = await Hive.openBox("checkInAttendance");
-                          var box13 = await Hive.openBox("checkOutAttendance");
-                          box1.delete("syncDown");
-                          box2.delete("week");
-                          box3.delete("month");
-                          box4.delete("reason");
-                          box5.delete("products");
-                          box6.delete("reason");
-                          box7.delete("categoryName");
-                          box8.delete("productRate");
-                          box9.delete("order");
-                          box10.delete("markAttendance");
-                          box11.delete("orderCalculate");
-                          box12.delete("checkIn");
-                          box13.delete("checkOut");
-                          signInApi(nameCtr.text, passCtr.text,context);
+
+                          if(userController.isOnline.value == false){
+
+                            Fluttertoast.showToast(
+                                msg: "Connection Error",
+                                toastLength: Toast.LENGTH_LONG,
+                                gravity: ToastGravity.CENTER,
+                                timeInSecForIosWeb: 1,
+                                backgroundColor: themeColor,
+                                textColor: Colors.white,
+                                fontSize: 16.0
+                            );
+
+                          }else{
+
+                            var box1 = await Hive.openBox("syncDownList");
+                            var box2 = await Hive.openBox("weekPerformance");
+                            var box3 = await Hive.openBox("monthPerformance");
+                            var box4 = await Hive.openBox("reasonNo");
+                            var box5 = await Hive.openBox("productsBox");
+                            var box6 = await Hive.openBox("reasonsName");
+                            var box7 = await Hive.openBox("category");
+                            var box8 = await Hive.openBox("product");
+                            var box9 = await Hive.openBox("orderBox");
+                            var box10 = await Hive.openBox("attendance");
+                            var box11 = await Hive.openBox("orderCalculateBox");
+                            var box12 = await Hive.openBox("checkInAttendance");
+                            var box13 = await Hive.openBox("checkOutAttendance");
+                            box1.delete("syncDown");
+                            box2.delete("week");
+                            box3.delete("month");
+                            box4.delete("reason");
+                            box5.delete("products");
+                            box6.delete("reason");
+                            box7.delete("categoryName");
+                            box8.delete("productRate");
+                            box9.delete("order");
+                            box10.delete("markAttendance");
+                            box11.delete("orderCalculate");
+                            box12.delete("checkIn");
+                            box13.delete("checkOut");
+                            signInApi(nameCtr.text, passCtr.text,context);
+
+                          }
+
                         },
                         child: button(
                             height: FetchPixels.getPixelHeight(35), width: FetchPixels.width/4.5, color: themeColor,
@@ -132,4 +153,5 @@ class SignIn extends StatelessWidget {
               ))),
     );
   }
+
 }

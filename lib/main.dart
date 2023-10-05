@@ -2,6 +2,8 @@ import 'package:SalesUp/controllers/UserController.dart';
 import 'package:SalesUp/model/NewShopModel.dart';
 import 'package:SalesUp/model/attendenceModel.dart';
 import 'package:SalesUp/model/categoryName.dart';
+import 'package:SalesUp/model/distributionModel.dart';
+import 'package:SalesUp/model/financialYearModel.dart';
 import 'package:SalesUp/model/historyModel.dart';
 import 'package:SalesUp/model/monthPerformanceModel.dart';
 import 'package:SalesUp/model/orderCalculations.dart';
@@ -18,6 +20,7 @@ import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'controllers/distributionController.dart';
 import 'model/creditModel.dart';
 import 'model/reasonName.dart';
 import 'model/reasonsModel.dart';
@@ -27,6 +30,7 @@ void main() async {
   SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(statusBarColor: Colors.blue));
   WidgetsFlutterBinding.ensureInitialized();
+  await Hive.deleteFromDisk();
   var directory = await getApplicationDocumentsDirectory();
   Hive
     ..init(directory.path)
@@ -49,14 +53,15 @@ void main() async {
     ..registerAdapter(HistoryModelHiveAdapter())
     ..registerAdapter(CreditModelAdapter())
     ..registerAdapter(CheckInAdapter())
-    ..registerAdapter(CheckOutAdapter());
+    ..registerAdapter(CheckOutAdapter())
+    ..registerAdapter(DistributionModelAdapter())
+    ..registerAdapter(FinancialYearAdapter());
 
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
   MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -67,8 +72,9 @@ class MyApp extends StatelessWidget {
       child: GetMaterialApp(
         initialBinding: BindingsBuilder(() {
           Get.put(UserController());
+          Get.put(DistributionController());
         }),
-        title: "KFarm",
+        title: "SalesUp",
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           primarySwatch: MaterialColor(0xff01579B, {

@@ -27,6 +27,11 @@ class _VisitPlanState extends State<VisitPlan> {
   bool search = false;
 
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     SyncNowController syncNowController = Get.find<SyncNowController>();
     UserController userController = Get.find<UserController>();
