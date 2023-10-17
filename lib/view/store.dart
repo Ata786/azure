@@ -19,6 +19,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../res/images.dart';
+import '../utils/userCurrentLocation.dart';
 
 class StoreScreen extends StatefulWidget {
   StoreScreen({super.key});
@@ -47,13 +48,27 @@ class _StoreScreenState extends State<StoreScreen> {
 
   void getArgs(){
     shopServiceController = Get.find<ShopServiceController>();
+    UserController userController = Get.find<UserController>();
     argument = Get.arguments as Map<String,dynamic>;
-    isEdit = argument['isEdit'];
-    if(argument['isEdit'] == true){
-      shopServiceController.checkIn.value = int.tryParse(argument['sr'])!;
-      imagePath = argument['image'];
-      distance = argument['checkIn'];
-    }
+      isEdit = argument['isEdit'];
+
+      if(argument['isProductive'] == true){
+        imagePath = argument['image'];
+        distance = double.tryParse(argument['checkIn'].toString())!;
+        shopServiceController.checkIn.value = int.tryParse(argument['sr'].toString())!;
+
+        orderModel = OrderModel(shopId: argument['sr'],pjpNo: "0",pjpDate: DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now()),
+            bookerId: userController.user!.value.catagoryId,invoiceStatus: "Pending",orderNumber: shopServiceController.orderList.length+1,
+            userId: userController.user!.value.id,replace: "0",reason: "Pending",checkIn: distance.toString(),
+            image: imagePath,orderDataModel: OrderDataModel());
+        shopServiceController.orderList.add(orderModel!);
+      }
+
+      if(argument['isEdit'] == true){
+        shopServiceController.checkIn.value = int.tryParse(argument['sr'])!;
+        imagePath = argument['image'];
+        distance = argument['checkIn'];
+      }
   }
 
   @override
@@ -65,7 +80,13 @@ class _StoreScreenState extends State<StoreScreen> {
         padding: EdgeInsets.all(8.0),
         child: InkWell(
           onTap: (){
-            Get.toNamed(ORDER_DETAIL);
+            if(argument['isEdit'] == true){
+              shopServiceController.orderList[0].image = imagePath;
+              shopServiceController.orderList[0].checkIn = distance;
+              Get.toNamed(ORDER_DETAIL);
+            }else{
+              Get.toNamed(ORDER_DETAIL);
+            }
           },
           child: button(
               height: FetchPixels.getPixelHeight(55),
@@ -142,12 +163,15 @@ class _StoreScreenState extends State<StoreScreen> {
                       }else{
                         if(argument['isEdit'] == false){
                           shopServiceController.checkIn.value = argument['sr'];
+                          Get.dialog(Center(child: CircularProgressIndicator(color: themeColor,),));
+                          Position? location = await getLocation(context);
+                          Get.back();
                           String gprs = argument['gprs'];
                           List<String> gprsLatLng = gprs.split(',');
                           double? lat = double.tryParse(gprsLatLng[0]);
                           double? lon = double.tryParse(gprsLatLng[1]);
-                          double dis = Geolocator.distanceBetween(userController.latitude, userController.longitude, lat ?? 0.0, lon ?? 0.0);
-                          distance = dis;
+                          double dis = Geolocator.distanceBetween(location!.latitude, location.longitude, lat ?? 0.0, lon ?? 0.0);
+                          distance = dis+0.5;
                           String formattedDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
                           List<OrderModel> orderList = await HiveDatabase.getOrderData("orderBox", "order");
                           int length = orderList.where((element) => element.shopId == argument['sr']).length;
@@ -155,9 +179,14 @@ class _StoreScreenState extends State<StoreScreen> {
                               bookerId: userController.user!.value.catagoryId,invoiceStatus: "Pending",orderNumber: length+1,
                               userId: userController.user!.value.id,replace: "0",reason: "Pending",checkIn: distance.toString(),
                               image: imagePath,orderDataModel: OrderDataModel());
-                          shopServiceController.orderList.add(orderModel!);
+                          if(argument['isProductive'] == true){
+                            shopServiceController.orderList[0] = orderModel!;
+                          }else{
+                            shopServiceController.orderList.add(orderModel!);
+                          }
                         }else{
-                          distance = double.tryParse(argument['gprs'])!;
+                          distance = double.tryParse(argument['gprs'])! + 0.5;
+                          log('>>>> ${argument['gprs']}');
                           if(imagePath != ''){
                             shopServiceController.orderList[0].image = imagePath;
                           }
@@ -168,7 +197,7 @@ class _StoreScreenState extends State<StoreScreen> {
                         });
                       }
 
-                    }, distance == 0.0 ? "" : "${distance.toStringAsFixed(2).toString()} M"),
+                    }, distance == 0.0 ? "0.000 M" : "${distance!.toStringAsFixed(2).toString()} M"),
                   ],
                 ),
                 SizedBox(height: FetchPixels.getPixelHeight(10),),
@@ -247,7 +276,43 @@ class _StoreScreenState extends State<StoreScreen> {
                         : ListView.builder(
                         itemCount: shopServiceController.filteredProductsList.length,
                         itemBuilder: (context,index){
-                          return Obx(() => InkWell(
+
+                          List<int> selectedIndices = [];
+
+                          for (int i = 0; i < shopServiceController.filteredProductsList.length; i++) {
+                            if (shopServiceController.filteredProductsList[i].subTotal != null) {
+                              selectedIndices.add(i);
+                            }
+                          }
+
+                          selectedIndices.sort((a, b) {
+                            final aSubTotal = shopServiceController.filteredProductsList[a].subTotal;
+                            final bSubTotal = shopServiceController.filteredProductsList[b].subTotal;
+
+                            if (aSubTotal != null && bSubTotal == null) {
+                              return -1;
+                            } else if (aSubTotal == null && bSubTotal != null) {
+                              return 1;
+                            }
+                            return a - b;
+                          });
+
+                          // Create a combined list
+                          List<ProductsModel> combinedList = [];
+
+                          // Add selected items to the combined list
+                          for (int selectedIndex in selectedIndices) {
+                            combinedList.add(shopServiceController.filteredProductsList[selectedIndex]);
+                          }
+
+                          // Add unselected items to the combined list
+                          for (int i = 0; i < shopServiceController.filteredProductsList.length; i++) {
+                            if (!selectedIndices.contains(i)) {
+                              combinedList.add(shopServiceController.filteredProductsList[i]);
+                            }
+                          }
+
+                          return InkWell(
                             onTap: ()async{
                               if(int.tryParse(shopServiceController.checkIn.value.toString())! == int.tryParse(argument['sr'].toString())!){
                                 if(shopServiceController.orderList.length != 0){
@@ -257,11 +322,15 @@ class _StoreScreenState extends State<StoreScreen> {
                                   shopServiceController.radio.value = 0;
                                   shopServiceController.netRate.value = "";
                                   shopServiceController.quantity.value = 0;
-                                  showStoreProductDialog(argumentSr: int.tryParse(argument['sr'].toString())!,shopServiceController: shopServiceController,sr: shopServiceController.filteredProductsList[index].sr,productName: shopServiceController.filteredProductsList[index].pname ?? "",rateDetail: rateDetails);
+                                  showStoreProductDialog(argumentSr: int.tryParse(argument['sr'].toString())!,shopServiceController: shopServiceController,sr: combinedList[index].sr,productName: combinedList[index].pname ?? "",rateDetail: rateDetails,onDialogClosed: (v){
+                                    setState(() {
+
+                                    });
+                                  });
                                 }else{
                                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("CheckIn First"),behavior: SnackBarBehavior.floating,));
                                 }
-                                }else{
+                              }else{
                                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Please CheckIn First"),behavior: SnackBarBehavior.floating,));
                               }
                             },
@@ -278,13 +347,13 @@ class _StoreScreenState extends State<StoreScreen> {
                                         Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            textWidget(text: shopServiceController.filteredProductsList[index].pname!.trim() ?? '', fontSize: FetchPixels.getPixelHeight(16), fontWeight: FontWeight.w600,textColor: shopServiceController.filteredProductsList[index].subTotal != null ? Colors.green : primaryColor),
+                                            textWidget(text: combinedList[index].pname!.trim() ?? '', fontSize: FetchPixels.getPixelHeight(16), fontWeight: FontWeight.w600,textColor: combinedList[index].subTotal != null ? Colors.green : primaryColor),
                                             SizedBox(height: FetchPixels.getPixelHeight(7),),
-                                            textWidget(text: '${shopServiceController.filteredProductsList[index].wgm!.toString().trim()}', fontSize: FetchPixels.getPixelHeight(13), fontWeight: FontWeight.w500,textColor: shopServiceController.filteredProductsList[index].subTotal != null ? Colors.green : primaryColor),
+                                            textWidget(text: '${combinedList[index].wgm!.toString().trim()}', fontSize: FetchPixels.getPixelHeight(13), fontWeight: FontWeight.w500,textColor: combinedList[index].subTotal != null ? Colors.green : primaryColor),
                                             SizedBox(height: FetchPixels.getPixelHeight(7),),
-                                            textWidget(text: shopServiceController.filteredProductsList[index].brandName!.trim() ?? '', fontSize: FetchPixels.getPixelHeight(13), fontWeight: FontWeight.w500,textColor: shopServiceController.filteredProductsList[index].subTotal != null ? Colors.green : primaryColor),
+                                            textWidget(text: combinedList[index].brandName!.trim() ?? '', fontSize: FetchPixels.getPixelHeight(13), fontWeight: FontWeight.w500,textColor: combinedList[index].subTotal != null ? Colors.green : primaryColor),
                                             SizedBox(height: FetchPixels.getPixelHeight(7),),
-                                            textWidget(text: "${shopServiceController.filteredProductsList[index].sr.toString().trim()}", fontSize: FetchPixels.getPixelHeight(13), fontWeight: FontWeight.w500,textColor: shopServiceController.filteredProductsList[index].subTotal != null ? Colors.green : primaryColor)
+                                            textWidget(text: "${combinedList[index].sr.toString().trim()}", fontSize: FetchPixels.getPixelHeight(13), fontWeight: FontWeight.w500,textColor: combinedList[index].subTotal != null ? Colors.green : primaryColor)
                                           ],
                                         ),
                                         Column(
@@ -295,28 +364,28 @@ class _StoreScreenState extends State<StoreScreen> {
                                             Row(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
-                                                textWidget(text: "Retail", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: shopServiceController.filteredProductsList[index].subTotal != null ? Colors.green : primaryColor),
+                                                textWidget(text: "Retail", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: combinedList[index].subTotal != null ? Colors.green : primaryColor),
                                                 SizedBox(width: FetchPixels.getPixelWidth(10),),
-                                                textWidget(text: shopServiceController.filteredProductsList[index].retail ==  null ? "0" : "${shopServiceController.filteredProductsList[index].retail.toString().trim()}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: shopServiceController.filteredProductsList[index].subTotal != null ? Colors.green : primaryColor),
+                                                textWidget(text: combinedList[index].retail ==  null ? "0" : "${combinedList[index].retail.toString().trim()}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: combinedList[index].subTotal != null ? Colors.green : primaryColor),
                                               ],
                                             ),
                                             SizedBox(height: FetchPixels.getPixelHeight(7),),
                                             Row(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
-                                                textWidget(text: "Net", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: shopServiceController.filteredProductsList[index].subTotal != null ? Colors.green : primaryColor),
+                                                textWidget(text: "Net", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: combinedList[index].subTotal != null ? Colors.green : primaryColor),
                                                 SizedBox(width: FetchPixels.getPixelWidth(10),),
-                                                textWidget(text: shopServiceController.filteredProductsList[index].netRate == null ? "0" : "${shopServiceController.filteredProductsList[index].netRate.toString().trim()}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: shopServiceController.filteredProductsList[index].subTotal != null ? Colors.green : primaryColor),
+                                                textWidget(text: combinedList[index].netRate == null ? "0" : "${combinedList[index].netRate.toString().trim()}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: combinedList[index].subTotal != null ? Colors.green : primaryColor),
                                               ],
                                             ),
                                             SizedBox(height: FetchPixels.getPixelHeight(30),),
-                                            textWidget(text: shopServiceController.filteredProductsList[index].quantity ==  null ? "0" : "${shopServiceController.filteredProductsList[index].quantity.toString().trim()}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: shopServiceController.filteredProductsList[index].subTotal != null ? Colors.green : primaryColor),
+                                            textWidget(text: combinedList[index].quantity ==  null ? "0" : "${combinedList[index].quantity.toString().trim()}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: combinedList[index].subTotal != null ? Colors.green : primaryColor),
                                             Row(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
-                                                textWidget(text: "Subtotal:", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: shopServiceController.filteredProductsList[index].subTotal != null ? Colors.green : primaryColor),
+                                                textWidget(text: "Subtotal:", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: combinedList[index].subTotal != null ? Colors.green : primaryColor),
                                                 SizedBox(width: FetchPixels.getPixelWidth(10),),
-                                                textWidget(text: shopServiceController.filteredProductsList[index].subTotal == null ? "0" : "${double.tryParse(shopServiceController.filteredProductsList[index].subTotal.toString())!.toStringAsFixed(6)}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: shopServiceController.filteredProductsList[index].subTotal != null ? Colors.green : primaryColor),
+                                                textWidget(text: combinedList[index].subTotal == null ? "0" : "${double.tryParse(combinedList[index].subTotal.toString())!.toStringAsFixed(6)}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: combinedList[index].subTotal != null ? Colors.green : primaryColor),
                                               ],
                                             ),
                                           ],
@@ -331,7 +400,7 @@ class _StoreScreenState extends State<StoreScreen> {
                                   ],
                                 )
                             ),
-                          ));
+                          );
                         }),
                 ),
                 SizedBox(height: FetchPixels.getPixelHeight(55),)

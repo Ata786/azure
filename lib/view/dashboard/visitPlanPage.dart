@@ -272,8 +272,8 @@ class _VisitPlanState extends State<VisitPlan> {
                     });
                   },
                   child: Obx(() => textWidget(
-                    textColor: page == 0 ? primaryColor : Color(0xffd2d2d2),
-                    text: "All Shops ${syncNowController.syncDownList.length}",
+                    textColor: page == 0 ? primaryColor : Color(0xffd2d2d2).withOpacity(0.5),
+                    text: "Non Productive ${syncNowController.syncDownList.where((p0) => p0.productive == false).length}",
                     fontSize: FetchPixels.getPixelHeight(15),
                     fontWeight: FontWeight.w400,
                   )),
@@ -291,7 +291,7 @@ class _VisitPlanState extends State<VisitPlan> {
                     });
                   },
                   child: Obx(() => textWidget(
-                    textColor: page == 1 ? primaryColor :  Color(0xffd2d2d2),
+                    textColor: page == 1 ? primaryColor :  Color(0xffd2d2d2).withOpacity(0.5),
                     text: "Productive ${syncNowController.reasonModelList.length}",
                     fontSize: FetchPixels.getPixelHeight(15),
                     fontWeight: FontWeight.w400,
@@ -305,8 +305,8 @@ class _VisitPlanState extends State<VisitPlan> {
                     });
                   },
                   child: Obx(() => textWidget(
-                    textColor: page == 2 ? primaryColor : Color(0xffd2d2d2),
-                    text: "Non Productive ${syncNowController.syncDownList.where((p0) => p0.productive == false).length}",
+                    textColor: page == 2 ? primaryColor : Color(0xffd2d2d2).withOpacity(0.5),
+                    text: "All Shops ${syncNowController.syncDownList.length}",
                     fontSize: FetchPixels.getPixelHeight(15),
                     fontWeight: FontWeight.w400,
                   )),
@@ -336,9 +336,9 @@ class _VisitPlanState extends State<VisitPlan> {
               },
               controller: pageController,
               children: [
-                allStores(syncNowController: syncNowController, userController: userController),
+                NonProductiveShops(syncNowController: syncNowController, userController: userController),
                 productiveStore(syncNowController: syncNowController),
-               NonProductiveShops(syncNowController: syncNowController, userController: userController)
+                allStores(syncNowController: syncNowController, userController: userController),
               ],
             ),
           )

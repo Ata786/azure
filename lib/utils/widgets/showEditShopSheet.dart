@@ -32,36 +32,37 @@ void showShopEditSheet(
       context: context,
       builder: (context) {
         return Container(
-          height: FetchPixels.height / 2.5,
+          height: FetchPixels.height / 2.8,
           child: Padding(
             padding: EdgeInsets.symmetric(
                 horizontal: FetchPixels.getPixelWidth(20),
                 vertical: FetchPixels.getPixelHeight(20)),
             child: Column(
               children: [
-                Container(
-                  alignment: Alignment.centerRight,
-                  child: InkWell(
-                    onTap: ()async{
-                      SyncNowController syncDownCtr = Get.find<SyncNowController>();
-                      await HiveDatabase.getShopType("shopTypeBox", "shopType");
-                      await HiveDatabase.getShopSector("shopSectorBox", "shopSector");
-                      await HiveDatabase.getShopStatus('shopStatusBox', "shopStatus");
-                      await HiveDatabase.getData("syncDownList", "syncDown");
-                      SyncDownModel shop = syncDownCtr.searchList.where((p0) => p0.sr.toString() == sr.toString()).first;
-                      Get.to(NewShops(sr: sr,shop: shop,statusId: shop.statusId,typeId: shop.typeId,sectorId: shop.sectorId,));
-                    },
-                    child: button(
-                        height: FetchPixels.getPixelHeight(35),
-                        width: FetchPixels.getPixelWidth(100),
-                        color: themeColor,
-                        textColor: Colors.white,
-                        textSize: FetchPixels.getPixelHeight(13),
-                        borderRadius: FetchPixels.getPixelHeight(8),
-                        textWeight: FontWeight.w500,
-                        text: "EDIT SHOP"),
-                  ),
-                ),
+                SizedBox(),
+                // Container(
+                //   alignment: Alignment.centerRight,
+                //   child: InkWell(
+                //     onTap: ()async{
+                //       SyncNowController syncDownCtr = Get.find<SyncNowController>();
+                //       await HiveDatabase.getShopType("shopTypeBox", "shopType");
+                //       await HiveDatabase.getShopSector("shopSectorBox", "shopSector");
+                //       await HiveDatabase.getShopStatus('shopStatusBox', "shopStatus");
+                //       await HiveDatabase.getData("syncDownList", "syncDown");
+                //       SyncDownModel shop = syncDownCtr.searchList.where((p0) => p0.sr.toString() == sr.toString()).first;
+                //       Get.to(NewShops(sr: sr,shop: shop,statusId: shop.statusId,typeId: shop.typeId,sectorId: shop.sectorId,));
+                // //     },
+                //     child: button(
+                //         height: FetchPixels.getPixelHeight(35),
+                //         width: FetchPixels.getPixelWidth(100),
+                //         color: themeColor,
+                //         textColor: Colors.white,
+                //         textSize: FetchPixels.getPixelHeight(13),
+                //         borderRadius: FetchPixels.getPixelHeight(8),
+                //         textWeight: FontWeight.w500,
+                //         text: "EDIT SHOP"),
+                //   ),
+                // ),
                 SizedBox(
                   height: FetchPixels.getPixelHeight(15),
                 ),
@@ -207,7 +208,7 @@ void showShopEditSheet(
                   ),
                 ),
                 SizedBox(
-                  height: FetchPixels.getPixelHeight(20),
+                  height: FetchPixels.getPixelHeight(30),
                 ),
                 InkWell(
                   onTap: () async {

@@ -58,8 +58,9 @@ void signInApi(String email,String password,BuildContext context)async{
         body: {"Email": email,"Password": password}
     );
 
+    log(">> signin ${res.statusCode}");
+
     if(res.statusCode == 200){
-      log(">> signin ${res.body}");
       Get.back();
       Map<String,dynamic> dataMap = jsonDecode(res.body);
       dataMap.putIfAbsent("isLogin", () => true);

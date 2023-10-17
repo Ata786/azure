@@ -10,3 +10,4 @@ String ORDER_DETAIL = '/orderDetail';
 String CREDIT_LIST = '/creditList';
 String TODAY_NEW_SHOP = '/todayNewShop';
 String ATTENDANCE = '/attendance';
+String SALE = '/sale';

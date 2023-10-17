@@ -1,10 +1,11 @@
-import 'dart:developer';
+import 'package:SalesUp/controllers/UserController.dart';
 import 'package:SalesUp/controllers/distributionController.dart';
 import 'package:SalesUp/model/distributionModel.dart';
 import 'package:SalesUp/model/llpcDistibutors.dart';
 import 'package:SalesUp/model/lppcModel.dart';
 import 'package:SalesUp/res/base/fetch_pixels.dart';
 import 'package:SalesUp/res/colors.dart';
+import 'package:SalesUp/utils/toast.dart';
 import 'package:SalesUp/utils/widgets/appWidgets.dart';
 import 'package:SalesUp/view/distributerScreen.dart';
 import 'package:SalesUp/view/llpcBookerList.dart';
@@ -46,11 +47,15 @@ class _DropSizeScreenState extends State<DropSizeScreen> {
   TextEditingController toDateCtr = TextEditingController();
   DateTime now = DateTime.now();
 
+  int distributorValue = 0;
+
   @override
   void initState() {
     super.initState();
     DistributionController distributionController = Get.find<DistributionController>();
     selectedValue = distributionController.distributionList[0].distributorName ?? "";
+
+    UserController userController = Get.find<UserController>();
 
     DateTime currentDate = DateTime.now();
     int selectedYear = int.tryParse(typeValue1) ?? currentDate.year;
@@ -63,15 +68,15 @@ class _DropSizeScreenState extends State<DropSizeScreen> {
       "distributors": distributionController.distributorIdList
     };
 
-    Map<String,dynamic> bookers = {
-      "date": formattedDate,
-      "type": dayNumber1,
-      "distributor": distributionController.distributorIdList[0]
-    };
+    fromDateCtr.text = DateFormat("dd-MM-yyyy").format(now);
+    toDateCtr.text = DateFormat("dd-MM-yyyy").format(now);
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      getDistributorsList(data);
-      getLppcList(bookers);
+      if(userController.isOnline.value == true){
+        getDistributorsList(data);
+      }else{
+        showToast(context, "");
+      }
     });
 
   }
@@ -163,7 +168,13 @@ class _DropSizeScreenState extends State<DropSizeScreen> {
                          "distributors": distributionController.distributorIdList
                        };
 
-                       getDistributorsList(data);
+                       UserController userController = Get.find<UserController>();
+
+                       if(userController.isOnline.value == true){
+                         getDistributorsList(data);
+                       }else{
+                         showToast(context, "");
+                       }
 
                      },
                    ),
@@ -286,78 +297,6 @@ class _DropSizeScreenState extends State<DropSizeScreen> {
               ),
             ),
             SizedBox(height: FetchPixels.getPixelHeight(20),),
-            // Row(
-            //   children: [
-            //     Expanded(flex: 1,child: FutureBuilder(
-            //       future: HiveDatabase.getFinancialYearList("financialYear", "financialYearBox"),
-            //       builder: (context, snapshot) {
-            //         if (snapshot.hasData) {
-            //           List<FinancialYearModel> financialList = snapshot.data ?? [];
-            //           typeValue2 = financialList[0].value.toString();
-            //           return Padding(padding: EdgeInsets.symmetric(horizontal: FetchPixels.getPixelWidth(20)),child: DropdownButtonFormField<String>(
-            //             items: financialList.map<DropdownMenuItem<String>>((FinancialYearModel value) {
-            //               return DropdownMenuItem<String>(
-            //                 value: value.value.toString(),
-            //                 child: Text(value.value.toString() ?? ""),
-            //               );
-            //             }).toList(),
-            //             value: typeValue2,
-            //             onChanged: (String? value) {
-            //               typeValue2 = value ?? "";
-            //
-            //             },
-            //           ),);
-            //         } else if (snapshot.hasError) {
-            //           return Text("${snapshot.error}");
-            //         } else {
-            //           return SizedBox();
-            //         }
-            //       },
-            //     )),
-            //     Expanded(
-            //       flex: 1,
-            //       child: Padding(
-            //         padding: EdgeInsets.symmetric(horizontal: FetchPixels.getPixelWidth(5)),
-            //         child: DropdownButtonFormField<String>(
-            //           items: dayList2.map<DropdownMenuItem<String>>((String value) {
-            //             return DropdownMenuItem<String>(
-            //               value: value,
-            //               child: Text(value),
-            //             );
-            //           }).toList(),
-            //           value: selectedDay2,
-            //           onChanged: (String? value) {
-            //             selectedDay2 = value ?? "";
-            //
-            //             if(selectedDay2 == "Today"){
-            //               dayNumber2 = 0;
-            //             }else if(selectedDay2 == "This Week"){
-            //               dayNumber2 = 1;
-            //             }else if(selectedDay2 == "This Month"){
-            //               dayNumber2 = 2;
-            //             }else{
-            //               dayNumber2 = 3;
-            //             }
-            //
-            //             DateTime currentDate = DateTime.now();
-            //             int selectedYear = int.tryParse(typeValue1) ?? currentDate.year;
-            //             DateTime customDate = DateTime(selectedYear, currentDate.month, currentDate.day, currentDate.hour, currentDate.minute, currentDate.second, currentDate.millisecond);
-            //             String formattedDate = customDate.toUtc().toIso8601String();
-            //
-            //             DistributionModel d = distributionController.distributionList.where((p0) => p0.distributorName.toString() == selectedValue.toString()).first;
-            //
-            //             Map<String,dynamic> bookers = {
-            //               "date": formattedDate,
-            //               "type": dayNumber1,
-            //               "distributor": d.distributorId
-            //             };
-            //             getLppcList(bookers);
-            //           },
-            //         ),
-            //       ),
-            //     )
-            //   ],
-            // ),
             Row(
               children: [
                 Container(
@@ -420,7 +359,13 @@ class _DropSizeScreenState extends State<DropSizeScreen> {
             SizedBox(height: FetchPixels.getPixelHeight(20),),
             InkWell(
               onTap: (){
-                Get.to(LppcListScreen(bookerList: bookerList, year: typeValue2, value: selectedDay2,));
+                UserController userController = Get.find<UserController>();
+
+                if(userController.isOnline.value == true){
+                  getLppcList();
+                }else{
+                  showToast(context, "");
+                }
               },
               child: Container(
                 alignment: Alignment.center,
@@ -451,14 +396,34 @@ class _DropSizeScreenState extends State<DropSizeScreen> {
   }
 
 
-  void getLppcList(Map<String,dynamic> data)async{
-    log('>>> ${data}');
-    Get.dialog(Center(child: CircularProgressIndicator(color: themeColor,),));
+  void getLppcList()async{
+
     DistributionController distributionController = Get.find<DistributionController>();
-    List<BookerList> l = await distributionController.lppcApi(data);
+
+    DistributionModel dis = distributionController.distributionList.where((p0) => p0.distributorName == selectedValue).first;
+    distributorValue = dis.distributorId ?? 0;
+
+
+    DateTime fromInputDate = DateFormat("dd-MM-yyyy").parse(fromDateCtr.text);
+    String s = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(fromInputDate);
+
+    DateTime eInputDate = DateFormat("dd-MM-yyyy").parse(toDateCtr.text);
+    String e = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(eInputDate);
+
+    Map<String,dynamic> bookers = {
+      "startDate": s,
+      "endDate": e,
+      "type": dayNumber1,
+      "distributor": distributorValue
+    };
+
+    Get.dialog(Center(child: CircularProgressIndicator(color: themeColor,),));
+
+    List<BookerList> l = await distributionController.lppcApi(bookers);
     bookerList.clear();
     bookerList.addAll(l);
     Get.back();
+    Get.to(LppcListScreen(bookerList: bookerList, year: typeValue2, value: selectedDay2,));
   }
 
 

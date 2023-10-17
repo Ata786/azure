@@ -1,6 +1,8 @@
 import 'package:SalesUp/controllers/UserController.dart';
 import 'package:SalesUp/controllers/syncNowController.dart';
 import 'package:SalesUp/data/hiveDb.dart';
+import 'package:SalesUp/model/syncDownModel.dart';
+import 'package:SalesUp/res/images.dart';
 import 'package:SalesUp/utils/widgets/dialoges.dart';
 import 'package:SalesUp/utils/widgets/showEditShopSheet.dart';
 import 'package:flutter/material.dart';
@@ -116,82 +118,91 @@ Widget allStores({required SyncNowController syncNowController,required UserCont
                           child: InkWell(
                             onTap: (){
                               if(syncNowController.searchList[index].gprs == null || syncNowController.searchList[index].gprs!.isEmpty || syncNowController.searchList[index].gprs == "0" ){
-                                Get.dialog(AlertDialog(
-                                  content: Container(
-                                    height:
-                                    FetchPixels.getPixelHeight(100),
-                                    width: FetchPixels.width,
-                                    child: Column(
-                                      children: [
-                                        textWidget(
-                                          textColor: Colors.black,
-                                          text:
-                                          "Do you want to edit this shop record?",
-                                          fontSize:
-                                          FetchPixels.getPixelHeight(
-                                              16),
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                        SizedBox(
-                                          height:
-                                          FetchPixels.getPixelHeight(
-                                              20),
-                                        ),
-                                        Row(
-                                          mainAxisAlignment:
-                                          MainAxisAlignment
-                                              .spaceEvenly,
-                                          children: [
-                                            InkWell(
-                                              onTap: () {
-                                                Get.back();
-                                              },
-                                              child: Card(
-                                                child: Padding(
-                                                  padding:
-                                                  EdgeInsets.all(5.0),
-                                                  child: textWidget(
-                                                      text: "No",
-                                                      fontSize: FetchPixels
-                                                          .getPixelHeight(
-                                                          15),
-                                                      fontWeight:
-                                                      FontWeight.w600,
-                                                      textColor:
-                                                      Colors.red),
-                                                ),
-                                              ),
-                                            ),
-                                            InkWell(
-                                              onTap: () async {
-                                                Get.back();
-                                                await HiveDatabase.getShopType("shopTypeBox", "shopType");
-                                                await HiveDatabase.getShopSector("shopSectorBox", "shopSector");
-                                                await HiveDatabase.getShopStatus('shopStatusBox', "shopStatus");
-                                                Get.to(NewShops(sr: syncNowController.searchList[index].sr,));
-                                                 },
-                                              child: Card(
-                                                child: Padding(
-                                                  padding:
-                                                  EdgeInsets.all(5.0),
-                                                  child: textWidget(
-                                                      text: "Yes",
-                                                      fontSize: FetchPixels
-                                                          .getPixelHeight(
-                                                          15),
-                                                      fontWeight:
-                                                      FontWeight.w600,
-                                                      textColor:
-                                                      Colors.green),
-                                                ),
-                                              ),
-                                            )
-                                          ],
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                ));
+                                Fluttertoast.showToast(
+                                    msg: "Location is not define",
+                                    toastLength: Toast.LENGTH_LONG,
+                                    gravity: ToastGravity.CENTER,
+                                    timeInSecForIosWeb: 1,
+                                    backgroundColor: themeColor,
+                                    textColor: Colors.white,
+                                    fontSize: 16.0
+                                );
+                                // Get.dialog(AlertDialog(
+                                //   content: Container(
+                                //     height:
+                                //     FetchPixels.getPixelHeight(100),
+                                //     width: FetchPixels.width,
+                                //     child: Column(
+                                //       children: [
+                                //         textWidget(
+                                //           textColor: Colors.black,
+                                //           text:
+                                //           "Do you want to edit this shop record?",
+                                //           fontSize:
+                                //           FetchPixels.getPixelHeight(
+                                //               16),
+                                //           fontWeight: FontWeight.w600,
+                                //         ),
+                                //         SizedBox(
+                                //           height:
+                                //           FetchPixels.getPixelHeight(
+                                //               20),
+                                //         ),
+                                //         Row(
+                                //           mainAxisAlignment:
+                                //           MainAxisAlignment
+                                //               .spaceEvenly,
+                                //           children: [
+                                //             InkWell(
+                                //               onTap: () {
+                                //                 Get.back();
+                                //               },
+                                //               child: Card(
+                                //                 child: Padding(
+                                //                   padding:
+                                //                   EdgeInsets.all(5.0),
+                                //                   child: textWidget(
+                                //                       text: "No",
+                                //                       fontSize: FetchPixels
+                                //                           .getPixelHeight(
+                                //                           15),
+                                //                       fontWeight:
+                                //                       FontWeight.w600,
+                                //                       textColor:
+                                //                       Colors.red),
+                                //                 ),
+                                //               ),
+                                //             ),
+                                //             InkWell(
+                                //               onTap: () async {
+                                //                 Get.back();
+                                //                 await HiveDatabase.getShopType("shopTypeBox", "shopType");
+                                //                 await HiveDatabase.getShopSector("shopSectorBox", "shopSector");
+                                //                 await HiveDatabase.getShopStatus('shopStatusBox', "shopStatus");
+                                //                 Get.to(NewShops(sr: syncNowController.searchList[index].sr,));
+                                //                  },
+                                //               child: Card(
+                                //                 child: Padding(
+                                //                   padding:
+                                //                   EdgeInsets.all(5.0),
+                                //                   child: textWidget(
+                                //                       text: "Yes",
+                                //                       fontSize: FetchPixels
+                                //                           .getPixelHeight(
+                                //                           15),
+                                //                       fontWeight:
+                                //                       FontWeight.w600,
+                                //                       textColor:
+                                //                       Colors.green),
+                                //                 ),
+                                //               ),
+                                //             )
+                                //           ],
+                                //         )
+                                //       ],
+                                //     ),
+                                //   ),
+                                // ));
                               }else{
                                 String lat = userController.latitude.toString();
                                 String lon = userController.longitude.toString();
@@ -235,16 +246,27 @@ Widget allStores({required SyncNowController syncNowController,required UserCont
                           ),
                         ),
                         SizedBox(width: FetchPixels.getPixelWidth(7),),
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: FetchPixels.getPixelWidth(6),vertical: FetchPixels.getPixelHeight(2)),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(
-                                FetchPixels.getPixelHeight(5)),
-                            border: Border.all(color: Color(0xffd2d2d2)),
-                          ),
-                          child: Icon(
-                            Icons.info_outline,
-                            color: Colors.black,
+                        InkWell(
+                          onTap: ()async{
+                            SyncNowController syncDownCtr = Get.find<SyncNowController>();
+                            await HiveDatabase.getShopType("shopTypeBox", "shopType");
+                            await HiveDatabase.getShopSector("shopSectorBox", "shopSector");
+                            await HiveDatabase.getShopStatus('shopStatusBox', "shopStatus");
+                            await HiveDatabase.getData("syncDownList", "syncDown");
+                            SyncDownModel shop = syncDownCtr.searchList.where((p0) => p0.sr.toString() == syncNowController.searchList[index].sr.toString()).first;
+                            Get.to(NewShops(sr: syncNowController.searchList[index].sr,shop: shop,statusId: shop.statusId,typeId: shop.typeId,sectorId: shop.sectorId,));
+                          },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: FetchPixels.getPixelWidth(6),vertical: FetchPixels.getPixelHeight(2)),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(
+                                  FetchPixels.getPixelHeight(5)),
+                              border: Border.all(color: Color(0xffd2d2d2)),
+                            ),
+                            child: Container(
+                                height: FetchPixels.getPixelHeight(25),
+                                width: FetchPixels.getPixelWidth(25),
+                                child: Image.asset(edit)),
                           ),
                         ),
                       ],

@@ -42,7 +42,6 @@ class _OrderDetailState extends State<OrderDetail> {
         netRate: e.netRate,rateId: e.rateId,quantity: e.quantity,subTotal: e.subTotal,retail: e.retail,weight: e.weight,tonnage: e.tonnage,fixedRate: e.fixedRate,tonagePerPcs: e.tonagePerPcs)).toList();
 
     for(int i=0; i<productsList.length; i++){
-      log('>>>> ${productsList[i].toJson()}');
       totalWeight += double.tryParse(productsList[i].wgm.toString())!;
       totalAmount += double.tryParse(productsList[i].subTotal.toString())!;
       totalQuantity += int.tryParse(productsList[i].quantity.toString())!;
@@ -284,7 +283,8 @@ class _OrderDetailState extends State<OrderDetail> {
                               reason: e.reason,
                               image: e.image,
                               payment: e.payment,
-                              pjpnumber: e.pjpnumber)).toList();
+                              pjpnumber: e.pjpnumber,
+                          )).toList();
 
                     // print('>>> 1st ${list.length} and ${syncNowController.reasonModelList.length}');
 
@@ -338,6 +338,8 @@ class _OrderDetailState extends State<OrderDetail> {
 
                     OrderModel orderModel = shopServiceController.orderList[0];
 
+                    int initialLength = ordersList.length;
+
                     for(int i=0; i<productsList.length; i++){
                      OrderModel order = OrderModel(image: orderModel.image,shopId: orderModel.shopId,pjpNo: orderModel.pjpNo,pjpDate: orderModel.pjpDate,
                          invoiceStatus: orderModel.invoiceStatus,userId: orderModel.userId,reason: "Invoice",replace: orderModel.replace,
@@ -345,13 +347,14 @@ class _OrderDetailState extends State<OrderDetail> {
                      ordersList.add(order);
                     }
 
-                    log('>>>> 2 length ${ordersList.length}');
+                    int finalLength = ordersList.length;
 
-                   HiveDatabase.setOrderData("orderBox", "order", ordersList);
+                    if(finalLength > initialLength){
+                      HiveDatabase.setOrderData("orderBox", "order", ordersList);
+                    }
 
                     List<OrderModel> orderList = await HiveDatabase.getOrderData("orderBox", "order");
 
-                    log('>>>> order length ${orderList.length}');
 
                     OrderCalculationModel orderCalculate = await HiveDatabase.getOrderCalculation("orderCalculateBox", "orderCalculate");
                     double bookingValue = orderCalculate.bookingValue ?? 0.0;
@@ -385,7 +388,7 @@ class _OrderDetailState extends State<OrderDetail> {
 
                     List<OrderModel> orders = shopServiceController.orderList;
                     dynamic shopId = orders[0].shopId;
-                    String checkIn = orders[0].checkIn;
+                    String checkIn = orders[0].checkIn.toString();
                     String image = orders[0].image;
 
                     var box2 = await Hive.openBox("syncDownList");
@@ -418,8 +421,6 @@ class _OrderDetailState extends State<OrderDetail> {
                     List<OrderModel> orderList5 = await HiveDatabase.getOrderData("orderBox", "order");
                     int reasonLength = syncNowController.reasonModelList.where((p0) => p0.reason == "Invoice").length;
                     double llpLength = 0.0;
-
-                    log('>>>> length is ${orderList5.length}');
 
                     if (reasonLength != 0) {
                       llpLength = orderList5.length / reasonLength;

@@ -21,6 +21,7 @@ import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'controllers/distributionController.dart';
+import 'controllers/syncNowController.dart';
 import 'model/creditModel.dart';
 import 'model/reasonName.dart';
 import 'model/reasonsModel.dart';

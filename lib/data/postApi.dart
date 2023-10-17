@@ -7,6 +7,7 @@ import 'package:SalesUp/data/hiveDb.dart';
 import 'package:SalesUp/model/creditModel.dart';
 import 'package:SalesUp/model/orderModel.dart';
 import 'package:SalesUp/model/reasonsModel.dart';
+import 'package:SalesUp/model/syncDownModel.dart';
 import 'package:SalesUp/res/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -122,8 +123,8 @@ void editShopApi(Map<String,dynamic> data)async{
     // Send the request
     var response = await request.send();
     log('>>> edit shop ${response.statusCode}');
+    syncNowController.checkSyncUp.value = false;
     if(response.statusCode == 200){
-      syncNowController.checkSyncUp.value = false;
       ScaffoldMessenger.of(Get.context!)
           .showSnackBar(SnackBar(content: Text("Successfully Submit")));
     }else{
@@ -173,6 +174,39 @@ void deleteMobileMasterData(Map<String,dynamic> deletedData,ReasonModel reasonMo
     if(res.statusCode == 200){
 
     }else{
+
+    }
+
+    List<SyncDownModel> list = syncNowController.syncDownList.where((p0) => p0.productive != true).toList();
+
+    for(int i=0; i< list.length; i++){
+      Map<String,dynamic> data = list[i].toJson();
+      data.putIfAbsent("reason", () => "Not Visit");
+
+      DateTime currentDateTime = DateTime.now();
+
+      // Set the time portion to "00:00:00.000"
+      DateTime modifiedDateTime = DateTime(
+        currentDateTime.year,
+        currentDateTime.month,
+        currentDateTime.day,
+        0,  // Hour
+        0,  // Minute
+        0,  // Second
+        0,  // Millisecond
+      );
+
+      Map<String,dynamic> insert = {
+        "ShopId": int.tryParse(data['sr'].toString()),
+        "BookerId": userController.user!.value.id,
+        "CheckIn": 0.0,
+        "CreatedOn": DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(modifiedDateTime),
+        "Payment": "None",
+        "Reason": data['reason'],
+        "Picture": reasonList[0].image
+      };
+
+      insertMobileMasterData(insert);
     }
 
   }catch(e){
@@ -200,17 +234,17 @@ void insertMobileMasterData(Map<String,dynamic> data)async{
     request.fields['Payment'] = data['Payment'].toString();
     request.fields['Reason'] = data['Reason'].toString();
 
-    var file = await http.MultipartFile.fromPath(
-      'Picture',
-      data['Picture'],
-    );
-
-
-    request.files.add(file);
+    if (data.containsKey('Picture') && data['Picture'] != null) {
+      var file = await http.MultipartFile.fromPath(
+        'Picture',
+        data['Picture'],
+      );
+      request.files.add(file);
+    }
 
     // Send the request
     var response = await request.send();
-    log('>>>> insert ${response.statusCode} ');
+    log('>>>> insert shop ${response.statusCode} ');
     if(response.statusCode == 200){
       syncNowController.checkSyncUp.value = false;
     }else{
@@ -318,6 +352,197 @@ void sendMobileDetailsData(Map<String,dynamic> insertData,List<OrderModel> order
     ScaffoldMessenger.of(Get.context!)
         .showSnackBar(SnackBar(content: Text("Exception:- ${e.toString()}")));
   }
+
+}
+
+
+
+
+
+
+
+
+// mobile sync delete
+void mobileSyncDeleteApi(Map<String,dynamic> deleteData)async{
+
+  try{
+
+
+    SyncNowController syncNowController = Get.find<SyncNowController>();
+    UserController userController = Get.find<UserController>();
+    syncNowController.checkSyncUp.value = true;
+
+    var res = await http.delete(Uri.parse("$BASE_URL/MobileSyncUp"),body: deleteData);
+
+    syncNowController.checkSyncUp.value = false;
+
+    Map<String,dynamic> data = {
+      "PjpDate": DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(DateTime.now()),
+      "UserId": userController.user!.value.id,
+    };
+
+    mobileDetailDeleteApi(data);
+
+
+  }
+  catch(e){
+    ScaffoldMessenger.of(Get.context!)
+        .showSnackBar(SnackBar(content: Text("Exception:- ${e.toString()}")));
+  }
+
+}
+
+
+// mobile sync delete
+void mobileDetailDeleteApi(Map<String,dynamic> deleteData)async{
+
+  try{
+
+
+    SyncNowController syncNowController = Get.find<SyncNowController>();
+    UserController userController = Get.find<UserController>();
+    syncNowController.checkSyncUp.value = true;
+
+    var res = await http.delete(Uri.parse("$BASE_URL/MobileSyncUp/DeleteMobileDetail"),body: deleteData);
+
+    log('>>>> delete ${res.statusCode}');
+
+
+    HiveDatabase.getReasonData("reasonNo", "reason");
+
+    List<ReasonModel> reasonList = syncNowController.reasonModelList;
+
+    List<SyncDownModel> list = syncNowController.syncDownList.where((p0) => p0.productive != true).toList();
+
+    List<Map<String, dynamic>> combinedList = [];
+
+    for(int i=0; i<reasonList.length; i++){
+
+      Map<String, dynamic> data = {
+        "shopId": int.tryParse(reasonList[i].shopId!),
+        "bookerId": userController.user!.value.id,
+        "checkIn": double.tryParse(reasonList[i].checkIn!),
+        "createdOn": formatDateAndTime(reasonList[i].createdOn!),
+        "payment": reasonList[i].payment,
+        "reason": reasonList[i].reason,
+        "picture": reasonList[i].image
+      };
+      combinedList.add(data);
+    }
+
+    for(int i=0; i<list.length; i++){
+
+      DateTime currentDateTime = DateTime.now();
+
+      // Set the time portion to "00:00:00.000"
+      DateTime modifiedDateTime = DateTime(
+        currentDateTime.year,
+        currentDateTime.month,
+        currentDateTime.day,
+        0,  // Hour
+        0,  // Minute
+        0,  // Second
+        0,  // Millisecond
+      );
+
+      Map<String, dynamic> data = {
+        "shopId": int.tryParse(list[i].sr.toString()),
+        "bookerId": userController.user!.value.id,
+        "checkIn": 0,
+        "createdOn": DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(modifiedDateTime),
+        "payment": "None",
+        "reason": "Not Visit",
+        "picture": reasonList[0].image
+      };
+      combinedList.add(data);
+    }
+
+
+    List<OrderModel> orderList = await HiveDatabase.getOrderData("orderBox", "order");
+
+    List<Map<String,dynamic>> order = [];
+
+    for(int i = 0; i<orderList.length; i++){
+      Map<String,dynamic> data1 = {
+        // "Sr": int.tryParse(1.toString()),
+        "shopId": int.tryParse(orderList[i].shopId.toString()),
+        "productId": int.tryParse(orderList[i].orderDataModel!.productId.toString()),
+        "rateId": int.tryParse(orderList[i].orderDataModel!.rateId.toString()),
+        "fixedRate": double.tryParse(orderList[i].orderDataModel!.fixedRate.toString()),
+        "netRate": double.tryParse(orderList[i].orderDataModel!.netRate.toString()),
+        "quantity": int.tryParse(orderList[i].orderDataModel!.quantity.toString()),
+        "pjpNoId": int.tryParse(userController.user!.value.pjpId.toString()),
+        "pjpDate": DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(DateTime.now()),
+        "bookerId": reasonList[0].bookerId,
+        "invoiceStatus": orderList[i].invoiceStatus.toString(),
+        "orderNo": int.tryParse(orderList[i].orderNumber.toString()),
+        "userId": userController.user!.value.id,
+        "replace": int.tryParse(orderList[i].replace.toString()),
+      };
+
+      order.add(data1);
+
+    }
+
+
+    Map<String,dynamic> uploadData = {
+      "masterM": combinedList,
+      "masterD": order,
+    };
+
+    syncNowController.checkSyncUp.value = false;
+
+    mobileSyncUpApi(uploadData);
+
+
+  }
+  catch(e){
+    ScaffoldMessenger.of(Get.context!)
+        .showSnackBar(SnackBar(content: Text("Exception:- ${e.toString()}")));
+  }
+
+}
+
+
+void mobileSyncUpApi(Map<String,dynamic> data)async{
+
+  SyncNowController syncNowController = Get.find<SyncNowController>();
+  syncNowController.checkSyncUp.value = true;
+  try{
+
+   log('>>>> ${data}');
+
+    var res = await http.post(Uri.parse("$BASE_URL/MobileSyncUp"), headers: {
+    'Content-Type': 'application/json',
+    },body: jsonEncode(data));
+
+    log('>>>> syncUp is ${res.statusCode} and ${res.body}');
+
+   syncNowController.checkSyncUp.value = false;
+
+    if(res.statusCode == 200){
+
+      Fluttertoast.showToast(
+          msg: "SyncUp is Completed",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.CENTER,
+          timeInSecForIosWeb: 1,
+          backgroundColor: themeColor,
+          textColor: Colors.white,
+          fontSize: 16.0
+      );
+
+    }
+    else{
+      ScaffoldMessenger.of(Get.context!)
+          .showSnackBar(SnackBar(content: Text("Error:- ${res.body}")));
+    }
+
+  }catch(e){
+    ScaffoldMessenger.of(Get.context!)
+        .showSnackBar(SnackBar(content: Text("Exception:- ${e.toString()}")));
+  }
+
 
 }
 

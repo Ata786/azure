@@ -2,6 +2,7 @@ import 'package:SalesUp/controllers/UserController.dart';
 import 'package:SalesUp/res/base/fetch_pixels.dart';
 import 'package:SalesUp/res/colors.dart';
 import 'package:SalesUp/res/images.dart';
+import 'package:SalesUp/utils/toast.dart';
 import 'package:SalesUp/utils/widgets/appWidgets.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -81,14 +82,7 @@ class OfficeCode extends StatelessWidget {
                         UserController userController =
                             Get.find<UserController>();
                         if (userController.isOnline.value == false) {
-                          Fluttertoast.showToast(
-                              msg: "Connection Error",
-                              toastLength: Toast.LENGTH_LONG,
-                              gravity: ToastGravity.CENTER,
-                              timeInSecForIosWeb: 1,
-                              backgroundColor: themeColor,
-                              textColor: Colors.white,
-                              fontSize: 16.0);
+                          showToast(context, "Check Internet Service and try again");
                         } else {
                           officeCodeApis(officeCodeCtr.text);
                         }
@@ -109,4 +103,6 @@ class OfficeCode extends StatelessWidget {
       ),
     );
   }
+
+
 }

@@ -12,7 +12,7 @@ import '../../model/reateDetailModel.dart';
 import '../../res/images.dart';
 import 'appWidgets.dart';
 
-void showStoreProductDialog({required int argumentSr,required ShopServiceController shopServiceController,required sr,required productName,required List<RateDetailModel> rateDetail}){
+void showStoreProductDialog({required int argumentSr,required ShopServiceController shopServiceController,required sr,required productName,required List<RateDetailModel> rateDetail,required Function(dynamic value) onDialogClosed}){
   List<RateDetailModel> rates1 = rateDetail.where((element) => element.productId == sr).toList();
   shopServiceController.netRate.value = rates1[0].netRate!.toStringAsFixed(6);
   Get.dialog(
@@ -21,7 +21,7 @@ void showStoreProductDialog({required int argumentSr,required ShopServiceControl
             height: FetchPixels.height/1.8,
             child: StoreProductDialogContent(argumentSr: argumentSr,rates1: rates1,shopServiceController: shopServiceController, sr: sr, productName: productName, rateDetail: rateDetail,)),
       )
-  );
+  ).then(onDialogClosed);
 
 }
 
@@ -43,12 +43,16 @@ class StoreProductDialogContent extends StatefulWidget {
 class _StoreProductDialogContentState extends State<StoreProductDialogContent> {
 
   late TextEditingController qtyController;
+  late TextEditingController priceController;
 
   @override
   void initState() {
     super.initState();
+    priceController = TextEditingController(text: "${widget.shopServiceController.netRate.value.toString()}");
     qtyController = TextEditingController(text: "0");
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -95,10 +99,16 @@ class _StoreProductDialogContentState extends State<StoreProductDialogContent> {
                 Container(
                     child: Row(
                       children: [
-                        Expanded(flex: 2,child: Obx(() => Padding(
+                        Expanded(flex: 2,child: Padding(
                           padding: EdgeInsets.only(left: FetchPixels.getPixelWidth(10)),
-                          child: textWidget(text: widget.shopServiceController.netRate.value, fontSize: FetchPixels.getPixelHeight(13), fontWeight: FontWeight.w600,textColor: primaryColor),
-                        ))),
+                          // child: textWidget(text: widget.shopServiceController.netRate.value, fontSize: FetchPixels.getPixelHeight(13), fontWeight: FontWeight.w600,textColor: primaryColor),
+                          child: TextFormField(
+                            controller: priceController,
+                            onChanged: (v){
+                              widget.shopServiceController.netRate.value = v.toString();
+                            },
+                          ),
+                        )),
                         Expanded(flex: 1,child: Container(
                           child: Row(
                             children: [
@@ -109,6 +119,7 @@ class _StoreProductDialogContentState extends State<StoreProductDialogContent> {
                                     }else if (rate != null){
                                       rate++;
                                       widget.shopServiceController.netRate.value = rate.toString();
+                                      priceController.text = rate.toString();
                                     }
 
                                   },
@@ -120,6 +131,7 @@ class _StoreProductDialogContentState extends State<StoreProductDialogContent> {
                                     if(rate != null){
                                       rate--;
                                       widget.shopServiceController.netRate.value = rate.toString();
+                                      priceController.text = rate.toString();
                                     }
                                   },
                                   child: Icon(Icons.arrow_downward)),
@@ -264,6 +276,7 @@ class _StoreProductDialogContentState extends State<StoreProductDialogContent> {
                               widget.shopServiceController.filteredProductsList.value = widget.shopServiceController.productsList;
 
                               Get.back();
+
                             }
                           }else{
 
@@ -271,7 +284,6 @@ class _StoreProductDialogContentState extends State<StoreProductDialogContent> {
                         }
 
                       }
-
                     }
                   },
                 ),

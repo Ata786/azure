@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 import 'package:SalesUp/controllers/UserController.dart';
 import 'package:SalesUp/controllers/shopServiceController.dart';
@@ -5,6 +6,7 @@ import 'package:SalesUp/controllers/syncNowController.dart';
 import 'package:SalesUp/data/hiveDb.dart';
 import 'package:SalesUp/res/base/fetch_pixels.dart';
 import 'package:SalesUp/res/colors.dart';
+import 'package:SalesUp/utils/userCurrentLocation.dart';
 import 'package:SalesUp/utils/widgets/appWidgets.dart';
 import 'package:SalesUp/utils/widgets/imagePickerDialog.dart';
 import 'package:flutter/material.dart';
@@ -189,20 +191,26 @@ class _ShopServiceState extends State<ShopService> {
               ),
               SizedBox(height: FetchPixels.getPixelHeight(10),),
               Align(alignment: Alignment.centerRight,child: InkWell(
-                onTap: (){
+                onTap: ()async{
                   if(isEdit == false){
-                    String gprs = arguments['gprs'];
-                    List<String> gprsLatLng = gprs.split(',');
-                    double? lat = double.tryParse(gprsLatLng[0]);
-                    double? lon = double.tryParse(gprsLatLng[1]);
-                    double dis = Geolocator.distanceBetween(userController.latitude, userController.longitude, lat ?? 0.0, lon ?? 0.0);
-                    distance = dis;
-                  }else{
+                    Get.dialog(Center(child: CircularProgressIndicator(color: themeColor,),));
+                    Position? location = await getLocation(context);
+                    Get.back();
+                     String gprs = arguments['gprs'];
+                     List<String> gprsLatLng = gprs.split(',');
+                     double? lat = double.tryParse(gprsLatLng[0]);
+                     double? lon = double.tryParse(gprsLatLng[1]);
+                     double dis = Geolocator.distanceBetween(location!.latitude, location.longitude, lat ?? 0.0, lon ?? 0.0);
+                     distance = dis+0.5;
+                     setState(() {
 
+                     });
+                  }else{
+                    distance = double.tryParse(arguments['gprs'])! + 0.5;
+                    setState(() {
+
+                    });
                   }
-                  setState(() {
-                    
-                  });
                 },
                 child: button(
                     height: FetchPixels.getPixelHeight(35),

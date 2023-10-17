@@ -439,7 +439,7 @@ class HiveDatabase {
     var data = box.get(key);
     CheckIn checkIn = CheckIn();
     if (data != null) {
-      checkIn = CheckIn(userId: data.userId,latitude: data.latitude,longitude: data.longitude,attendanceDateTime: data.attendanceDateTime,id: data.id);
+      checkIn = CheckIn(userId: data.userId,latitude: data.latitude,longitude: data.longitude,attendanceDateTime: data.attendanceDateTime,id: data.id,checkIn: data.checkIn ?? "",remarks: data.remarks ?? "");
     }
     return checkIn;
   }

@@ -1,10 +1,13 @@
 import 'dart:developer';
 
+import 'package:SalesUp/controllers/UserController.dart';
 import 'package:SalesUp/data/hiveDb.dart';
 import 'package:SalesUp/model/daysModel.dart';
 import 'package:SalesUp/model/financialYearModel.dart';
+import 'package:SalesUp/model/saleDistributionModel.dart';
 import 'package:SalesUp/res/base/fetch_pixels.dart';
 import 'package:SalesUp/res/colors.dart';
+import 'package:SalesUp/utils/toast.dart';
 import 'package:SalesUp/view/brandWiseSale.dart';
 import 'package:SalesUp/view/categoryWiseSale.dart';
 import 'package:SalesUp/view/distributionWiseSale.dart';
@@ -32,22 +35,26 @@ class _SaleScreenState extends State<SaleScreen> {
 
   List<String> typeDropDown3 = ["Value","Pcs","Tonnage"];
   String typeValue3 = "Value";
+  int typeValue3value = 0;
 
   String today = "0.0000";
   String thisWeek = '0.0000';
   String thisMonth = '0.0000';
   String thisYear = '0.0000';
-  List<BrandWiseModel> brandWiseList = [];
-  List<RegionWiseModel> regionWiseList = [];
-  List<CategoryWiseModel> categoryWiseList = [];
-  List<DistributedWiseModel> distributorWiseList = [];
+  List<BrandSale> brandWiseList = [];
+  List<RegionSale> regionWiseList = [];
+  List<CategorySale> categoryWiseList = [];
+  List<Distributors> distributorWiseList = [];
   bool loading = false;
+  bool distributorLoading = false;
 
 
   String typeValue = "Select Person";
   TextEditingController fromDateCtr = TextEditingController();
   TextEditingController toDateCtr = TextEditingController();
   DateTime now = DateTime.now();
+
+  SaleDistributionModel saleDistributionModel = SaleDistributionModel();
 
   @override
   void initState() {
@@ -57,6 +64,11 @@ class _SaleScreenState extends State<SaleScreen> {
 
   void getDistributors()async{
     DistributionController distributionController = Get.find<DistributionController>();
+    UserController userController = Get.find<UserController>();
+
+    fromDateCtr.text = DateFormat("dd-MM-yyyy").format(now);
+    toDateCtr.text = DateFormat("dd-MM-yyyy").format(now);
+
     List<DistributionModel> list = await HiveDatabase.getDistributionList("distribution", "distributionBox");
     distributionController.distributionList.value = list;
     distributionController.distributorIdList.clear();
@@ -77,7 +89,34 @@ class _SaleScreenState extends State<SaleScreen> {
       "distributors": distributionController.distributorIdList
     };
 
-    days(body);
+    if(userController.isOnline.value == false){
+      showToast(context, "");
+    }else{
+      days(body);
+    }
+
+
+    DateTime fromInputDate = DateFormat("dd-MM-yyyy").parse(fromDateCtr.text);
+    String s = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(fromInputDate);
+
+    DateTime eInputDate = DateFormat("dd-MM-yyyy").parse(toDateCtr.text);
+    String e = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(eInputDate);
+
+    Map<String,dynamic> saleByDay = {
+      "startDate": s,
+      "endDate": e,
+      "type": typeValue3value,
+      "distributors": distributionController.distributorIdList
+    };
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      if(userController.isOnline.value == false){
+        showToast(context, "");
+      }else{
+        getSaleDistributionByDate(saleByDay);
+      }
+    });
+
   }
 
   @override
@@ -152,7 +191,16 @@ class _SaleScreenState extends State<SaleScreen> {
                           "type": pcsValue,
                           "distributors": distributionController.distributorIdList
                         };
-                        days(body);
+
+                        log('>>>> ${body}');
+
+                        UserController userCtr = Get.find<UserController>();
+
+                        if(userCtr.isOnline.value == true){
+                          days(body);
+                        }else{
+                           showToast(context, "");
+                        }
                     },
                     items: typeDropDown2.map<DropdownMenuItem<String>>((String value) {
                       return DropdownMenuItem<String>(
@@ -348,6 +396,39 @@ class _SaleScreenState extends State<SaleScreen> {
                 onChanged: (newValue) {
 
                   typeValue3 = newValue!;
+
+                  if(typeValue3 == "Value"){
+                    typeValue3value = 0;
+                  }else if(typeValue3 == "Pcs"){
+                    typeValue3value = 1;
+                  }else{
+                    typeValue3value = 2;
+                  }
+
+                  DateTime fromInputDate = DateFormat("dd-MM-yyyy").parse(fromDateCtr.text);
+                  String s = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(fromInputDate);
+
+                  DateTime eInputDate = DateFormat("dd-MM-yyyy").parse(toDateCtr.text);
+                  String e = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(eInputDate);
+
+                  Map<String,dynamic> saleByDay = {
+                    "startDate": s,
+                    "endDate": e,
+                    "type": typeValue3value,
+                    "distributors": distributionController.distributorIdList
+                  };
+
+                  UserController userCtr = Get.find<UserController>();
+
+                  if(userCtr.isOnline.value == true){
+
+                    getSaleDistributionByDate(saleByDay);
+
+                  }else{
+                    showToast(context, "");
+                  }
+
+
                 },
                 items: typeDropDown3.map<DropdownMenuItem<String>>((String value) {
                   return DropdownMenuItem<String>(
@@ -364,7 +445,7 @@ class _SaleScreenState extends State<SaleScreen> {
                   onTap: (){
                     if(loading == true){
                     }else{
-                      Get.to(DistributerWiseSale(distributorWiseList: distributorWiseList,year: typeValue1,value: typeValue2));
+                    Get.to(DistributerWiseSale(distributorWiseList: distributorWiseList,year: typeValue1,value: typeValue2,top5: true));
                     }
                   },
                   child: Container(
@@ -386,7 +467,7 @@ class _SaleScreenState extends State<SaleScreen> {
                     if(loading == true){
 
                     }else{
-                      Get.to(CategoryWiseSale(categoryWiseList: categoryWiseList,year: typeValue1,value: typeValue2));
+                    Get.to(CategoryWiseSale(categoryWiseList: categoryWiseList,year: typeValue1,value: typeValue3));
                     }
                   },
                   child: Container(
@@ -410,10 +491,10 @@ class _SaleScreenState extends State<SaleScreen> {
                 Expanded(
                   child: InkWell(
                     onTap: (){
-    if(loading == true){
-    }else{
-      Get.to(RegionWiseSale(regionWiseList: regionWiseList,year: typeValue1,value: typeValue2));
-    }
+                      if(loading == true){
+                      }else{
+                      Get.to(RegionWiseSale(regionWiseList: regionWiseList,year: typeValue1,value: typeValue3));
+                      }
                     },
                     child: Container(
                         alignment: Alignment.center,
@@ -436,7 +517,7 @@ class _SaleScreenState extends State<SaleScreen> {
                       if(loading == true){
 
                       }else{
-                        Get.to(BrandWiseSale(brandWiseList: brandWiseList,year: typeValue1,value: typeValue2));
+                      Get.to(BrandWiseSale(brandWiseList: brandWiseList,year: typeValue1,value: typeValue3));
                       }
                     },
                     child: Container(
@@ -459,9 +540,8 @@ class _SaleScreenState extends State<SaleScreen> {
             InkWell(
               onTap: ()async{
                 if(loading == true){
-
                 }else{
-                  Get.to(BrandWiseSale(brandWiseList: brandWiseList,year: typeValue1,value: typeValue2));
+                  Get.to(DistributerWiseSale(distributorWiseList: distributorWiseList,year: typeValue1,value: typeValue2,top5: false));
                 }
               },
               child: Container(
@@ -495,17 +575,31 @@ class _SaleScreenState extends State<SaleScreen> {
     thisWeek = distributionController.formatNumberWithCommas(daysModel.thisWeek.toString());
     thisMonth = distributionController.formatNumberWithCommas(daysModel.thisMonth.toString());
     thisYear = distributionController.formatNumberWithCommas(daysModel.thisYear.toString());
+    setState(() {
+      loading = false;
+    });
+  }
+
+
+  void getSaleDistributionByDate(Map<String,dynamic> body)async{
+
+    Get.dialog(Center(child: CircularProgressIndicator(color: themeColor,),));
+
+    DistributionController distributionController = Get.find<DistributionController>();
+    SaleDistributionModel saleDistribution = await distributionController.saleReportByDayApis(body);
+    saleDistributionModel = saleDistribution;
+    Get.back();
+
     brandWiseList.clear();
     distributorWiseList.clear();
     categoryWiseList.clear();
     regionWiseList.clear();
-    brandWiseList.addAll(daysModel.brandSale ?? []);
-    distributorWiseList.addAll(daysModel.distributors ?? []);
-    categoryWiseList.addAll(daysModel.categorySale ?? []);
-    regionWiseList.addAll(daysModel.regionSale ?? []);
-    setState(() {
-      loading = false;
-    });
+    brandWiseList.addAll(saleDistributionModel.brandSale ?? []);
+    distributorWiseList.addAll(saleDistributionModel.distributors ?? []);
+    categoryWiseList.addAll(saleDistributionModel.categorySale ?? []);
+    regionWiseList.addAll(saleDistributionModel.regionSale ?? []);
+
+
   }
   
 

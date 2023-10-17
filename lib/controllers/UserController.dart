@@ -16,6 +16,8 @@ class UserController extends GetxController{
   Rx<CheckIn> checkIn = CheckIn().obs;
   Rx<CheckOut> checkOut = CheckOut().obs;
 
+  Rx<int> page = 0.obs;
+
   late StreamSubscription<ConnectivityResult> subscription;
   late ConnectivityResult connectivityResult;
   Rx<bool> isOnline = false.obs;

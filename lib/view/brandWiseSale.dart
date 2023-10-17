@@ -1,4 +1,5 @@
 import 'package:SalesUp/model/daysModel.dart';
+import 'package:SalesUp/model/saleDistributionModel.dart';
 import 'package:SalesUp/res/base/fetch_pixels.dart';
 import 'package:SalesUp/res/colors.dart';
 import 'package:SalesUp/utils/widgets/appWidgets.dart';
@@ -6,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class BrandWiseSale extends StatelessWidget {
-  List<BrandWiseModel> brandWiseList = [];
+  List<BrandSale> brandWiseList = [];
   String year = '',value = '';
   BrandWiseSale({super.key,required this.brandWiseList,required this.year,required this.value});
 
@@ -22,8 +23,6 @@ class BrandWiseSale extends StatelessWidget {
         height: FetchPixels.height,
         width: FetchPixels.width,
         child: Column(children: [
-          SizedBox(height: FetchPixels.getPixelHeight(15),),
-          textWidget(text: "${year}", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w600,textColor: Colors.black),
           SizedBox(height: FetchPixels.getPixelHeight(10),),
           textWidget(text: "${value} Wise", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w600,textColor: Colors.black),
           SizedBox(height: FetchPixels.getPixelHeight(10),),

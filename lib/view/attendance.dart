@@ -50,17 +50,16 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
     CheckOut checkOut = await HiveDatabase.getCheckOutAttendance("checkOutAttendance", "checkOut");
     userController.checkOut.value = checkOut;
-
   }
 
-  TextEditingController checkInCtr = TextEditingController();
-  TextEditingController checkOutCtr = TextEditingController();
+  TextEditingController distanceCtr = TextEditingController(text: "0.5");
+  TextEditingController remarksCtr = TextEditingController(text: "");
 
   @override
   Widget build(BuildContext context) {
     UserController userController = Get.find<UserController>();
     checkInMarker.add(Marker(markerId: MarkerId("0"),position: LatLng(userController.checkIn.value.latitude ?? 0.0, userController.checkIn.value.longitude ?? 0.0)));
-    checkOutMarker.add(Marker(markerId: MarkerId("0"),position: LatLng(userController.checkOut.value.outLatitude ?? 0.0, userController.checkOut.value.outLongitude ?? 0.0)));
+    checkOutMarker.add(Marker(markerId: MarkerId("0"),position: LatLng(double.tryParse(userController.checkOut.value.outLatitude.toString()) ?? 0.0, double.tryParse(userController.checkOut.value.outLongitude.toString()) ?? 0.0)));
     FetchPixels(context);
     return Scaffold(
       appBar: AppBar(
@@ -104,7 +103,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 DateFormat dateFormat = DateFormat('dd MMM yyyy hh:mm a');
                                 checkInDate = dateFormat.format(now);
                                 checkInMapController.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(target: LatLng(checkInLat, checkInLon),zoom: 12)));
-                                CheckIn checkIn = CheckIn(latitude: checkInLat,longitude: checkInLon,attendanceDateTime: checkInDate);
+                                CheckIn checkIn = CheckIn(latitude: checkInLat,longitude: checkInLon,attendanceDateTime: checkInDate,checkIn: distanceCtr.text,remarks: remarksCtr.text);
                                 await HiveDatabase.setCheckInAttendance("checkInAttendance", "checkIn", checkIn);
                                 CheckIn check = await HiveDatabase.getCheckInAttendance("checkInAttendance", "checkIn");
                                 userController.checkIn.value = check;
@@ -213,7 +212,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       decoration: BoxDecoration(
                           color: Color(0xffADD8E6),
                           borderRadius: BorderRadius.circular(7)),
-                        child: Obx(() => GoogleMap(zoomControlsEnabled: false,initialCameraPosition: CameraPosition(zoom: 13,target: LatLng(userController.checkOut.value.outLatitude ?? 0.0, userController.checkOut.value.outLongitude ?? 0.0),
+                        child: Obx(() => GoogleMap(zoomControlsEnabled: false,initialCameraPosition: CameraPosition(zoom: 13,target: LatLng(double.tryParse(userController.checkOut.value.outLatitude.toString()) ?? 0.0, double.tryParse(userController.checkOut.value.outLongitude.toString()) ?? 0.0),
                         ),
                           markers: Set.of(checkOutMarker),
                           onMapCreated: (controller){
@@ -227,12 +226,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             Container(
               padding: EdgeInsets.only(left: FetchPixels.getPixelWidth(20)),
                 width: FetchPixels.getPixelWidth(180),
-                child: textField(controller: checkInCtr,readOnly: true,labelText: "Distance",hintText: "Distance")),
+                child: textField(controller: distanceCtr,readOnly: true,labelText: "Distance",hintText: "Distance")),
             SizedBox(height: FetchPixels.getPixelHeight(10),),
             Container(
                 padding: EdgeInsets.symmetric(horizontal: FetchPixels.getPixelWidth(20)),
                 width: FetchPixels.width,
-                child: textField(controller: checkOutCtr,labelText: "Remark",hintText:"Remark")),
+                child: textField(controller: remarksCtr,labelText: "Remark",hintText:"Remark")),
             SizedBox(height: FetchPixels.getPixelHeight(20),),
           ],
         ),
@@ -293,7 +292,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     if (response.statusCode == 200) {
       Map<String,dynamic> jsonData = jsonDecode(response.body);
       CheckIn checkInParse = CheckIn.fromJson(jsonData);
-      CheckIn checkIn = CheckIn(latitude: double.parse(checkInParse.latitude.toString()),longitude: double.parse(checkInParse.longitude.toString()),attendanceDateTime: DateFormat('dd MMM yyyy hh:mm a').format(DateTime.parse(checkInParse.attendanceDateTime!)),id: checkInParse.id,userId: checkInParse.userId,outLongitude: double.parse(checkInParse.outLongitude.toString()),outLatitude: double.parse(checkInParse.outLatitude.toString()),outAttendanceDateTime: checkInParse.outAttendanceDateTime);
+      CheckIn checkIn = CheckIn(latitude: double.parse(checkInParse.latitude.toString()),longitude: double.parse(checkInParse.longitude.toString()),attendanceDateTime: DateFormat('dd MMM yyyy hh:mm a').format(DateTime.parse(checkInParse.attendanceDateTime!)),id: checkInParse.id,userId: checkInParse.userId,outLongitude: double.parse(checkInParse.outLongitude.toString()),outLatitude: double.parse(checkInParse.outLatitude.toString()),outAttendanceDateTime: checkInParse.outAttendanceDateTime,checkIn: distanceCtr.text,remarks: remarksCtr.text);
       HiveDatabase.setCheckInAttendance("checkInAttendance", "checkIn", checkIn);
       CheckIn check = await HiveDatabase.getCheckInAttendance("checkInAttendance", "checkIn");
       userController.checkIn.value = check;

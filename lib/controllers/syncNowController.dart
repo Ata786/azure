@@ -33,6 +33,8 @@ class SyncNowController extends GetxController{
   RxList<ShopSectorModel> shopSectorList = <ShopSectorModel>[].obs;
   RxList<ShopTypeModel> shopTypeList = <ShopTypeModel>[].obs;
 
+  int item = 0;
+
   Rx<OrderCalculationModel> orderCalculationModel = OrderCalculationModel().obs;
 
   

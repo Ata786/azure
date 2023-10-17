@@ -9,6 +9,7 @@ import 'package:SalesUp/res/base/fetch_pixels.dart';
 import 'package:SalesUp/res/colors.dart';
 import 'package:SalesUp/utils/widgets/appWidgets.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive/hive.dart';
@@ -120,13 +121,16 @@ class _NewShopsState extends State<NewShops> {
       salesTaxSr = shopsStatusModel[0].sr!;
 
       if(widget.shop!.picture != null || widget.shop!.picture != ''){
-        shopImage = widget.shop!.picture!;
+        shopImage = widget.shop!.picture ?? "";
       }
+
 
      if(syncDownModel.gprs != null){
        latLng = syncDownModel.gprs!.split(',');
-       lat = double.tryParse(latLng[0])!;
-       lon = double.tryParse(latLng[1])!;
+       if(latLng.length > 1){
+         lat = double.tryParse(latLng[0]) ?? 0.0;
+         lon = double.tryParse(latLng[1]) ?? 0.0;
+       }
      }
     }
 
@@ -272,6 +276,31 @@ class _NewShopsState extends State<NewShops> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       SizedBox(),
+                      SizedBox(),
+                      InkWell(
+                        onTap: ()async {
+                          Position? location = await getLocation(context);
+                          setState(() {
+                            if(googleMapController != null){
+                              googleMapController!.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(zoom: 12, target: LatLng(location!.latitude, location.longitude))));
+                            }
+                            lat = location!.latitude;
+                            lon = location.longitude;
+                            log('.>>>> ${lat} and ${lon}');
+                          });
+                        },
+                        child: Container(
+                          color: themeColor,
+                          height: FetchPixels.getPixelHeight(75),
+                          padding: EdgeInsets.all(3),
+                          child: Center(
+                            child: textWidget(
+                                text: "Current Location",
+                                fontSize: FetchPixels.getPixelHeight(10),
+                                fontWeight: FontWeight.w500,
+                                textColor: Colors.white),
+                          )),
+                      ),
                       Container(
                         height: FetchPixels.getPixelHeight(150),
                         width: FetchPixels.getPixelWidth(150),
@@ -286,34 +315,6 @@ class _NewShopsState extends State<NewShops> {
                         ),
                       ),
                     ],
-                  ),
-                  SizedBox(
-                    height: FetchPixels.getPixelHeight(10),
-                  ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: InkWell(
-                      onTap: () {
-                        getLocation(context).then((value) async {
-                          setState(() {
-                            if(googleMapController != null){
-                              googleMapController!.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(zoom: 12, target: LatLng(value!.latitude, value.longitude))));
-                            }
-                            lat = value!.latitude;
-                            lon = value.longitude;
-                          });
-                        });
-                      },
-                      child: Container(
-                        color: themeColor,
-                        padding: EdgeInsets.all(3),
-                        child: textWidget(
-                            text: "Current Location",
-                            fontSize: FetchPixels.getPixelHeight(10),
-                            fontWeight: FontWeight.w500,
-                            textColor: Colors.white),
-                      ),
-                    ),
                   ),
                   SizedBox(
                     height: FetchPixels.getPixelHeight(20),
@@ -512,8 +513,10 @@ class _NewShopsState extends State<NewShops> {
 
                                                 box.put(
                                                     "syncDown", syncNowController.searchList);
+                                                UserController userCtr = Get.find<UserController>();
+                                                userCtr.page.value = 1;
                                                 Get.back();
-                                                Get.offAll(Home());
+                                               Get.offAll(Home());
                                               },
                                               child: Card(
                                                 child: Padding(

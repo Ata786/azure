@@ -1,23 +1,18 @@
-import 'dart:async';
 import 'dart:developer';
-
 import 'package:SalesUp/controllers/UserController.dart';
 import 'package:SalesUp/controllers/dashboardController.dart';
-import 'package:SalesUp/controllers/distributionController.dart';
 import 'package:SalesUp/controllers/syncNowController.dart';
 import 'package:SalesUp/data/getApis.dart';
 import 'package:SalesUp/data/hiveDb.dart';
 import 'package:SalesUp/data/postApi.dart';
-import 'package:SalesUp/model/NewShopModel.dart';
 import 'package:SalesUp/model/attendenceModel.dart';
 import 'package:SalesUp/model/creditModel.dart';
-import 'package:SalesUp/model/financialYearModel.dart';
-import 'package:SalesUp/model/orderModel.dart';
 import 'package:SalesUp/model/reasonsModel.dart';
 import 'package:SalesUp/model/syncDownModel.dart';
 import 'package:SalesUp/res/base/fetch_pixels.dart';
 import 'package:SalesUp/res/colors.dart';
 import 'package:SalesUp/utils/routes/routePath.dart';
+import 'package:SalesUp/utils/toast.dart';
 import 'package:SalesUp/utils/widgets/dialoges.dart';
 import 'package:SalesUp/view/attendanceReport.dart';
 import 'package:SalesUp/view/dashboard/dashboardPage.dart';
@@ -37,6 +32,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../controllers/shopServiceController.dart';
 import '../../model/orderCalculations.dart';
+import '../../model/orderModel.dart';
 import '../../res/images.dart';
 import '../../utils/widgets/appWidgets.dart';
 
@@ -64,6 +60,8 @@ class _HomeState extends State<Home> {
     }else{
       director = "";
     }
+
+
     Get.put(SyncNowController());
     Get.put(DashBoardController());
     Get.put(ShopServiceController());
@@ -101,14 +99,14 @@ class _HomeState extends State<Home> {
         child: Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: textWidget(
+        title: Obx(() => textWidget(
           textColor: Colors.white,
           text: userController.user!.value.designation == "Booker" || userController.user!.value.designation == "CSF"
-          ? page == 0 ? "Booker Performance" : page == 1 ? "Visit Plan" : "New Shop"
-          : "Sale Report",
+              ? userController.page.value == 0 ? "Booker Performance" : userController.page.value == 1 ? "Visit Plan" : "New Shop"
+              : "Sale Report",
           fontSize: FetchPixels.getPixelHeight(17),
           fontWeight: FontWeight.w600,
-        ),
+        )),
         elevation: 0,
         leading: InkWell(
             onTap: () {
@@ -214,10 +212,8 @@ class _HomeState extends State<Home> {
                  )),
                  Obx(() => ListTile(
                    onTap: syncNowController.checkSyncUp.value == true || syncNowController.check.value == true ? (){} : (){
-                     setState(() {
-                       page = 0;
+                     userController.page.value = 0;
                        _scaffoldKey.currentState!.closeDrawer();
-                     });
                    },
                    minLeadingWidth: FetchPixels.getPixelWidth(20),
                    title: textWidget(
@@ -238,15 +234,8 @@ class _HomeState extends State<Home> {
                        Get.back();
                        if(userController.isOnline.value == false){
 
-                         Fluttertoast.showToast(
-                             msg: "Connection Error",
-                             toastLength: Toast.LENGTH_LONG,
-                             gravity: ToastGravity.CENTER,
-                             timeInSecForIosWeb: 1,
-                             backgroundColor: themeColor,
-                             textColor: Colors.white,
-                             fontSize: 16.0
-                         );
+                         _scaffoldKey.currentState!.closeDrawer();
+                         showToast(context, "Check Internet Service and try again");
 
                        }else{
 
@@ -318,10 +307,8 @@ class _HomeState extends State<Home> {
                  )),
                  Obx(() => ListTile(
                    onTap: syncNowController.checkSyncUp.value == true || syncNowController.check.value == true ? (){} : (){
-                     setState(() {
-                       page = 1;
+                     userController.page.value = 1;
                        _scaffoldKey.currentState!.closeDrawer();
-                     });
                    },
                    minLeadingWidth: FetchPixels.getPixelWidth(20),
                    title: textWidget(
@@ -338,10 +325,8 @@ class _HomeState extends State<Home> {
                  )),
                  Obx(() => ListTile(
                    onTap: syncNowController.checkSyncUp.value == true || syncNowController.check.value == true ? (){} : (){
-                     setState(() {
-                       page = 2;
+                     userController.page.value = 2;
                        _scaffoldKey.currentState!.closeDrawer();
-                     });
                    },
                    minLeadingWidth: FetchPixels.getPixelWidth(20),
                    title: textWidget(
@@ -361,30 +346,31 @@ class _HomeState extends State<Home> {
                      showSyncUpDialog(onTap: ()async{
 
                        if(userController.isOnline.value == true){
-                         List<NewShopModel> newShopList = await HiveDatabase.getNewShops("NewShopsBox", "NewShops");
 
-                         for(int i=0; i<newShopList.length; i++){
-                           Map<String,dynamic> data = {
-                             "ShopName": newShopList[i].shopName,
-                             "ShopAddress": newShopList[i].shopAddress,
-                             "OwnerPhone": newShopList[i].ownerPhone,
-                             "OwnerName": newShopList[i].ownerName,
-                             "OwnerCnic": newShopList[i].ownerCnic,
-                             "Strm": newShopList[i].strn,
-                             "Myntn": newShopList[i].myntn,
-                             "Sector": newShopList[i].sectorSr,
-                             "SaleTax": newShopList[i].salesTaxSr,
-                             "ShopeType": newShopList[i].shopTypeSr,
-                             "Gprs": newShopList[i].gprs,
-                             "Image": newShopList[i].picture,
-                             "DistributerId":  syncNowController.syncDownList[0].distributerId,
-                             "UserId": userController.user!.value.id,
-                           };
-                           log('>>> ${data}');
-                           addNewShop(data);
-
-                         }
-
+                         // List<NewShopModel> newShopList = await HiveDatabase.getNewShops("NewShopsBox", "NewShops");
+                         //
+                         // for(int i=0; i<newShopList.length; i++){
+                         //   Map<String,dynamic> data = {
+                         //     "ShopName": newShopList[i].shopName,
+                         //     "ShopAddress": newShopList[i].shopAddress,
+                         //     "OwnerPhone": newShopList[i].ownerPhone,
+                         //     "OwnerName": newShopList[i].ownerName,
+                         //     "OwnerCnic": newShopList[i].ownerCnic,
+                         //     "Strm": newShopList[i].strn,
+                         //     "Myntn": newShopList[i].myntn,
+                         //     "Sector": newShopList[i].sectorSr,
+                         //     "SaleTax": newShopList[i].salesTaxSr,
+                         //     "ShopeType": newShopList[i].shopTypeSr,
+                         //     "Gprs": newShopList[i].gprs,
+                         //     "Image": newShopList[i].picture,
+                         //     "DistributerId":  syncNowController.syncDownList[0].distributerId,
+                         //     "UserId": userController.user!.value.id,
+                         //   };
+                         //   log('>>> ${data}');
+                         //   addNewShop(data);
+                         //
+                         // }
+                         //
 
                          HiveDatabase.getData("syncDownList", "syncDown");
                          List<SyncDownModel> editList = syncNowController.syncDownList.where((p0) => p0.isEdit == true).toList();
@@ -427,42 +413,62 @@ class _HomeState extends State<Home> {
                            mobileRecovery(data);
                          }
 
-                         HiveDatabase.getReasonData("reasonNo", "reason");
 
-                         List<ReasonModel> reasonList = syncNowController.reasonModelList;
+                         // HiveDatabase.getReasonData("reasonNo", "reason");
+                         //
+                         // List<ReasonModel> reasonList = syncNowController.reasonModelList;
 
-                         if(reasonList.isNotEmpty){
-                           Map<String,dynamic> data = {
-                             "BookerId": userController.user!.value.id,
-                             "CreatedOn": formatDateAndTime(reasonList[0].createdOn!)
-                           };
 
-                           deleteMobileMasterData(data,reasonList[0]);
-                         }
+                         DateTime currentDateTime = DateTime.now();
 
-                         List<OrderModel> orderList = await HiveDatabase.getOrderData("orderBox", "order");
+                         // Set the time portion to "00:00:00.000"
+                         DateTime modifiedDateTime = DateTime(
+                           currentDateTime.year,
+                           currentDateTime.month,
+                           currentDateTime.day,
+                           0,  // Hour
+                           0,  // Minute
+                           0,  // Second
+                           0,  // Millisecond
+                         );
 
-                         if(orderList.isNotEmpty){
-                           Map<String,dynamic> deletedData = {
-                             "PjpDate": formatDateAndTime(orderList[0].pjpDate),
-                             "UserId": userController.user!.value.id,
-                           };
+                         Map<String,dynamic> data = {
+                           "BookerId": userController.user!.value.id,
+                           "CreatedOn": DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(modifiedDateTime)
+                         };
 
-                           deleteMobileDetail(deletedData,reasonList[0].bookerId!);
-                         }
+                         mobileSyncDeleteApi(data);
+
+
+
+                         // if(reasonList.isNotEmpty){
+                         //   Map<String,dynamic> data = {
+                         //     "BookerId": userController.user!.value.id,
+                         //     "CreatedOn": formatDateAndTime(reasonList[0].createdOn!)
+                         //   };
+                         //
+                         //   deleteMobileMasterData(data,reasonList[0]);
+                         // }
+
+
+
+                         // List<OrderModel> orderList = await HiveDatabase.getOrderData("orderBox", "order");
+                         //
+                         // if(orderList.isNotEmpty){
+                         //   Map<String,dynamic> deletedData = {
+                         //     "PjpDate": formatDateAndTime(orderList[0].pjpDate),
+                         //     "UserId": userController.user!.value.id,
+                         //   };
+                         //
+                         //   deleteMobileDetail(deletedData,reasonList[0].bookerId!);
+                         // }
+
 
                          _scaffoldKey.currentState!.closeDrawer();
                          Get.back();
                        }else{
-                         Fluttertoast.showToast(
-                             msg: "Connection Error",
-                             toastLength: Toast.LENGTH_LONG,
-                             gravity: ToastGravity.CENTER,
-                             timeInSecForIosWeb: 1,
-                             backgroundColor: themeColor,
-                             textColor: Colors.white,
-                             fontSize: 16.0
-                         );
+                         _scaffoldKey.currentState!.closeDrawer();
+                         showToast(context, "Check Internet Service and try again");
                        }
 
                      });
@@ -539,8 +545,12 @@ class _HomeState extends State<Home> {
                            "attendanceDateTime": checkInFormattedDateTime,
                            "outLongitude": check.outLongitude,
                            "outLatitude": check.outLatitude,
-                           "outAttendanceDateTime": formattedDateTime
+                           "outAttendanceDateTime": formattedDateTime,
+                           "checkIn": checkIn.checkIn,
+                           "remarks": checkIn.remarks,
                          };
+
+                         log('>>>> ${checkOut}');
 
                          await syncNowController.updateAttendance(checkOut);
 
@@ -845,37 +855,36 @@ class _HomeState extends State<Home> {
           ),
         ),
       ),
-      body: userController.user!.value.designation == "Booker" || userController.user!.value.designation == "CSF"
-          ? pagesList[page] : SaleScreen(),
-      bottomNavigationBar: userController.user!.value.designation == "Booker" || userController.user!.value.designation == "CSF" ? BottomNavigationBar(
-        currentIndex: page,
-        onTap: (index) {
-          setState(() {
-            page = index;
-          });
-        },
-        selectedFontSize: FetchPixels.getPixelHeight(15),
-        items: [
-          BottomNavigationBarItem(
-              icon: Image.asset(performance,
-                  color: page == 0 ? themeColor : Color(0xffE0E0E0),
-                  height: FetchPixels.getPixelHeight(page == 0 ? 45 : 35),
-                  width: FetchPixels.getPixelWidth(page == 0 ? 45 : 35)),
-              label: "Performance"),
-          BottomNavigationBarItem(
-              icon: Image.asset(visit,
-                  color: page == 1 ? themeColor : null,
-                  height: FetchPixels.getPixelHeight(page == 1 ? 45 : 35),
-                  width: FetchPixels.getPixelWidth(page == 1 ? 45 : 35)),
-              label: "Visit Plan"),
-          BottomNavigationBarItem(
-              icon: Image.asset(building,
-                  color: page == 2 ? themeColor : null,
-                  height: FetchPixels.getPixelHeight(page == 2 ? 45 : 35),
-                  width: FetchPixels.getPixelWidth(page == 2 ? 45 : 35)),
-              label: "New Shop"),
-        ],
-      ) : null,
+      body: Obx(() => userController.user!.value.designation == "Booker" || userController.user!.value.designation == "CSF"
+          ? pagesList[userController.page.value] : SaleScreen(),
+         ),
+            bottomNavigationBar: userController.user!.value.designation == "Booker" || userController.user!.value.designation == "CSF" ? BottomNavigationBar(
+              currentIndex: userController.page.value,
+              onTap: (index) {
+                userController.page.value = index;
+              },
+              selectedFontSize: FetchPixels.getPixelHeight(15),
+              items: [
+                BottomNavigationBarItem(
+                    icon: Obx(() => Image.asset(performance,
+                        color: userController.page.value == 0 ? themeColor : Color(0xffE0E0E0),
+                        height: FetchPixels.getPixelHeight(userController.page.value  == 0 ? 45 : 35),
+                        width: FetchPixels.getPixelWidth(userController.page.value  == 0 ? 45 : 35))),
+                    label: "Performance"),
+                BottomNavigationBarItem(
+                    icon: Obx(() => Image.asset(visit,
+                        color: userController.page.value == 1 ? themeColor : null,
+                        height: FetchPixels.getPixelHeight(userController.page.value == 1 ? 45 : 35),
+                        width: FetchPixels.getPixelWidth(userController.page.value == 1 ? 45 : 35))),
+                    label: "Visit Plan"),
+                BottomNavigationBarItem(
+                    icon: Obx(() => Image.asset(building,
+                        color: userController.page.value == 2 ? themeColor : null,
+                        height: FetchPixels.getPixelHeight(userController.page.value == 2 ? 45 : 35),
+                        width: FetchPixels.getPixelWidth(userController.page.value == 2 ? 45 : 35))),
+                    label: "New Shop"),
+              ],
+            ) : null,
     ));
   }
 

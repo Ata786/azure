@@ -9,6 +9,8 @@ class CheckIn {
   dynamic outLongitude;
   dynamic outLatitude;
   String? outAttendanceDateTime;
+  String? checkIn;
+  String? remarks;
 
   CheckIn(
       {this.id,
@@ -18,7 +20,10 @@ class CheckIn {
         this.attendanceDateTime,
         this.outLongitude,
         this.outLatitude,
-        this.outAttendanceDateTime});
+        this.outAttendanceDateTime,
+        this.checkIn,
+        this.remarks
+});
 
   CheckIn.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -29,6 +34,8 @@ class CheckIn {
     outLongitude = json['outLongitude'];
     outLatitude = json['outLatitude'];
     outAttendanceDateTime = json['outAttendanceDateTime'];
+    checkIn = json['checkIn'];
+    remarks = json['remarks'];
   }
 
   Map<String, dynamic> toJson() {
@@ -41,6 +48,8 @@ class CheckIn {
     data['outLongitude'] = this.outLongitude;
     data['outLatitude'] = this.outLatitude;
     data['outAttendanceDateTime'] = this.outAttendanceDateTime;
+    data['checkIn'] = this.checkIn;
+    data['remarks'] = this.remarks;
     return data;
   }
 }
@@ -75,8 +84,8 @@ class CheckIn {
 
 class CheckOut {
   String? userId;
-  double? outLongitude;
-  double? outLatitude;
+  dynamic outLongitude;
+  dynamic outLatitude;
   String? outAttendanceDateTime;
 
   CheckOut({this.userId, this.outLongitude, this.outLatitude, this.outAttendanceDateTime});
@@ -114,6 +123,8 @@ class CheckInAdapter extends TypeAdapter<CheckIn> {
       outAttendanceDateTime: reader.readString(),
       outLatitude: reader.readDouble(),
       outLongitude: reader.readDouble(),
+      checkIn: reader.readString() ?? "",
+      remarks: reader.readString() ?? "",
     );
   }
 
@@ -127,6 +138,8 @@ class CheckInAdapter extends TypeAdapter<CheckIn> {
     writer.writeString(obj.outAttendanceDateTime!);
     writer.writeDouble(obj.outLatitude!);
     writer.writeDouble(obj.outLongitude!);
+    writer.writeString(obj.checkIn ?? "");
+    writer.writeString(obj.remarks ?? "");
   }
 }
 
@@ -149,8 +162,8 @@ class CheckOutAdapter extends TypeAdapter<CheckOut> {
   @override
   void write(BinaryWriter writer, CheckOut obj) {
     writer.writeString(obj.userId!);
-    writer.writeDouble(obj.outLongitude!);
-    writer.writeDouble(obj.outLatitude!);
+    writer.writeDouble(double.tryParse(obj.outLongitude!.toString())!);
+    writer.writeDouble(double.tryParse(obj.outLatitude!.toString())!);
     writer.writeString(obj.outAttendanceDateTime!);
   }
 }
