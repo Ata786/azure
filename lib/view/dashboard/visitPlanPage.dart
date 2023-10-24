@@ -2,6 +2,7 @@ import 'package:SalesUp/controllers/UserController.dart';
 import 'package:SalesUp/controllers/syncNowController.dart';
 import 'package:SalesUp/res/base/fetch_pixels.dart';
 import 'package:SalesUp/res/colors.dart';
+import 'package:SalesUp/utils/toast.dart';
 import 'package:SalesUp/utils/widgets/allStoresWidget.dart';
 import 'package:SalesUp/utils/widgets/appWidgets.dart';
 import 'package:SalesUp/view/NonProductive.dart';
@@ -112,12 +113,21 @@ class _VisitPlanState extends State<VisitPlan> {
                 ),
                 InkWell(
                   onTap: (){
+
+                    UserController userController = Get.find<UserController>();
+
+                    if(userController.isOnline.value == true){
+
+                    }else{
+                      showToast(context, "");
+                    }
+
                     // Get.dialog(
                     //   SessionTimeOut()
                     // );
-                    Get.dialog(
-                      DistributerScreen()
-                    );
+                    // Get.dialog(
+                    //   DistributerScreen()
+                    // );
                   },
                   child: buttonWithIcon(
                       color: themeColor,

@@ -9,8 +9,6 @@ class CheckIn {
   dynamic outLongitude;
   dynamic outLatitude;
   String? outAttendanceDateTime;
-  String? checkIn;
-  String? remarks;
 
   CheckIn(
       {this.id,
@@ -21,8 +19,6 @@ class CheckIn {
         this.outLongitude,
         this.outLatitude,
         this.outAttendanceDateTime,
-        this.checkIn,
-        this.remarks
 });
 
   CheckIn.fromJson(Map<String, dynamic> json) {
@@ -34,8 +30,6 @@ class CheckIn {
     outLongitude = json['outLongitude'];
     outLatitude = json['outLatitude'];
     outAttendanceDateTime = json['outAttendanceDateTime'];
-    checkIn = json['checkIn'];
-    remarks = json['remarks'];
   }
 
   Map<String, dynamic> toJson() {
@@ -48,38 +42,9 @@ class CheckIn {
     data['outLongitude'] = this.outLongitude;
     data['outLatitude'] = this.outLatitude;
     data['outAttendanceDateTime'] = this.outAttendanceDateTime;
-    data['checkIn'] = this.checkIn;
-    data['remarks'] = this.remarks;
     return data;
   }
 }
-
-
-// class CheckIn {
-//   String? userId = "";
-//   double? longitude = 0.0;
-//   double? latitude = 0.0;
-//   String? date = '00:00';
-//
-//   CheckIn({this.userId, this.longitude, this.latitude, this.date});
-//
-//   CheckIn.fromJson(Map<String, dynamic> json) {
-//     userId = json['userId'];
-//     longitude = json['longitude'];
-//     latitude = json['latitude'];
-//     date = json['date'];
-//   }
-//
-//   Map<String, dynamic> toJson() {
-//     final Map<String, dynamic> data = new Map<String, dynamic>();
-//     data['userId'] = this.userId;
-//     data['longitude'] = this.longitude;
-//     data['latitude'] = this.latitude;
-//     data['date'] = this.date;
-//     return data;
-//   }
-// }
-
 
 
 class CheckOut {
@@ -123,8 +88,6 @@ class CheckInAdapter extends TypeAdapter<CheckIn> {
       outAttendanceDateTime: reader.readString(),
       outLatitude: reader.readDouble(),
       outLongitude: reader.readDouble(),
-      checkIn: reader.readString() ?? "",
-      remarks: reader.readString() ?? "",
     );
   }
 
@@ -138,8 +101,6 @@ class CheckInAdapter extends TypeAdapter<CheckIn> {
     writer.writeString(obj.outAttendanceDateTime!);
     writer.writeDouble(obj.outLatitude!);
     writer.writeDouble(obj.outLongitude!);
-    writer.writeString(obj.checkIn ?? "");
-    writer.writeString(obj.remarks ?? "");
   }
 }
 
@@ -167,3 +128,56 @@ class CheckOutAdapter extends TypeAdapter<CheckOut> {
     writer.writeString(obj.outAttendanceDateTime!);
   }
 }
+
+
+
+
+
+
+
+class RemarksModel {
+  String? remarks;
+  String? checkIn;
+
+
+  RemarksModel(
+      {this.remarks,
+        this.checkIn,
+
+      });
+
+  RemarksModel.fromJson(Map<String, dynamic> json) {
+    remarks = json['remarks'];
+    checkIn = json['checkIn'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['remarks'] = this.remarks;
+    data['checkIn'] = this.checkIn;
+    return data;
+  }
+}
+
+
+
+class RemarksModelAdapter extends TypeAdapter<RemarksModel> {
+  @override
+  final typeId = 24;
+
+  @override
+  RemarksModel read(BinaryReader reader) {
+    return RemarksModel(
+      remarks: reader.readString(),
+      checkIn: reader.readString(),
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, RemarksModel obj) {
+    writer.writeString(obj.remarks ?? "");
+    writer.writeString(obj.checkIn ?? "");
+  }
+}
+
+

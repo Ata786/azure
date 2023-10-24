@@ -271,7 +271,7 @@ class _HomeState extends State<Home> {
                          syncNowController.nonProductiveList.clear();
                          syncNowController.searchList.clear();
                          syncNowController.orderCalculationModel.value = OrderCalculationModel();
-                         allApis();
+                         allApis(_scaffoldKey.currentState);
 
                        }
 
@@ -414,11 +414,6 @@ class _HomeState extends State<Home> {
                          }
 
 
-                         // HiveDatabase.getReasonData("reasonNo", "reason");
-                         //
-                         // List<ReasonModel> reasonList = syncNowController.reasonModelList;
-
-
                          DateTime currentDateTime = DateTime.now();
 
                          // Set the time portion to "00:00:00.000"
@@ -440,33 +435,10 @@ class _HomeState extends State<Home> {
                          mobileSyncDeleteApi(data);
 
 
-
-                         // if(reasonList.isNotEmpty){
-                         //   Map<String,dynamic> data = {
-                         //     "BookerId": userController.user!.value.id,
-                         //     "CreatedOn": formatDateAndTime(reasonList[0].createdOn!)
-                         //   };
-                         //
-                         //   deleteMobileMasterData(data,reasonList[0]);
-                         // }
-
-
-
-                         // List<OrderModel> orderList = await HiveDatabase.getOrderData("orderBox", "order");
-                         //
-                         // if(orderList.isNotEmpty){
-                         //   Map<String,dynamic> deletedData = {
-                         //     "PjpDate": formatDateAndTime(orderList[0].pjpDate),
-                         //     "UserId": userController.user!.value.id,
-                         //   };
-                         //
-                         //   deleteMobileDetail(deletedData,reasonList[0].bookerId!);
-                         // }
-
-
                          _scaffoldKey.currentState!.closeDrawer();
                          Get.back();
                        }else{
+                         Get.back();
                          _scaffoldKey.currentState!.closeDrawer();
                          showToast(context, "Check Internet Service and try again");
                        }
@@ -519,79 +491,50 @@ class _HomeState extends State<Home> {
                  Obx(() => ListTile(
                    onTap: syncNowController.checkSyncUp.value == true || syncNowController.check.value == true ? (){} : ()async{
 
-                     if(userController.checkOut.value.outAttendanceDateTime == '' || userController.checkOut.value.outAttendanceDateTime == null){
-                       ScaffoldMessenger.of(Get.context!)
-                           .showSnackBar(SnackBar(content: Text("Please Checkout before Log Out")));
-                     }else{
 
                        if(userController.isOnline.value == true){
 
-                         CheckOut check = await HiveDatabase.getCheckOutAttendance("checkOutAttendance", "checkOut");
-                         CheckIn checkIn = await HiveDatabase.getCheckInAttendance("checkInAttendance", "checkIn");
+                         if(userController.checkOut.value.outAttendanceDateTime == '' || userController.checkOut.value.outAttendanceDateTime == null){
+                           ScaffoldMessenger.of(Get.context!)
+                               .showSnackBar(SnackBar(content: Text("Please Checkout before Log Out")));
+                         }else{
 
-                         DateFormat inputFormat = DateFormat("dd MMM y hh:mm a");
+                           CheckOut check = await HiveDatabase.getCheckOutAttendance("checkOutAttendance", "checkOut");
+                           CheckIn checkIn = await HiveDatabase.getCheckInAttendance("checkInAttendance", "checkIn");
+                           RemarksModel remarksModel = await HiveDatabase.getRemarks("remarksBox", 'remarks');
 
-                         DateTime dateTime = inputFormat.parse(check.outAttendanceDateTime!);
-                         String formattedDateTime = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(dateTime);
+                           DateFormat inputFormat = DateFormat("dd MMM y hh:mm a");
 
-                         DateTime checkInDateTime = inputFormat.parse(checkIn.attendanceDateTime!);
-                         String checkInFormattedDateTime = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(checkInDateTime);
+                           DateTime dateTime = inputFormat.parse(check.outAttendanceDateTime!);
+                           String formattedDateTime = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(dateTime);
 
-                         Map<String,dynamic> checkOut = {
-                           "id": checkIn.id,
-                           "userId": userController.user!.value.id,
-                           "latitude": checkIn.latitude,
-                           "longitude": checkIn.longitude,
-                           "attendanceDateTime": checkInFormattedDateTime,
-                           "outLongitude": check.outLongitude,
-                           "outLatitude": check.outLatitude,
-                           "outAttendanceDateTime": formattedDateTime,
-                           "checkIn": checkIn.checkIn,
-                           "remarks": checkIn.remarks,
-                         };
+                           DateTime checkInDateTime = inputFormat.parse(checkIn.attendanceDateTime!);
+                           String checkInFormattedDateTime = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(checkInDateTime);
 
-                         log('>>>> ${checkOut}');
+                           Map<String,dynamic> checkOut = {
+                             "id": checkIn.id,
+                             "userId": userController.user!.value.id,
+                             "latitude": checkIn.latitude,
+                             "longitude": checkIn.longitude,
+                             "attendanceDateTime": checkInFormattedDateTime,
+                             "outLongitude": check.outLongitude,
+                             "outLatitude": check.outLatitude,
+                             "outAttendanceDateTime": formattedDateTime,
+                             "checkIn": remarksModel.checkIn ?? "0.5",
+                             "remarks": remarksModel.remarks ?? "",
+                           };
 
-                         await syncNowController.updateAttendance(checkOut);
+                           log('>>>> ${checkOut}');
+
+                           await syncNowController.updateAttendance(checkOut);
+
+
+                         }
 
                        }else{
-
-                         Get.dialog(
-                             AlertDialog(content: Container(
-                               height: FetchPixels.getPixelHeight(100),
-                               width: FetchPixels.width,
-                               color: Colors.white,
-                               child: Column(
-                                 children: [
-                                   textWidget(text: "Are your sure?\nYou want to logout?", fontSize: FetchPixels.getPixelHeight(20), fontWeight: FontWeight.w500,textAlign: TextAlign.center),
-                                   SizedBox(height: FetchPixels.getPixelHeight(25),),
-                                   Row(
-                                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                     children: [
-                                       InkWell(
-                                           onTap: (){
-                                             Get.back();
-                                           },
-                                           child: textWidget(text: "No", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w600,textColor: Colors.red)),
-                                       InkWell(
-                                           onTap: ()async{
-
-                                             SharedPreferences shared = await SharedPreferences.getInstance();
-                                             bool remove = await shared.remove("user");
-                                             if(remove == true){
-                                               Get.offAllNamed(SIGN_IN_SCREEN);
-                                             }
-                                           },
-                                           child: textWidget(text: "Yes", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w600,textColor: Colors.green)),
-                                     ],
-                                   )
-                                 ],
-                               ),
-                             ),)
-                         );
-
+                         _scaffoldKey.currentState!.closeDrawer();
+                         showToast(context, "");
                        }
-                     }
 
                    },
                    minLeadingWidth: FetchPixels.getPixelWidth(20),
@@ -679,7 +622,10 @@ class _HomeState extends State<Home> {
                      width: FetchPixels.getPixelWidth(30),
                    ),
                  ),
-                 ListTile(
+                 userController.user!.value.designation == "Admin" || userController.user!.value.designation == "NSM"
+                     || userController.user!.value.designation == "Managing Director" || userController.user!.value.designation == "GM Sales"
+                     || director == "Director"
+                 ? ListTile(
                    onTap:()async{
                      Get.to(AttendanceReportScreen());
                    },
@@ -695,7 +641,7 @@ class _HomeState extends State<Home> {
                      height: FetchPixels.getPixelHeight(40),
                      width: FetchPixels.getPixelWidth(40),
                    ),
-                 ),
+                 ) : SizedBox(),
                  ListTile(
                    onTap:()async{
                      Get.to(TargetReport());
@@ -719,7 +665,7 @@ class _HomeState extends State<Home> {
                    },
                    minLeadingWidth: FetchPixels.getPixelWidth(20),
                    title: textWidget(
-                       text: "  Receivable Report",
+                       text: "   Receivable Report",
                        fontSize: FetchPixels.getPixelHeight(17),
                        fontWeight: FontWeight.w500,
                        textColor: Colors.black),
@@ -736,18 +682,20 @@ class _HomeState extends State<Home> {
                    },
                    minLeadingWidth: FetchPixels.getPixelWidth(20),
                    title: textWidget(
-                       text: "Day Close Status",
+                       text: " Day Close Status",
                        textColor: Colors.black,
                        fontSize: FetchPixels.getPixelHeight(17),
                        fontWeight: FontWeight.w500),
                    leading: Image.asset(
-                     creditList,
-                     height: FetchPixels.getPixelHeight(20),
-                     width: FetchPixels.getPixelWidth(20),
+                     dayclose,
+                     height: FetchPixels.getPixelHeight(35),
+                     width: FetchPixels.getPixelWidth(35),
                    ),
                  )),
                  ListTile(
                    onTap: ()async{
+
+                     log('>>>> ${userController.user!.value.designation}');
 
                      if(userController.user!.value.designation == "Admin" || userController.user!.value.designation == "NSM"
                          || userController.user!.value.designation == "Managing Director" || userController.user!.value.designation == "GM Sales"
@@ -788,43 +736,49 @@ class _HomeState extends State<Home> {
 
                      }else{
 
-                       if(userController.checkOut.value.outAttendanceDateTime == '' || userController.checkOut.value.outAttendanceDateTime == null){
-                         ScaffoldMessenger.of(Get.context!)
-                             .showSnackBar(SnackBar(behavior: SnackBarBehavior.floating,content: Text("Please Checkout before Log Out")));
+                       if(userController.isOnline.value == false){
+                         _scaffoldKey.currentState!.closeDrawer();
+                         showToast(context, "");
                        }else{
-                         Get.dialog(
-                             AlertDialog(content: Container(
-                               height: FetchPixels.getPixelHeight(100),
-                               width: FetchPixels.width,
-                               color: Colors.white,
-                               child: Column(
-                                 children: [
-                                   textWidget(text: "Are your sure?\nYou want to logout?", fontSize: FetchPixels.getPixelHeight(20), fontWeight: FontWeight.w500,textAlign: TextAlign.center),
-                                   SizedBox(height: FetchPixels.getPixelHeight(25),),
-                                   Row(
-                                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                     children: [
-                                       InkWell(
-                                           onTap: (){
-                                             Get.back();
-                                           },
-                                           child: textWidget(text: "No", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w600,textColor: Colors.red)),
-                                       InkWell(
-                                           onTap: ()async{
-                                             SharedPreferences shared = await SharedPreferences.getInstance();
-                                             bool remove = await shared.remove("user");
-                                             if(remove == true){
-                                               Get.offAllNamed(SIGN_IN_SCREEN);
-                                             }
-                                           },
-                                           child: textWidget(text: "Yes", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w600,textColor: Colors.green)),
-                                     ],
-                                   )
-                                 ],
-                               ),
-                             ),)
-                         );
+
+                         if(userController.checkOut.value.outAttendanceDateTime == '' || userController.checkOut.value.outAttendanceDateTime == null){
+                           ScaffoldMessenger.of(Get.context!)
+                               .showSnackBar(SnackBar(behavior: SnackBarBehavior.floating,content: Text("Please Checkout before Log Out")));
+                         }else{
+
+                           CheckOut check = await HiveDatabase.getCheckOutAttendance("checkOutAttendance", "checkOut");
+                           CheckIn checkIn = await HiveDatabase.getCheckInAttendance("checkInAttendance", "checkIn");
+                           RemarksModel remarksModel = await HiveDatabase.getRemarks("remarksBox", 'remarks');
+
+                           DateFormat inputFormat = DateFormat("dd MMM y hh:mm a");
+
+                           DateTime dateTime = inputFormat.parse(check.outAttendanceDateTime!);
+                           String formattedDateTime = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(dateTime);
+
+                           DateTime checkInDateTime = inputFormat.parse(checkIn.attendanceDateTime!);
+                           String checkInFormattedDateTime = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(checkInDateTime);
+
+                           Map<String,dynamic> checkOut = {
+                             "id": checkIn.id,
+                             "userId": userController.user!.value.id,
+                             "latitude": checkIn.latitude,
+                             "longitude": checkIn.longitude,
+                             "attendanceDateTime": checkInFormattedDateTime,
+                             "outLongitude": check.outLongitude,
+                             "outLatitude": check.outLatitude,
+                             "outAttendanceDateTime": formattedDateTime,
+                             "checkIn": remarksModel.checkIn ?? "0.5",
+                             "remarks": remarksModel.remarks ?? "",
+                           };
+
+                           log('>>>> ${checkOut}');
+
+                           await syncNowController.updateAttendance(checkOut);
+
+                         }
+
                        }
+
 
                      }
 

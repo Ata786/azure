@@ -299,60 +299,84 @@ class _DropSizeScreenState extends State<DropSizeScreen> {
             SizedBox(height: FetchPixels.getPixelHeight(20),),
             Row(
               children: [
-                Container(
-                  width: FetchPixels.width/2,
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: FetchPixels.getPixelWidth(20)),
-                    child: TextField(
-                      readOnly: true,
-                      enabled: true,
-                      onTap: (){
-                        showDatePicker(
-                          context: context,
-                          initialDate: now,
-                          firstDate: DateTime(1950),
-                          lastDate: DateTime(2050),
-                        ).then((selectedDate) {
-                          if(selectedDate != null){
-                            String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
-                            fromDateCtr.text = formattedDate;
-                          }
-                        });
-                      },
-                      decoration: InputDecoration(
-                          hintText: "From Date",
-                          suffixIcon: Icon(Icons.calendar_month)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(left: FetchPixels.getPixelWidth(20)),
+                      child: Text(
+                        "From Date",
+                        style: TextStyle(color: blackBrown,fontSize: FetchPixels.getPixelHeight(14),fontWeight: FontWeight.w500),
                       ),
-                      controller: fromDateCtr,
                     ),
-                  ),
-                ),
-                Container(
-                  width: FetchPixels.width/2,
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: FetchPixels.getPixelWidth(20)),
-                    child: TextField(
-                      readOnly: true,
-                      enabled: true,
-                      onTap: (){
-                        showDatePicker(
-                          context: context,
-                          initialDate: now,
-                          firstDate: DateTime(1950),
-                          lastDate: DateTime(2050),
-                        ).then((selectedDate) {
-                          if(selectedDate != null){
-                            String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
-                            toDateCtr.text = formattedDate;
-                          }
-                        });
-                      },
-                      decoration: InputDecoration(
-                          hintText: "To Date",
-                          suffixIcon: Icon(Icons.calendar_month)
+                    Container(
+                      width: FetchPixels.width/2,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: FetchPixels.getPixelWidth(20)),
+                        child: TextField(
+                          readOnly: true,
+                          enabled: true,
+                          onTap: (){
+                            showDatePicker(
+                              context: context,
+                              initialDate: now,
+                              firstDate: DateTime(1950),
+                              lastDate: DateTime(2050),
+                            ).then((selectedDate) {
+                              if(selectedDate != null){
+                                String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
+                                fromDateCtr.text = formattedDate;
+                              }
+                            });
+                          },
+                          decoration: InputDecoration(
+                              hintText: "From Date",
+                              suffixIcon: Icon(Icons.calendar_month)
+                          ),
+                          controller: fromDateCtr,
+                        ),
                       ),
-                      controller: toDateCtr,
-                    ),),
+                    ),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(left: FetchPixels.getPixelWidth(20)),
+                      child: Text(
+                        "To Date",
+                        style: TextStyle(color: blackBrown,fontSize: FetchPixels.getPixelHeight(14),fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                    Container(
+                      width: FetchPixels.width/2,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: FetchPixels.getPixelWidth(20)),
+                        child: TextField(
+                          readOnly: true,
+                          enabled: true,
+                          onTap: (){
+                            showDatePicker(
+                              context: context,
+                              initialDate: now,
+                              firstDate: DateTime(1950),
+                              lastDate: DateTime(2050),
+                            ).then((selectedDate) {
+                              if(selectedDate != null){
+                                String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
+                                toDateCtr.text = formattedDate;
+                              }
+                            });
+                          },
+                          decoration: InputDecoration(
+                              hintText: "To Date",
+                              suffixIcon: Icon(Icons.calendar_month)
+                          ),
+                          controller: toDateCtr,
+                        ),),
+                    ),
+                  ],
                 ),
               ],
             ),

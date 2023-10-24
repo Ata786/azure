@@ -56,7 +56,8 @@ void main() async {
     ..registerAdapter(CheckInAdapter())
     ..registerAdapter(CheckOutAdapter())
     ..registerAdapter(DistributionModelAdapter())
-    ..registerAdapter(FinancialYearAdapter());
+    ..registerAdapter(FinancialYearAdapter())
+    ..registerAdapter(RemarksModelAdapter());
 
   runApp(MyApp());
 }

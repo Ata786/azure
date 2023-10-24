@@ -24,7 +24,16 @@ class CategoryWiseSale extends StatelessWidget {
         width: FetchPixels.width,
         child: Column(children: [
           SizedBox(height: FetchPixels.getPixelHeight(10),),
-          textWidget(text: "${value} Wise", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w600,textColor: Colors.black),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: FetchPixels.getPixelWidth(20)),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                textWidget(text: "Category Name", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w600,textColor: Colors.black),
+                textWidget(text: "${value}", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w600,textColor: Colors.black)
+              ],
+            ),
+          ),
           SizedBox(height: FetchPixels.getPixelHeight(10),),
           Column(
             children: List.generate(categoryWiseList.length, (index) => Container(
@@ -36,8 +45,8 @@ class CategoryWiseSale extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        textWidget(text: "${categoryWiseList[index].categoryName}", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w600,textColor: Colors.black),
-                        textWidget(text: "${formatNumberWithCommas(categoryWiseList[index].totalValue.toString())}", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w600,textColor: Colors.black)
+                        textWidget(text: "${categoryWiseList[index].categoryName}", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w500,textColor: Colors.black),
+                        textWidget(text: value == "Tonnage" ? "${formatNumberWithCommas(categoryWiseList[index].totalValue.toString())}" : "${formatNumberWithCommas(categoryWiseList[index].totalValue!.toStringAsFixed(0))}", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w500,textColor: Colors.black)
                       ],
                     ),
                   ),

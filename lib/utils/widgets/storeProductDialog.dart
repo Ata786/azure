@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:SalesUp/controllers/shopServiceController.dart';
 import 'package:SalesUp/res/base/fetch_pixels.dart';
 import 'package:SalesUp/res/colors.dart';
+import 'package:SalesUp/utils/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -14,14 +15,18 @@ import 'appWidgets.dart';
 
 void showStoreProductDialog({required int argumentSr,required ShopServiceController shopServiceController,required sr,required productName,required List<RateDetailModel> rateDetail,required Function(dynamic value) onDialogClosed}){
   List<RateDetailModel> rates1 = rateDetail.where((element) => element.productId == sr).toList();
-  shopServiceController.netRate.value = rates1[0].netRate!.toStringAsFixed(6);
-  Get.dialog(
-      AlertDialog(
-        content: Container(
-            height: FetchPixels.height/1.8,
-            child: StoreProductDialogContent(argumentSr: argumentSr,rates1: rates1,shopServiceController: shopServiceController, sr: sr, productName: productName, rateDetail: rateDetail,)),
-      )
-  ).then(onDialogClosed);
+  if(rates1.isEmpty){
+    showSnackBar(Get.context!, "Rate of this Product not found");
+  }else{
+    shopServiceController.netRate.value = rates1[0].netRate!.toStringAsFixed(6);
+    Get.dialog(
+        AlertDialog(
+          content: Container(
+              height: FetchPixels.height/1.8,
+              child: StoreProductDialogContent(argumentSr: argumentSr,rates1: rates1,shopServiceController: shopServiceController, sr: sr, productName: productName, rateDetail: rateDetail,)),
+        )
+    ).then(onDialogClosed);
+  }
 
 }
 
@@ -251,7 +256,6 @@ class _StoreProductDialogContentState extends State<StoreProductDialogContent> {
                           )).toList();
 
 
-
                           int productIndex = products.indexWhere((element) => element.sr == widget.sr);
                           if (productIndex != -1) {
                             ProductsModel product = products[productIndex];
@@ -263,6 +267,7 @@ class _StoreProductDialogContentState extends State<StoreProductDialogContent> {
                             product.fixedRate = widget.rates1[widget.shopServiceController.radio.value].netRate!.toStringAsFixed(6);
                             product.weight = double.tryParse(product.wgm.toString())! * int.tryParse(qtyController.text)!;
                             product.tonnage = product.tonagePerPcs ?? 0.0 * int.tryParse(qtyController.text)!;
+
 
                             products[productIndex] = product;
                             // Update the productsList in the shopServiceController

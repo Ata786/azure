@@ -27,13 +27,12 @@ class _LlpcBookerListScreenState extends State<LlpcBookerListScreen> {
   onSearchQueryChanged(query){
     setState(() {
       if (query.isEmpty) {
-        // If the query is empty, show the original unfiltered data
         originalList = List.from(widget.lppcModel.bookerList!);
       } else {
-        // Filter the original data based on the search query
         originalList = widget.lppcModel.bookerList!
             .where((item) =>
-            item.distributorName!.toLowerCase().contains(query.toLowerCase()))
+        item.distributorName!.toLowerCase().contains(query.toLowerCase()) ||
+            item.bookerName!.toLowerCase().contains(query.toLowerCase()))
             .toList();
       }
     });

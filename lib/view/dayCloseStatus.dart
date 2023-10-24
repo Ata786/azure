@@ -71,13 +71,13 @@ class DayCloseStatusScreen extends StatelessWidget {
             SizedBox(height: FetchPixels.getPixelHeight(30),),
             InkWell(
               onTap: (){
-    UserController userController = Get.find<UserController>();
-    DistributionController distributionCtr = Get.find<DistributionController>();
-    if(userController.isOnline.value == true){
-      getCloseDayApi(distributionCtr.distributorIdList,1);
-    }else{
-      showToast(context, "");
-    }
+                UserController userController = Get.find<UserController>();
+                DistributionController distributionCtr = Get.find<DistributionController>();
+                if(userController.isOnline.value == true){
+                  getCloseDayApi(distributionCtr.distributorIdList,1);
+                }else{
+                  showToast(context, "");
+                }
 
               },
               child: Container(

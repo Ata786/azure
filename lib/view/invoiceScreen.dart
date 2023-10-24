@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:SalesUp/controllers/syncNowController.dart';
 import 'package:SalesUp/data/hiveDb.dart';
 import 'package:SalesUp/model/invoiceModel.dart';
@@ -63,6 +65,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
 
     order = list.where((element) => element.shopId.toString() == widget.shopId.toString()).first;
     syncDownModel = syncNowController.syncDownList.where((p0) => p0.sr.toString() == order!.shopId.toString()).first;
+
 
     setState(() {
 

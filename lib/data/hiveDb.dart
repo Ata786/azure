@@ -439,7 +439,7 @@ class HiveDatabase {
     var data = box.get(key);
     CheckIn checkIn = CheckIn();
     if (data != null) {
-      checkIn = CheckIn(userId: data.userId,latitude: data.latitude,longitude: data.longitude,attendanceDateTime: data.attendanceDateTime,id: data.id,checkIn: data.checkIn ?? "",remarks: data.remarks ?? "");
+      checkIn = CheckIn(userId: data.userId,latitude: data.latitude,longitude: data.longitude,attendanceDateTime: data.attendanceDateTime,id: data.id);
     }
     return checkIn;
   }
@@ -526,6 +526,27 @@ class HiveDatabase {
       setUserLocationModel = SetUserLocationModel(name: data.name,latitude: data.latitude,longitude: data.longitude,location: data.location);
     }
     return setUserLocationModel;
+  }
+
+
+
+  static Future<void> setRemarks(String boxName, String key,
+      var data) async {
+    var box = await Hive.openBox(boxName);
+    await box.put(key, data);
+  }
+
+
+  static Future<RemarksModel> getRemarks(String boxName, String key) async {
+
+    var box = await Hive.openBox(boxName);
+    var data = box.get(key);
+
+    RemarksModel remarksModel = RemarksModel();
+    if(data != null){
+      remarksModel = RemarksModel(remarks: data.remarks,checkIn: data.checkIn);
+    }
+    return remarksModel;
   }
 
 

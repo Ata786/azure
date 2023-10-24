@@ -445,7 +445,7 @@ class _SaleScreenState extends State<SaleScreen> {
                   onTap: (){
                     if(loading == true){
                     }else{
-                    Get.to(DistributerWiseSale(distributorWiseList: distributorWiseList,year: typeValue1,value: typeValue2,top5: true));
+                    Get.to(DistributerWiseSale(distributorWiseList: distributorWiseList,year: typeValue1,value: typeValue3,top5: true));
                     }
                   },
                   child: Container(
@@ -541,7 +541,7 @@ class _SaleScreenState extends State<SaleScreen> {
               onTap: ()async{
                 if(loading == true){
                 }else{
-                  Get.to(DistributerWiseSale(distributorWiseList: distributorWiseList,year: typeValue1,value: typeValue2,top5: false));
+                  Get.to(DistributerWiseSale(distributorWiseList: distributorWiseList,year: typeValue1,value: typeValue3,top5: false));
                 }
               },
               child: Container(
@@ -571,10 +571,10 @@ class _SaleScreenState extends State<SaleScreen> {
     });
     DistributionController distributionController = Get.find<DistributionController>();
     DaysModel daysModel = await distributionController.saleReportApis(body);
-    today = distributionController.formatNumberWithCommas(daysModel.today.toString());
-    thisWeek = distributionController.formatNumberWithCommas(daysModel.thisWeek.toString());
-    thisMonth = distributionController.formatNumberWithCommas(daysModel.thisMonth.toString());
-    thisYear = distributionController.formatNumberWithCommas(daysModel.thisYear.toString());
+    today = typeValue2 == "Tonnage" ? distributionController.formatNumberWithCommas(daysModel.today.toString()) : distributionController.formatNumberWithCommas(double.tryParse(daysModel.today.toString())!.toStringAsFixed(0));
+    thisWeek = typeValue2 == "Tonnage" ? distributionController.formatNumberWithCommas(daysModel.thisWeek.toString()) : distributionController.formatNumberWithCommas(double.tryParse(daysModel.thisWeek.toString())!.toStringAsFixed(0));
+    thisMonth = typeValue2 == "Tonnage" ? distributionController.formatNumberWithCommas(daysModel.thisMonth.toString()) : distributionController.formatNumberWithCommas(double.tryParse(daysModel.thisMonth.toString())!.toStringAsFixed(0));
+    thisYear = typeValue2 == "Tonnage" ? distributionController.formatNumberWithCommas(daysModel.thisYear.toString()) : distributionController.formatNumberWithCommas(double.tryParse(daysModel.thisYear.toString())!.toStringAsFixed(0));
     setState(() {
       loading = false;
     });

@@ -25,3 +25,4 @@ String dropSize = "assets/images/dropSize.png";
 String sale = "assets/images/sale.png";
 String target = "assets/images/target.png";
 String edit = "assets/images/edit.png";
+String dayclose = "assets/images/dayclose.png";

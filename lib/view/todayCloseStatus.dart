@@ -54,7 +54,7 @@ class _TodayNotCloseScreenState extends State<TodayNotCloseScreen> {
       appBar: AppBar(
         title: textWidget(
           textColor: Colors.white,
-          text: widget.value == 0 ? "Distribution Day Close Status" : "Not Day Close Distribution List",
+          text: widget.value == 1 ? "Distribution Day Close Status" : "Not Day Close Distribution List",
           fontSize: FetchPixels.getPixelHeight(17),
           fontWeight: FontWeight.w600,
         ),

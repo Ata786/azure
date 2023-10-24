@@ -99,6 +99,7 @@ class _LlpcDistributorsScreenState extends State<LlpcDistributorsScreen> {
                     flex: 3,
                     child: textWidget(text: "Distributor Name", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w600,textColor: Colors.black)),
                 Expanded( flex: 2,child: textWidget(text: "LPPC", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w600,textColor: Colors.black)),
+                Expanded( flex: 2,child: textWidget(text: "Town", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w600,textColor: Colors.black)),
               ],
             ),
             SizedBox(height: FetchPixels.getPixelHeight(10),),
@@ -117,7 +118,8 @@ class _LlpcDistributorsScreenState extends State<LlpcDistributorsScreen> {
                             children: [
                               Expanded(flex: 3,child: textWidget(maxLines: 3,text:"${originalList[index].distributorName}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w400,textColor: Colors.black)),
                               Expanded( flex: 2,child: textWidget(maxLines: 2,text: "${originalList[index].lppc.toStringAsFixed(3)}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w400,textColor: Colors.black)),
-                              ],
+                              Expanded( flex: 2,child: textWidget(maxLines: 2,text: "${originalList[index].townName}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w400,textColor: Colors.black)),
+                            ],
                           ),
                           Divider(),
                         ],

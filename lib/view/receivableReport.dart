@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:SalesUp/controllers/UserController.dart';
 import 'package:SalesUp/controllers/distributionController.dart';
 import 'package:SalesUp/model/receivableInvoicesModel.dart';
@@ -11,7 +10,6 @@ import 'package:SalesUp/utils/widgets/appWidgets.dart';
 import 'package:SalesUp/view/distributerScreen.dart';
 import 'package:SalesUp/view/distributorWiseList.dart';
 import 'package:SalesUp/view/receivableInvoicesScreen.dart';
-import 'package:SalesUp/view/recoverInvoices.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -313,60 +311,84 @@ class _ReceivableReportState extends State<ReceivableReport> {
             SizedBox(height: FetchPixels.getPixelHeight(30),),
             Row(
               children: [
-                Container(
-                  width: FetchPixels.width/2,
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: FetchPixels.getPixelWidth(20)),
-                    child: TextField(
-                      readOnly: true,
-                      enabled: true,
-                      onTap: (){
-                        showDatePicker(
-                          context: context,
-                          initialDate: now,
-                          firstDate: DateTime(1950),
-                          lastDate: DateTime(2050),
-                        ).then((selectedDate) {
-                          if(selectedDate != null){
-                            String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
-                            fromDateCtr.text = formattedDate;
-                          }
-                        });
-                      },
-                      decoration: InputDecoration(
-                          hintText: "From Date",
-                          suffixIcon: Icon(Icons.calendar_month)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(left: FetchPixels.getPixelWidth(20)),
+                      child: Text(
+                        "From Date",
+                        style: TextStyle(color: blackBrown,fontSize: FetchPixels.getPixelHeight(14),fontWeight: FontWeight.w500),
                       ),
-                      controller: fromDateCtr,
                     ),
-                  ),
-                ),
-                Container(
-                  width: FetchPixels.width/2,
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: FetchPixels.getPixelWidth(20)),
-                    child: TextField(
-                      readOnly: true,
-                      enabled: true,
-                      onTap: (){
-                        showDatePicker(
-                          context: context,
-                          initialDate: now,
-                          firstDate: DateTime(1950),
-                          lastDate: DateTime(2050),
-                        ).then((selectedDate) {
-                          if(selectedDate != null){
-                            String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
-                            toDateCtr.text = formattedDate;
-                          }
-                        });
-                      },
-                      decoration: InputDecoration(
-                          hintText: "To Date",
-                          suffixIcon: Icon(Icons.calendar_month)
+                    Container(
+                      width: FetchPixels.width/2,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: FetchPixels.getPixelWidth(20)),
+                        child: TextField(
+                          readOnly: true,
+                          enabled: true,
+                          onTap: (){
+                            showDatePicker(
+                              context: context,
+                              initialDate: now,
+                              firstDate: DateTime(1950),
+                              lastDate: DateTime(2050),
+                            ).then((selectedDate) {
+                              if(selectedDate != null){
+                                String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
+                                fromDateCtr.text = formattedDate;
+                              }
+                            });
+                          },
+                          decoration: InputDecoration(
+                              hintText: "From Date",
+                              suffixIcon: Icon(Icons.calendar_month)
+                          ),
+                          controller: fromDateCtr,
+                        ),
                       ),
-                      controller: toDateCtr,
-                    ),),
+                    )
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(left: FetchPixels.getPixelWidth(20)),
+                      child: Text(
+                        "To Date",
+                        style: TextStyle(color: blackBrown,fontSize: FetchPixels.getPixelHeight(14),fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                    Container(
+                      width: FetchPixels.width/2,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: FetchPixels.getPixelWidth(20)),
+                        child: TextField(
+                          readOnly: true,
+                          enabled: true,
+                          onTap: (){
+                            showDatePicker(
+                              context: context,
+                              initialDate: now,
+                              firstDate: DateTime(1950),
+                              lastDate: DateTime(2050),
+                            ).then((selectedDate) {
+                              if(selectedDate != null){
+                                String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
+                                toDateCtr.text = formattedDate;
+                              }
+                            });
+                          },
+                          decoration: InputDecoration(
+                              hintText: "To Date",
+                              suffixIcon: Icon(Icons.calendar_month)
+                          ),
+                          controller: toDateCtr,
+                        ),),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -391,7 +413,7 @@ class _ReceivableReportState extends State<ReceivableReport> {
                 UserController userController = Get.find<UserController>();
 
                 if(userController.isOnline.value == true){
-                  getReceivableInvoices(data);
+                  getReceivableInvoices(data,0);
                 }else{
                   showToast(context, "");
                 }
@@ -433,7 +455,7 @@ class _ReceivableReportState extends State<ReceivableReport> {
 
                 if(userController.isOnline.value == true){
 
-                  getReceivableInvoices(data);
+                  getReceivableInvoices(data,1);
                 }
                 else{
                   showToast(context, "");
@@ -499,13 +521,13 @@ class _ReceivableReportState extends State<ReceivableReport> {
 
 
 
-  void getReceivableInvoices(Map<String,dynamic> data)async{
+  void getReceivableInvoices(Map<String,dynamic> data,int value)async{
     Get.dialog(Center(child: CircularProgressIndicator(color: themeColor,),));
     DistributionController distributionController = Get.find<DistributionController>();
     ReceivableInvoicesModel receivableInvoicesModelData = await distributionController.receivableInvoicesApis(data);
 
     Get.back();
-    Get.to(ReceivableInvoicesScreen(receivableInvoicesModel: receivableInvoicesModelData, from: fromDateCtr.text, to: toDateCtr.text));
+    Get.to(ReceivableInvoicesScreen(receivableInvoicesModel: receivableInvoicesModelData, from: fromDateCtr.text, to: toDateCtr.text,value: value));
   }
 
 

@@ -136,13 +136,19 @@ Future<void> getAttendanceData(String userId,String dateTime) async {
       CheckIn check = await HiveDatabase.getCheckInAttendance("checkInAttendance", "checkIn");
       userController.checkIn.value = check;
 
-      CheckOut checkOut = CheckOut.fromJson(jsonData);
-      CheckOut checkOutData = CheckOut(userId: "",outLatitude: checkOut.outLatitude,outLongitude: checkOut.outLongitude,outAttendanceDateTime:DateFormat('dd MMM yyyy hh:mm a').format(DateTime.parse(checkOut.outAttendanceDateTime!)));
-      await HiveDatabase.setCheckOutAttendance("checkOutAttendance", "checkOut", checkOutData);
-      CheckOut checkOutHive = await HiveDatabase.getCheckOutAttendance("checkOutAttendance", "checkOut");
-      userController.checkOut.value = checkOutHive;
+      final dateTime = DateTime.parse(jsonData['outAttendanceDateTime']);
 
-      log('>>>> checkIn ${userController.checkIn.value.toJson()}');
+      if (dateTime.year < 2023) {
+
+      } else {
+        CheckOut checkOut = CheckOut.fromJson(jsonData);
+        CheckOut checkOutData = CheckOut(userId: "",outLatitude: checkOut.outLatitude,outLongitude: checkOut.outLongitude,outAttendanceDateTime:DateFormat('dd MMM yyyy hh:mm a').format(DateTime.parse(checkOut.outAttendanceDateTime!)));
+        await HiveDatabase.setCheckOutAttendance("checkOutAttendance", "checkOut", checkOutData);
+        CheckOut checkOutHive = await HiveDatabase.getCheckOutAttendance("checkOutAttendance", "checkOut");
+        userController.checkOut.value = checkOutHive;
+      }
+
+
       Get.offAllNamed(HOME);
     }else if(response.statusCode == 204){
       Get.offAllNamed(HOME);

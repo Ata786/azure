@@ -7,6 +7,7 @@ import 'package:SalesUp/data/hiveDb.dart';
 import 'package:SalesUp/model/creditModel.dart';
 import 'package:SalesUp/model/orderModel.dart';
 import 'package:SalesUp/model/reasonsModel.dart';
+import 'package:SalesUp/model/reateDetailModel.dart';
 import 'package:SalesUp/model/syncDownModel.dart';
 import 'package:SalesUp/res/colors.dart';
 import 'package:flutter/material.dart';
@@ -394,16 +395,16 @@ void mobileSyncDeleteApi(Map<String,dynamic> deleteData)async{
 
 
 // mobile sync delete
-void mobileDetailDeleteApi(Map<String,dynamic> deleteData)async{
+void mobileDetailDeleteApi(Map<String,dynamic> deleteData)async {
+  SyncNowController syncNowController = Get.find<SyncNowController>();
+  UserController userController = Get.find<UserController>();
 
-  try{
-
-
-    SyncNowController syncNowController = Get.find<SyncNowController>();
-    UserController userController = Get.find<UserController>();
+  try {
     syncNowController.checkSyncUp.value = true;
 
-    var res = await http.delete(Uri.parse("$BASE_URL/MobileSyncUp/DeleteMobileDetail"),body: deleteData);
+    var res = await http.delete(
+        Uri.parse("$BASE_URL/MobileSyncUp/DeleteMobileDetail"),
+        body: deleteData);
 
     log('>>>> delete ${res.statusCode}');
 
@@ -412,12 +413,12 @@ void mobileDetailDeleteApi(Map<String,dynamic> deleteData)async{
 
     List<ReasonModel> reasonList = syncNowController.reasonModelList;
 
-    List<SyncDownModel> list = syncNowController.syncDownList.where((p0) => p0.productive != true).toList();
+    List<SyncDownModel> list = syncNowController.syncDownList.where((p0) =>
+    p0.productive != true).toList();
 
     List<Map<String, dynamic>> combinedList = [];
 
-    for(int i=0; i<reasonList.length; i++){
-
+    for (int i = 0; i < reasonList.length; i++) {
       Map<String, dynamic> data = {
         "shopId": int.tryParse(reasonList[i].shopId!),
         "bookerId": userController.user!.value.id,
@@ -430,8 +431,7 @@ void mobileDetailDeleteApi(Map<String,dynamic> deleteData)async{
       combinedList.add(data);
     }
 
-    for(int i=0; i<list.length; i++){
-
+    for (int i = 0; i < list.length; i++) {
       DateTime currentDateTime = DateTime.now();
 
       // Set the time portion to "00:00:00.000"
@@ -439,40 +439,68 @@ void mobileDetailDeleteApi(Map<String,dynamic> deleteData)async{
         currentDateTime.year,
         currentDateTime.month,
         currentDateTime.day,
-        0,  // Hour
-        0,  // Minute
-        0,  // Second
-        0,  // Millisecond
+        0,
+        // Hour
+        0,
+        // Minute
+        0,
+        // Second
+        0, // Millisecond
       );
 
       Map<String, dynamic> data = {
         "shopId": int.tryParse(list[i].sr.toString()),
         "bookerId": userController.user!.value.id,
         "checkIn": 0,
-        "createdOn": DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(modifiedDateTime),
+        "createdOn": DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(
+            modifiedDateTime),
         "payment": "None",
         "reason": "Not Visit",
-        "picture": reasonList[0].image
+        "picture": reasonList.isNotEmpty ? reasonList[0].image : ""
       };
       combinedList.add(data);
     }
 
+    List<OrderModel> orderList = await HiveDatabase.getOrderData(
+        "orderBox", "order");
 
-    List<OrderModel> orderList = await HiveDatabase.getOrderData("orderBox", "order");
+    List<Map<String, dynamic>> order = [];
 
-    List<Map<String,dynamic>> order = [];
 
-    for(int i = 0; i<orderList.length; i++){
-      Map<String,dynamic> data1 = {
-        // "Sr": int.tryParse(1.toString()),
+    for (int i = 0; i < orderList.length; i++) {
+      List<RateDetailModel> rateDetails = await HiveDatabase
+          .getProductRateDetails("product", "productRate");
+
+      List<RateDetailModel> rateDetailModel = rateDetails.where((element) =>
+      element.productId.toString() ==
+          orderList[i].orderDataModel!.productId.toString()).toList();
+
+      String fixedRate = double.tryParse(
+          orderList[i].orderDataModel!.fixedRate.toString())!.toStringAsFixed(
+          1);
+
+      RateDetailModel rateDetail = rateDetailModel.firstWhere((element) {
+        String netRateAsString = element.netRate!.toStringAsFixed(1);
+        return netRateAsString == fixedRate;
+      });
+
+      Map<String, dynamic> data1 = {
         "shopId": int.tryParse(orderList[i].shopId.toString()),
-        "productId": int.tryParse(orderList[i].orderDataModel!.productId.toString()),
-        "rateId": int.tryParse(orderList[i].orderDataModel!.rateId.toString()),
-        "fixedRate": double.tryParse(orderList[i].orderDataModel!.fixedRate.toString()),
-        "netRate": double.tryParse(orderList[i].orderDataModel!.netRate.toString()),
-        "quantity": int.tryParse(orderList[i].orderDataModel!.quantity.toString()),
+        "productId": int.tryParse(
+            orderList[i].orderDataModel!.productId.toString()),
+        "rateId": orderList[i].orderDataModel == null ||
+            orderList[i].orderDataModel!.rateId == null ? int.tryParse(
+            rateDetail.rateId.toString()) : int.tryParse(
+            orderList[i].orderDataModel!.rateId.toString()),
+        "fixedRate": double.tryParse(
+            orderList[i].orderDataModel!.fixedRate.toString()),
+        "netRate": double.tryParse(
+            orderList[i].orderDataModel!.netRate.toString()),
+        "quantity": int.tryParse(
+            orderList[i].orderDataModel!.quantity.toString()),
         "pjpNoId": int.tryParse(userController.user!.value.pjpId.toString()),
-        "pjpDate": DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(DateTime.now()),
+        "pjpDate": DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(
+            DateTime.now()),
         "bookerId": reasonList[0].bookerId,
         "invoiceStatus": orderList[i].invoiceStatus.toString(),
         "orderNo": int.tryParse(orderList[i].orderNumber.toString()),
@@ -480,12 +508,11 @@ void mobileDetailDeleteApi(Map<String,dynamic> deleteData)async{
         "replace": int.tryParse(orderList[i].replace.toString()),
       };
 
-      order.add(data1);
 
+      order.add(data1);
     }
 
-
-    Map<String,dynamic> uploadData = {
+    Map<String, dynamic> uploadData = {
       "masterM": combinedList,
       "masterD": order,
     };
@@ -493,15 +520,15 @@ void mobileDetailDeleteApi(Map<String,dynamic> deleteData)async{
     syncNowController.checkSyncUp.value = false;
 
     mobileSyncUpApi(uploadData);
-
-
   }
-  catch(e){
+
+  catch (e) {
+    syncNowController.checkSyncUp.value = false;
     ScaffoldMessenger.of(Get.context!)
         .showSnackBar(SnackBar(content: Text("Exception:- ${e.toString()}")));
   }
-
 }
+
 
 
 void mobileSyncUpApi(Map<String,dynamic> data)async{
@@ -532,8 +559,9 @@ void mobileSyncUpApi(Map<String,dynamic> data)async{
           fontSize: 16.0
       );
 
-    }
-    else{
+    }else if(res.statusCode == 404){
+
+    } else{
       ScaffoldMessenger.of(Get.context!)
           .showSnackBar(SnackBar(content: Text("Error:- ${res.body}")));
     }

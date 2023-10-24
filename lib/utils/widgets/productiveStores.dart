@@ -807,34 +807,8 @@ Widget productiveStore({required SyncNowController syncNowController}) {
 
                                                       List<OrderModel> orderList = await HiveDatabase.getOrderData("orderBox", "order");
 
-
-                                                      OrderModel orderModel = orderList.where((element) => element.shopId.toString() == syncNowController.filteredReasonList[index].shopId.toString()).first;
-
-                                                      var productsBox = await Hive.openBox("productsBox");
-                                                      List<dynamic> products = productsBox.get("products") ?? [];
-                                                      List<ProductsModel> productsList = [];
-                                                      productsList = products.map((e) => ProductsModel(sr: e.sr,pname: e.pname,wgm: e.wgm,brandName: e.brandName,
-                                                          netRate: e.netRate,rateId: e.rateId,quantity: e.quantity,subTotal: e.subTotal,retail: e.retail,weight: e.weight,tonnage: e.tonnage,fixedRate: e.fixedRate,tonagePerPcs: e.tonagePerPcs)).toList();
-
-                                                      productsList.removeWhere((element) => element.sr.toString() == orderModel.orderDataModel!.productId.toString());
-                                                      productsBox.put("products", productsList);
-
-                                                      List<dynamic> products2 = productsBox.get("products") ?? [];
-                                                      List<ProductsModel> productsList2 = [];
-                                                      productsList2 = products2.map((e) => ProductsModel(sr: e.sr,pname: e.pname,wgm: e.wgm,brandName: e.brandName,
-                                                          netRate: e.netRate,rateId: e.rateId,quantity: e.quantity,subTotal: e.subTotal,retail: e.retail,weight: e.weight,tonnage: e.tonnage,fixedRate: e.fixedRate,tonagePerPcs: e.tonagePerPcs)).toList();
-
-                                                      ShopServiceController shopServiceCtr = Get.find<ShopServiceController>();
-                                                      shopServiceCtr.productsList.value = productsList2;
-                                                      shopServiceCtr.filteredProductsList.value = shopServiceCtr.productsList;
-
-
-
-
                                                       orderList.removeWhere((element) => element.shopId.toString() == syncNowController.filteredReasonList[index].shopId.toString());
                                                       HiveDatabase.setOrderData("orderBox", "order", orderList);
-
-
 
 
                                                       var box = await Hive.openBox("reasonNo");
@@ -846,7 +820,6 @@ Widget productiveStore({required SyncNowController syncNowController}) {
 
                                                       int reasonLength = syncNowController.reasonModelList.where((p0) => p0.reason == "Invoice").length;
 
-                                                      log('.... ${orderList5.length} and ${reasonLength}');
 
                                                       getOrderCalculate.llpc = reasonLength != 0 ? orderList5.length / reasonLength : 0.0;
 

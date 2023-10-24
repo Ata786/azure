@@ -129,6 +129,8 @@ class DistributionController extends GetxController{
       var res = await http.post(Uri.parse("${BASE_URL}/LPPC"),headers: {'Content-Type': 'application/json'},body: jsonEncode(body));
       if(res.statusCode == 200){
 
+        log('>>>> ${res.body}');
+
         Map<String,dynamic> data = jsonDecode(res.body);
         lppc = LppcModel.fromJson(data);
 

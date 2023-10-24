@@ -36,13 +36,15 @@ class DistributionList {
   int? distributorId;
   String? distributorName;
   dynamic lppc;
+  String? townName;
 
-  DistributionList({this.distributorId, this.distributorName, this.lppc});
+  DistributionList({this.distributorId, this.distributorName, this.lppc,this.townName});
 
   DistributionList.fromJson(Map<String, dynamic> json) {
     distributorId = json['distributorId'];
     distributorName = json['distributorName'];
     lppc = json['lppc'];
+    townName = json['townName'];
   }
 
   Map<String, dynamic> toJson() {
@@ -50,6 +52,7 @@ class DistributionList {
     data['distributorId'] = this.distributorId;
     data['distributorName'] = this.distributorName;
     data['lppc'] = this.lppc;
+    data['townName'] = this.townName;
     return data;
   }
 }

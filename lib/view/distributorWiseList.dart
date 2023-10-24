@@ -52,6 +52,8 @@ class _DistributionWiseListState extends State<DistributionWiseList> {
         width: FetchPixels.width,
         child: Column(children: [
           SizedBox(height: FetchPixels.getPixelHeight(15),),
+          textWidget(text: "Till  ${DateFormat('dd-MM-yyyy').format(DateTime.now())}", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w600,textColor: Colors.black),
+          SizedBox(height: FetchPixels.getPixelHeight(10),),
           textWidget(text: "Distribution's Receivable Balance", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w600,textColor: Colors.black),
           SizedBox(height: FetchPixels.getPixelHeight(20),),
          Padding(
