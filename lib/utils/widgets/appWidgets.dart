@@ -118,6 +118,7 @@ Widget buttonWithIcon(
       required color,
       required textColor,
       required textSize,
+      required icon,
       required double borderRadius,
       required textWeight,
       required text}) {
@@ -127,7 +128,7 @@ Widget buttonWithIcon(
         color: color, borderRadius: BorderRadius.circular(borderRadius)),
     child: Row(
       children: [
-        Icon(Icons.add,color: Colors.white,),
+        Icon(icon,color: Colors.white,),
         textWidget(text: text, fontSize: textSize, fontWeight: textWeight,textColor: textColor),
       ],
     ),

@@ -4,6 +4,7 @@ import 'package:SalesUp/controllers/UserController.dart';
 import 'package:SalesUp/controllers/shopServiceController.dart';
 import 'package:SalesUp/controllers/syncNowController.dart';
 import 'package:SalesUp/data/hiveDb.dart';
+import 'package:SalesUp/model/addProducts.dart';
 import 'package:SalesUp/res/base/fetch_pixels.dart';
 import 'package:SalesUp/res/colors.dart';
 import 'package:SalesUp/utils/userCurrentLocation.dart';
@@ -35,6 +36,18 @@ class _ShopServiceState extends State<ShopService> {
   late String selectedItem;
   late double distance;
   bool isEdit = false;
+
+  List<String> productsList = ["Hockey","Foot Ball","Snooker"];
+  String selectedProduct = "Hockey";
+
+  List<String> sizeList = ["Large","Classic","Regular","Sim"];
+  String selectedSize = "Large";
+
+  TextEditingController purchaseRate = TextEditingController();
+  TextEditingController saleRate = TextEditingController();
+  TextEditingController stock = TextEditingController();
+
+  List<AddProductsModel> addProductsList = [];
 
   @override
   void initState() {
@@ -75,229 +88,394 @@ class _ShopServiceState extends State<ShopService> {
         width: FetchPixels.width,
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: FetchPixels.getPixelWidth(10)),
-          child: Column(
-            children: [
-              SizedBox(
-                height: FetchPixels.getPixelHeight(50),
-              ),
-              Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.only(left: FetchPixels.getPixelWidth(20)),
-                    child: textWidget(
-                        text: "Take Image",
-                        fontSize: FetchPixels.getPixelHeight(16),
-                        fontWeight: FontWeight.w600,
-                        textColor: Colors.black),
-                  ),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                SizedBox(
+                  height: FetchPixels.getPixelHeight(50),
                 ),
-               Expanded(
-                 child: Stack(
-                   children: [
-                     Center(
-                       child: InkWell(
-                         onTap: (){
-                           ImagePickerDialog.pickImageCamera(context, (p0) {
-                             if(p0.path.isNotEmpty){
-                               shopServiceController.image.value = p0.path;
-                             }
-                           });
-                         },
-                         child: Container(
-                           height: FetchPixels.getPixelHeight(80),
-                           width: FetchPixels.getPixelWidth(80),
-                           decoration: BoxDecoration(
-                               color: themeColor,
-                               shape: BoxShape.circle,
-                           ),
-                           child: Obx(() => shopServiceController.image.value == "" ? Container(
-                             margin: EdgeInsets.all(3),
+                Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.only(left: FetchPixels.getPixelWidth(20)),
+                      child: textWidget(
+                          text: "Take Image",
+                          fontSize: FetchPixels.getPixelHeight(16),
+                          fontWeight: FontWeight.w600,
+                          textColor: Colors.black),
+                    ),
+                  ),
+                 Expanded(
+                   child: Stack(
+                     children: [
+                       Center(
+                         child: InkWell(
+                           onTap: (){
+                             ImagePickerDialog.pickImageCamera(context, (p0) {
+                               if(p0.path.isNotEmpty){
+                                 shopServiceController.image.value = p0.path;
+                               }
+                             });
+                           },
+                           child: Container(
+                             height: FetchPixels.getPixelHeight(80),
+                             width: FetchPixels.getPixelWidth(80),
                              decoration: BoxDecoration(
-                                 color: Colors.white,
+                                 color: themeColor,
                                  shape: BoxShape.circle,
                              ),
-                             child: Image.asset(pic),
-                           ) : Container(
-                             margin: EdgeInsets.all(3),
-                             decoration: BoxDecoration(
-                                 color: Colors.white,
-                                 shape: BoxShape.circle,
-                             ),
-                             child: CircleAvatar(
-                                 backgroundImage: FileImage(File(shopServiceController.image.value)),
-                                 backgroundColor: Colors.transparent,
+                             child: Obx(() => shopServiceController.image.value == "" ? Container(
+                               margin: EdgeInsets.all(3),
+                               decoration: BoxDecoration(
+                                   color: Colors.white,
+                                   shape: BoxShape.circle,
                                ),
-                           ),)
+                               child: Image.asset(pic),
+                             ) : Container(
+                               margin: EdgeInsets.all(3),
+                               decoration: BoxDecoration(
+                                   color: Colors.white,
+                                   shape: BoxShape.circle,
+                               ),
+                               child: CircleAvatar(
+                                   backgroundImage: FileImage(File(shopServiceController.image.value)),
+                                   backgroundColor: Colors.transparent,
+                                 ),
+                             ),)
+                           ),
                          ),
                        ),
-                     ),
-                     Positioned(
-                         right: FetchPixels.getPixelWidth(15),
-                         bottom: FetchPixels.getPixelHeight(6),
-                         child: Icon(Icons.camera_alt,color: themeColor,))
-                   ],
-                 )
-               ),
-                Expanded(child: SizedBox())
-              ]),
-              SizedBox(height: FetchPixels.getPixelHeight(20),),
-              Container(height: FetchPixels.getPixelHeight(1),width: FetchPixels.width,color: Colors.black,),
-              SizedBox(height: FetchPixels.getPixelHeight(10),),
-              Align(alignment: Alignment.centerLeft,child: textWidget(text: "Reason for not servicing the store", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w600),),
-              SizedBox(height: FetchPixels.getPixelHeight(10),),
+                       Positioned(
+                           right: FetchPixels.getPixelWidth(15),
+                           bottom: FetchPixels.getPixelHeight(6),
+                           child: Icon(Icons.camera_alt,color: themeColor,))
+                     ],
+                   )
+                 ),
+                  Expanded(child: SizedBox())
+                ]),
+                SizedBox(height: FetchPixels.getPixelHeight(20),),
+                Container(height: FetchPixels.getPixelHeight(1),width: FetchPixels.width,color: Colors.black,),
+                SizedBox(height: FetchPixels.getPixelHeight(10),),
+                Align(alignment: Alignment.centerLeft,child: textWidget(text: "Reason for not servicing the store", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w600),),
+                SizedBox(height: FetchPixels.getPixelHeight(10),),
         Padding(
-          padding: EdgeInsets.symmetric(vertical: FetchPixels.getPixelHeight(15)),
-          child: DropdownButtonFormField<String>(
-            isExpanded: true,
-            decoration: InputDecoration(
-              border: UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.blue),
-              ),
-            ),
-            value: selectedItem,
-            onChanged: (newValue) {
-              setState(() {
-                selectedItem = newValue!;
-              });
-            },
-            items: reasons.map<DropdownMenuItem<String>>((ReasonsModel value) {
-              return DropdownMenuItem<String>(
-                value: value.reasonName,
-                child: Text(value.reasonName ?? ""),
-              );
-            }).toList(),
-          ),
-        ),
-              SizedBox(height: FetchPixels.getPixelHeight(20),),
-              Container(
-                height: FetchPixels.getPixelHeight(200),
-                width: FetchPixels.width,
-                child: GoogleMap(
-                    initialCameraPosition: CameraPosition(zoom: 12,target: LatLng(userController.latitude, userController.longitude)
-                    ),
-                  markers: _createMarkers(),
+            padding: EdgeInsets.symmetric(vertical: FetchPixels.getPixelHeight(15)),
+            child: DropdownButtonFormField<String>(
+              isExpanded: true,
+              decoration: InputDecoration(
+                border: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.blue),
                 ),
               ),
-              SizedBox(height: FetchPixels.getPixelHeight(7),),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  textWidget(text: "${distance.toStringAsFixed(3)}m from shop", fontSize: FetchPixels.getPixelHeight(12), fontWeight: FontWeight.w600,textColor: primaryColor),
-                  SizedBox(width: FetchPixels.getPixelWidth(5),),
-                  Icon(Icons.info_outline,size: FetchPixels.getPixelHeight(18),)
-                ],
-              ),
-              SizedBox(height: FetchPixels.getPixelHeight(10),),
-              Align(alignment: Alignment.centerRight,child: InkWell(
-                onTap: ()async{
-                  if(isEdit == false){
-                    Get.dialog(Center(child: CircularProgressIndicator(color: themeColor,),));
-                    Position? location = await getLocation(context);
-                    Get.back();
-                     String gprs = arguments['gprs'];
-                     List<String> gprsLatLng = gprs.split(',');
-                     double? lat = double.tryParse(gprsLatLng[0]);
-                     double? lon = double.tryParse(gprsLatLng[1]);
-                     double dis = Geolocator.distanceBetween(location!.latitude, location.longitude, lat ?? 0.0, lon ?? 0.0);
-                     distance = dis+0.5;
-                     setState(() {
+              value: selectedItem,
+              onChanged: (newValue) {
+                setState(() {
+                  selectedItem = newValue!;
+                });
+              },
+              items: reasons.map<DropdownMenuItem<String>>((ReasonsModel value) {
+                return DropdownMenuItem<String>(
+                  value: value.reasonName,
+                  child: Text(value.reasonName ?? ""),
+                );
+              }).toList(),
+            ),
+        ),
+                SizedBox(height: FetchPixels.getPixelHeight(20),),
+                Container(
+                  height: FetchPixels.getPixelHeight(200),
+                  width: FetchPixels.width,
+                  child: GoogleMap(
+                      initialCameraPosition: CameraPosition(zoom: 12,target: LatLng(userController.latitude, userController.longitude)
+                      ),
+                    markers: _createMarkers(),
+                  ),
+                ),
+                SizedBox(height: FetchPixels.getPixelHeight(7),),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    textWidget(text: "${distance.toStringAsFixed(3)}m from shop", fontSize: FetchPixels.getPixelHeight(12), fontWeight: FontWeight.w600,textColor: primaryColor),
+                    SizedBox(width: FetchPixels.getPixelWidth(5),),
+                    Icon(Icons.info_outline,size: FetchPixels.getPixelHeight(18),)
+                  ],
+                ),
+                SizedBox(height: FetchPixels.getPixelHeight(10),),
+                Align(alignment: Alignment.centerRight,child: InkWell(
+                  onTap: ()async{
+                    if(isEdit == false){
+                      Get.dialog(Center(child: CircularProgressIndicator(color: themeColor,),));
+                      Position? location = await getLocation(context);
+                      Get.back();
+                       String gprs = arguments['gprs'];
+                       List<String> gprsLatLng = gprs.split(',');
+                       double? lat = double.tryParse(gprsLatLng[0]);
+                       double? lon = double.tryParse(gprsLatLng[1]);
+                       double dis = Geolocator.distanceBetween(location!.latitude, location.longitude, lat ?? 0.0, lon ?? 0.0);
+                       distance = dis+0.5;
+                       setState(() {
 
-                     });
-                  }else{
-                    distance = double.tryParse(arguments['gprs'])! + 0.5;
-                    setState(() {
+                       });
+                    }else{
+                      distance = double.tryParse(arguments['gprs'])! + 0.5;
+                      setState(() {
 
-                    });
-                  }
-                },
-                child: button(
-                    height: FetchPixels.getPixelHeight(35),
-                    width: FetchPixels.getPixelWidth(90),
-                    color: themeColor,
-                    textColor: Colors.white,
-                    textSize: FetchPixels.getPixelHeight(10), borderRadius: FetchPixels.getPixelHeight(20),
-                    textWeight: FontWeight.w500, text: "Update GPS"),
-              ),),
-              SizedBox(height: FetchPixels.getPixelHeight(20),),
-              Container(height: FetchPixels.getPixelHeight(1),width: FetchPixels.width,color: Colors.black,),
-              SizedBox(height: FetchPixels.getPixelHeight(10),),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  InkWell(
-                    onTap: ()async{
-                      SyncNowController syncNowController = Get.find<SyncNowController>();
-                      if(isEdit == true){
+                      });
+                    }
+                  },
+                  child: button(
+                      height: FetchPixels.getPixelHeight(35),
+                      width: FetchPixels.getPixelWidth(90),
+                      color: themeColor,
+                      textColor: Colors.white,
+                      textSize: FetchPixels.getPixelHeight(10), borderRadius: FetchPixels.getPixelHeight(20),
+                      textWeight: FontWeight.w500, text: "Update GPS"),
+                ),),
+                SizedBox(height: FetchPixels.getPixelHeight(20),),
+                Container(height: FetchPixels.getPixelHeight(1),width: FetchPixels.width,color: Colors.black,),
+                SizedBox(height: FetchPixels.getPixelHeight(20),),
+                // Container(
+                //   width: FetchPixels.width,
+                //   alignment: Alignment.centerLeft,
+                //   padding: EdgeInsets.only(left: FetchPixels.getPixelWidth(20)),
+                //   child: textWidget(
+                //       text: "Competitor Information",
+                //       fontSize: FetchPixels.getPixelHeight(16),
+                //       fontWeight: FontWeight.w600,
+                //       textColor: Colors.black),
+                // ),
+                // SizedBox(width: FetchPixels.getPixelWidth(10),),
+                // Row(
+                //   children: [
+                //     Expanded(
+                //       child: Padding(
+                //         padding: EdgeInsets.symmetric(vertical: FetchPixels.getPixelHeight(15)),
+                //         child: DropdownButtonFormField<String>(
+                //           isExpanded: true,
+                //           decoration: InputDecoration(
+                //             border: UnderlineInputBorder(
+                //               borderSide: BorderSide(color: Colors.blue),
+                //             ),
+                //           ),
+                //           value: selectedProduct,
+                //           onChanged: (newValue) {
+                //             setState(() {
+                //               selectedProduct = newValue!;
+                //             });
+                //           },
+                //           items: productsList.map<DropdownMenuItem<String>>((String value) {
+                //             return DropdownMenuItem<String>(
+                //               value: value,
+                //               child: Text(value ?? ""),
+                //             );
+                //           }).toList(),
+                //         ),
+                //       ),
+                //     ),
+                //     SizedBox(width: FetchPixels.getPixelWidth(10),),
+                //     Expanded(
+                //       child: Padding(
+                //         padding: EdgeInsets.symmetric(vertical: FetchPixels.getPixelHeight(15)),
+                //         child: DropdownButtonFormField<String>(
+                //           isExpanded: true,
+                //           decoration: InputDecoration(
+                //             border: UnderlineInputBorder(
+                //               borderSide: BorderSide(color: Colors.blue),
+                //             ),
+                //           ),
+                //           value: selectedSize,
+                //           onChanged: (newValue) {
+                //             setState(() {
+                //               selectedSize = newValue!;
+                //             });
+                //           },
+                //           items: sizeList.map<DropdownMenuItem<String>>((String value) {
+                //             return DropdownMenuItem<String>(
+                //               value: value,
+                //               child: Text(value ?? ""),
+                //             );
+                //           }).toList(),
+                //         ),
+                //       ),
+                //     ),
+                //   ],
+                // ),
+                // SizedBox(height: FetchPixels.getPixelHeight(20),),
+                // Row(
+                //   children: [
+                //     Expanded(
+                //       child: textField(
+                //           controller: purchaseRate,
+                //           hintText: "Purchase Rate",
+                //           keyboardType: TextInputType.phone,
+                //           helperText: ""),
+                //     ),
+                //     SizedBox(width: FetchPixels.getPixelWidth(10),),
+                //     Expanded(
+                //       child: textField(
+                //           controller: saleRate,
+                //           keyboardType: TextInputType.phone,
+                //           hintText: "Sale Rate",
+                //           helperText: ""),
+                //     ),
+                //   ],
+                // ),
+                // Align(
+                //   alignment: Alignment.centerLeft,
+                //   child: Container(
+                //     width: FetchPixels.width/2.2,
+                //     child: textField(
+                //         keyboardType: TextInputType.phone,
+                //         controller: stock,
+                //         hintText: "Stock",
+                //         helperText: ""),
+                //   ),
+                // ),
+                // SizedBox(height: FetchPixels.getPixelHeight(10),),
+                // InkWell(
+                //   onTap: (){
+                //     addProductsList.add(AddProductsModel(serial: addProductsList.length+1,product: selectedProduct,stock: stock.text));
+                //     setState(() {
+                //
+                //     });
+                //   },
+                //   child: button(
+                //       height: FetchPixels.getPixelHeight(35),
+                //       width: FetchPixels.getPixelWidth(100),
+                //       color: themeColor,
+                //       textColor: Colors.white,
+                //       textSize: FetchPixels.getPixelHeight(10),
+                //       borderRadius: FetchPixels.getPixelHeight(6),
+                //       textWeight: FontWeight.w500, text: "Add"),
+                // ),
+                // SizedBox(height: FetchPixels.getPixelHeight(30),),
+                // Row(
+                //   children: [
+                //     Expanded(
+                //         flex: 1,
+                //         child: Container(decoration: BoxDecoration(border: Border.all(color: Colors.black)),child: Center(child: textWidget(text: "Serial", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w600,textColor: Colors.black)))),
+                //     Expanded(
+                //         flex: 3,
+                //         child: Container(decoration: BoxDecoration(border: Border.all(color: Colors.black)),child: Center(child: textWidget(text: "Product", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w600,textColor: Colors.black)))),
+                //     Expanded(
+                //         flex: 2,
+                //         child: Container(decoration: BoxDecoration(border: Border.all(color: Colors.black)),child: Center(child: textWidget(text: "Stock", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w600,textColor: Colors.black)))),
+                //     Expanded(
+                //         flex: 1,
+                //         child: Container(decoration: BoxDecoration(border: Border.all(color: Colors.black)),child: Center(child: textWidget(text: "", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w600,textColor: Colors.black)))),
+                //   ],
+                // ),
+                // SizedBox(height: FetchPixels.getPixelHeight(5),),
+                // Column(
+                //   children: List.generate(addProductsList.length, (index) => Row(
+                //     children: [
+                //       Expanded(
+                //           flex: 1,
+                //           child: Container(padding: EdgeInsets.all(3),decoration: BoxDecoration(border: Border.all(color: Colors.black)),child: Center(child: textWidget(text: "${addProductsList[index].serial.toString()}", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w500,textColor: Colors.black)))),
+                //       Expanded(
+                //           flex: 3,
+                //           child: Container(padding: EdgeInsets.all(3),decoration: BoxDecoration(border: Border.all(color: Colors.black)),child: Center(child: textWidget(text: "${addProductsList[index].product}", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w500,textColor: Colors.black)))),
+                //       Expanded(
+                //           flex: 2,
+                //           child: Container(padding: EdgeInsets.all(3),decoration: BoxDecoration(border: Border.all(color: Colors.black)),child: Center(child: textWidget(text: "${addProductsList[index].stock}", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w500,textColor: Colors.black)))),
+                //       Expanded(
+                //           flex: 1,
+                //           child: Container(padding: EdgeInsets.all(3),decoration: BoxDecoration(border: Border.all(color: Colors.black)),child: Center(child: InkWell(
+                //               onTap: (){
+                //                 addProductsList.removeAt(index);
+                //                 setState(() {
+                //
+                //                 });
+                //               },
+                //               child: Image.asset(
+                //                 bin,
+                //                 height: FetchPixels.getPixelHeight(18),
+                //                 width: FetchPixels.getPixelWidth(18),
+                //               )),)),),
+                //     ],
+                //   ),),
+                // ),
+                // SizedBox(height: FetchPixels.getPixelHeight(30),),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    InkWell(
+                      onTap: ()async{
+                        SyncNowController syncNowController = Get.find<SyncNowController>();
+                        if(isEdit == true){
 
-                        syncNowController.reasonModelList.removeWhere((element) => element.shopId == arguments['shopId']);
-                        ReasonModel reasonModelArgument = arguments['updateReason'];
-                        ReasonModel reasonModel = ReasonModel(shopName: arguments['shopName'],shopId: arguments['shopId'].toString(),bookerId: reasonModelArgument.bookerId,checkIn: distance.toString(),createdOn: reasonModelArgument.createdOn,image: shopServiceController.image.value,payment: "Nun",reason: selectedItem ?? '',pjpnumber: reasonModelArgument.pjpnumber);
-                        syncNowController.reasonModelList.add(reasonModel);
-                        HiveDatabase.setReasonData("reasonNo", "reason", syncNowController.reasonModelList);
-                        HiveDatabase.getReasonData("reasonNo", "reason");
-                        Get.back();
-
-                      }else{
-
-                        if(shopServiceController.image.value == '' || distance == 0.0){
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Image and Distance is required"),behavior: SnackBarBehavior.floating,));
-                        }else{
-                          String formattedDateTime = DateFormat("yyyy-MM-dd HH:mm:ss").format(DateTime.now());
-                          ReasonModel reasonModel = ReasonModel(shopName: arguments['shopName'],shopId: arguments['shopId'].toString(),bookerId: userController.user!.value.catagoryId,checkIn: distance.toString(),createdOn: formattedDateTime,image: shopServiceController.image.value,payment: "Payment",reason: selectedItem ?? '',pjpnumber: "0");
-                          var box = await Hive.openBox("reasonNo");
-                          List<dynamic> data = box.get("reason") ?? [];
-                          List<ReasonModel> reasonModelList = data.map((e) => ReasonModel(shopName: e.shopName,shopId: e.shopId,bookerId: e.bookerId,
-                              checkIn: e.checkIn,createdOn: e.createdOn,reason: e.reason,image: e.image,payment: e.payment,pjpnumber: e.pjpnumber)).toList();
-                          reasonModelList.add(reasonModel);
-                          HiveDatabase.setReasonData("reasonNo", "reason", reasonModelList);
+                          syncNowController.reasonModelList.removeWhere((element) => element.shopId == arguments['shopId']);
+                          ReasonModel reasonModelArgument = arguments['updateReason'];
+                          ReasonModel reasonModel = ReasonModel(shopName: arguments['shopName'],shopId: arguments['shopId'].toString(),bookerId: reasonModelArgument.bookerId,checkIn: distance.toString(),createdOn: reasonModelArgument.createdOn,image: shopServiceController.image.value,payment: "Nun",reason: selectedItem ?? '',pjpnumber: reasonModelArgument.pjpnumber);
+                          syncNowController.reasonModelList.add(reasonModel);
+                          HiveDatabase.setReasonData("reasonNo", "reason", syncNowController.reasonModelList);
                           HiveDatabase.getReasonData("reasonNo", "reason");
+                          Get.back();
+
+                        }else{
+
+                          if(shopServiceController.image.value == '' || distance == 0.0){
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Image and Distance is required"),behavior: SnackBarBehavior.floating,));
+                          }else{
+                            String formattedDateTime = DateFormat("yyyy-MM-dd HH:mm:ss").format(DateTime.now());
+                            ReasonModel reasonModel = ReasonModel(shopName: arguments['shopName'],shopId: arguments['shopId'].toString(),bookerId: userController.user!.value.catagoryId,checkIn: distance.toString(),createdOn: formattedDateTime,image: shopServiceController.image.value,payment: "Payment",reason: selectedItem ?? '',pjpnumber: "0");
+                            var box = await Hive.openBox("reasonNo");
+                            List<dynamic> data = box.get("reason") ?? [];
+                            List<ReasonModel> reasonModelList = data.map((e) => ReasonModel(shopName: e.shopName,shopId: e.shopId,bookerId: e.bookerId,
+                                checkIn: e.checkIn,createdOn: e.createdOn,reason: e.reason,image: e.image,payment: e.payment,pjpnumber: e.pjpnumber)).toList();
+                            reasonModelList.add(reasonModel);
+                            HiveDatabase.setReasonData("reasonNo", "reason", reasonModelList);
+                            HiveDatabase.getReasonData("reasonNo", "reason");
 
 
-                          var syncDown = await Hive.openBox("syncDownList");
-                          List<dynamic> syncDownList = syncDown.get("syncDown") ?? [];
-                          if(syncDownList.isNotEmpty){
-                            List<SyncDownModel> syncDownModelList = syncDownList.map((e) => SyncDownModel(shopname: e.shopname,address: e.address,salesInvoiceDate: e.salesInvoiceDate,gprs: e.gprs,shopCode: e.shopCode,sr: e.sr,phone: e.phone,owner: e.owner,catagoryId: e.catagoryId,productive: e.productive,distributerId: e.distributerId,sectorId: e.sectorId,typeId: e.typeId,statusId: e.statusId,salesTax: e.salesTax,tax: e.tax,shopType: e.shopType,picture: e.picture,sector: e.sector,cnic: e.cnic,myntn: e.myntn,isEdit: e.isEdit)).toList();
-                            int shopIndex = syncDownModelList.indexWhere((element) => element.sr == arguments['shopId']);
-                            syncDownModelList[shopIndex].productive = true;
-                            await syncDown.put("syncDown", syncDownModelList);
-                            List<dynamic> syncDownUpdatedList = syncDown.get("syncDown") ?? [];
-                            syncNowController.syncDownList.value = syncDownUpdatedList.map((e) => SyncDownModel(shopname: e.shopname,address: e.address,salesInvoiceDate: e.salesInvoiceDate,gprs: e.gprs,shopCode: e.shopCode,sr: e.sr,phone: e.phone,owner: e.owner,catagoryId: e.catagoryId,productive: e.productive,distributerId: e.distributerId,sectorId: e.sectorId,typeId: e.typeId,statusId: e.statusId,salesTax: e.salesTax,tax: e.tax,shopType: e.shopType,picture: e.picture,sector: e.sector,cnic: e.cnic,myntn: e.myntn,isEdit: e.isEdit)).toList();
-                            syncNowController.allList.value = syncNowController.syncDownList;
-                            syncNowController.searchList.value = syncNowController.allList;
-                            shopServiceController.image.value = '';
-                            Get.back();
+                            var syncDown = await Hive.openBox("syncDownList");
+                            List<dynamic> syncDownList = syncDown.get("syncDown") ?? [];
+                            if(syncDownList.isNotEmpty){
+                              List<SyncDownModel> syncDownModelList = syncDownList.map((e) => SyncDownModel(shopname: e.shopname,address: e.address,salesInvoiceDate: e.salesInvoiceDate,gprs: e.gprs,shopCode: e.shopCode,sr: e.sr,phone: e.phone,owner: e.owner,catagoryId: e.catagoryId,productive: e.productive,distributerId: e.distributerId,sectorId: e.sectorId,typeId: e.typeId,statusId: e.statusId,salesTax: e.salesTax,tax: e.tax,shopType: e.shopType,picture: e.picture,sector: e.sector,cnic: e.cnic,myntn: e.myntn,isEdit: e.isEdit)).toList();
+                              int shopIndex = syncDownModelList.indexWhere((element) => element.sr == arguments['shopId']);
+                              syncDownModelList[shopIndex].productive = true;
+                              await syncDown.put("syncDown", syncDownModelList);
+                              List<dynamic> syncDownUpdatedList = syncDown.get("syncDown") ?? [];
+                              syncNowController.syncDownList.value = syncDownUpdatedList.map((e) => SyncDownModel(shopname: e.shopname,address: e.address,salesInvoiceDate: e.salesInvoiceDate,gprs: e.gprs,shopCode: e.shopCode,sr: e.sr,phone: e.phone,owner: e.owner,catagoryId: e.catagoryId,productive: e.productive,distributerId: e.distributerId,sectorId: e.sectorId,typeId: e.typeId,statusId: e.statusId,salesTax: e.salesTax,tax: e.tax,shopType: e.shopType,picture: e.picture,sector: e.sector,cnic: e.cnic,myntn: e.myntn,isEdit: e.isEdit)).toList();
+                              syncNowController.allList.value = syncNowController.syncDownList;
+                              syncNowController.searchList.value = syncNowController.allList;
+                              shopServiceController.image.value = '';
+                              Get.back();
+                            }
                           }
+
                         }
 
-                      }
-
-                    },
-                    child: button(
-                        height: FetchPixels.getPixelHeight(35),
-                        width: FetchPixels.getPixelWidth(100),
-                        color: themeColor,
-                        textColor: Colors.white,
-                        textSize: FetchPixels.getPixelHeight(10), borderRadius: FetchPixels.getPixelHeight(20),
-                        textWeight: FontWeight.w500, text: isEdit == true ? "Update" : "Okay"),
-                  ),
-                  SizedBox(width: FetchPixels.getPixelWidth(10),),
-                  InkWell(
-                    onTap: (){
-                      Get.back();
-                    },
-                    child: button(
-                        height: FetchPixels.getPixelHeight(35),
-                        width: FetchPixels.getPixelWidth(100),
-                        color: themeColor,
-                        textColor: Colors.white,
-                        textSize: FetchPixels.getPixelHeight(10), borderRadius: FetchPixels.getPixelHeight(20),
-                        textWeight: FontWeight.w500, text: "Cancel"),
-                  ),
-                ],
-              )
-            ],
+                      },
+                      child: button(
+                          height: FetchPixels.getPixelHeight(35),
+                          width: FetchPixels.getPixelWidth(100),
+                          color: themeColor,
+                          textColor: Colors.white,
+                          textSize: FetchPixels.getPixelHeight(10), borderRadius: FetchPixels.getPixelHeight(20),
+                          textWeight: FontWeight.w500, text: isEdit == true ? "Update" : "Okay"),
+                    ),
+                    SizedBox(width: FetchPixels.getPixelWidth(10),),
+                    InkWell(
+                      onTap: (){
+                        Get.back();
+                      },
+                      child: button(
+                          height: FetchPixels.getPixelHeight(35),
+                          width: FetchPixels.getPixelWidth(100),
+                          color: themeColor,
+                          textColor: Colors.white,
+                          textSize: FetchPixels.getPixelHeight(10), borderRadius: FetchPixels.getPixelHeight(20),
+                          textWeight: FontWeight.w500, text: "Cancel"),
+                    ),
+                  ],
+                ),
+            SizedBox(height: FetchPixels.getPixelHeight(20),),
+              ],
+            ),
           ),
         ),
       ),

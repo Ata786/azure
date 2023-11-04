@@ -2,20 +2,31 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'package:SalesUp/controllers/UserController.dart';
+import 'package:SalesUp/controllers/syncNowController.dart';
 import 'package:SalesUp/data/hiveDb.dart';
+import 'package:SalesUp/data/sharedPreference.dart';
+import 'package:SalesUp/main.dart';
 import 'package:SalesUp/model/attendenceModel.dart';
+import 'package:SalesUp/model/userLiveModel.dart';
+import 'package:SalesUp/model/userModel.dart';
 import 'package:SalesUp/res/base/fetch_pixels.dart';
 import 'package:SalesUp/res/colors.dart';
+import 'package:SalesUp/utils/toast.dart';
 import 'package:SalesUp/utils/userCurrentLocation.dart';
 import 'package:SalesUp/utils/widgets/appWidgets.dart';
 import 'package:SalesUp/view/updateLocation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import 'package:workmanager/workmanager.dart';
+
 
 class AttendanceScreen extends StatefulWidget {
   AttendanceScreen({super.key});
@@ -44,6 +55,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     super.initState();
   }
 
+
   TextEditingController distanceCtr = TextEditingController(text: "0.5");
   TextEditingController remarksCtr = TextEditingController(text: "");
 
@@ -59,6 +71,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     distanceCtr.text = remarksModel.checkIn ?? "0.5";
     remarksCtr.text = remarksModel.remarks ?? "";
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -112,6 +125,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 await HiveDatabase.setCheckInAttendance("checkInAttendance", "checkIn", checkIn);
                                 CheckIn check = await HiveDatabase.getCheckInAttendance("checkInAttendance", "checkIn");
                                 userController.checkIn.value = check;
+
+                                if(userController.user!.value.designation == "Booker" || userController.user!.value.designation == "CSF"){
+                                }else {
+                                  Workmanager().registerPeriodicTask("1", fetchBackground,frequency: Duration(minutes: 15));
+                                }
                                 setState(() {
                                 });
                               }
@@ -150,6 +168,77 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                             setState(() {
 
                             });
+
+                            String director = "";
+
+                            if(userController.user!.value.designation!.startsWith("Director")){
+                              director = "Director";
+                            }else{
+                              director = "";
+                            }
+
+    if(userController.user!.value.designation == "Admin" || userController.user!.value.designation == "NSM"
+    || userController.user!.value.designation == "Managing Director" || userController.user!.value.designation == "GM Sales"
+    || director == "Director"){
+
+    }else{
+
+
+      if(userController.isOnline.value == true){
+
+        List<UserLiveModel> live = [];
+
+        if(Hive.isAdapterRegistered(25)){
+          live = await HiveDatabase.getUserLive("live", "liveBox");
+
+        }else{
+          var directory = await getApplicationDocumentsDirectory();
+          Hive
+            ..init(directory.path);
+          Hive.registerAdapter(UserLiveModelAdapter());
+          live = await HiveDatabase.getUserLive("live", "liveBox");
+        }
+
+        CheckOut check = await HiveDatabase.getCheckOutAttendance("checkOutAttendance", "checkOut");
+        CheckIn checkIn = await HiveDatabase.getCheckInAttendance("checkInAttendance", "checkIn");
+        RemarksModel remarksModel = await HiveDatabase.getRemarks("remarksBox", 'remarks');
+
+        DateFormat inputFormat = DateFormat("dd MMM y hh:mm a");
+
+        DateTime dateTime = inputFormat.parse(check.outAttendanceDateTime!);
+        String formattedDateTime = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(dateTime);
+
+        DateTime checkInDateTime = inputFormat.parse(checkIn.attendanceDateTime!);
+        String checkInFormattedDateTime = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(checkInDateTime);
+
+        Map<String,dynamic> checkOut = {
+          "id": checkIn.id,
+          "userId": userController.user!.value.id,
+          "latitude": checkIn.latitude,
+          "longitude": checkIn.longitude,
+          "attendanceDateTime": checkInFormattedDateTime,
+          "outLongitude": check.outLongitude,
+          "outLatitude": check.outLatitude,
+          "outAttendanceDateTime": formattedDateTime,
+          "checkIn": remarksModel.checkIn ?? "0.5",
+          "remarks": remarksModel.remarks ?? "",
+        };
+
+        log('>>>> request ${checkOut}');
+
+        SyncNowController syncCtr = Get.find<SyncNowController>();
+
+        await updateSaleAttendance(checkOut,live);
+
+      }else{
+        showToast(context, "");
+      }
+
+    }
+
+
+
+
                         });
                       },
                       child: Container(
@@ -277,6 +366,17 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       body: jsonEncode({"userId": userController.user!.value.id,"latitude": userController.latitude,"longitude": userController.longitude,"attendanceDateTime": DateFormat('yyyy-MM-ddTHH:mm:ss.SSSZ').format(DateTime.now())}),
       headers: {'Content-Type': 'application/json'},
     );
+
+
+
+    if(userController.user!.value.designation == "Booker" || userController.user!.value.designation == "CSF"){
+
+    }else{
+     Workmanager().registerPeriodicTask("1", fetchBackground,frequency: Duration(minutes: 15));
+    }
+
+
+
     log('>>> response ${response.statusCode} and ${response.body}');
     log('>>>> code ${userController.user!.value.id} and ${userController.latitude} and ${userController.longitude}');
     if (response.statusCode == 200) {
@@ -339,3 +439,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
 
 }
+
+
+

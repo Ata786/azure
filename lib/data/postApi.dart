@@ -541,7 +541,8 @@ void mobileSyncUpApi(Map<String,dynamic> data)async{
 
     var res = await http.post(Uri.parse("$BASE_URL/MobileSyncUp"), headers: {
     'Content-Type': 'application/json',
-    },body: jsonEncode(data));
+    },body: jsonEncode(data)
+    );
 
     log('>>>> syncUp is ${res.statusCode} and ${res.body}');
 

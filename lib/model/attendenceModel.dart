@@ -95,12 +95,12 @@ class CheckInAdapter extends TypeAdapter<CheckIn> {
   void write(BinaryWriter writer, CheckIn obj) {
     writer.writeString(obj.id ?? '');
     writer.writeString(obj.userId ?? '');
-    writer.writeDouble(obj.longitude!);
-    writer.writeDouble(obj.latitude!);
-    writer.writeString(obj.attendanceDateTime!);
-    writer.writeString(obj.outAttendanceDateTime!);
-    writer.writeDouble(obj.outLatitude!);
-    writer.writeDouble(obj.outLongitude!);
+    writer.writeDouble(obj.longitude ?? 0.0);
+    writer.writeDouble(obj.latitude ?? 0.0);
+    writer.writeString(obj.attendanceDateTime ?? "");
+    writer.writeString(obj.outAttendanceDateTime ?? "");
+    writer.writeDouble(obj.outLatitude ?? 0.0);
+    writer.writeDouble(obj.outLongitude ?? 0.0);
   }
 }
 

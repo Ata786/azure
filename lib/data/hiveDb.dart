@@ -15,6 +15,7 @@ import 'package:SalesUp/model/reasonsModel.dart';
 import 'package:SalesUp/model/reateDetailModel.dart';
 import 'package:SalesUp/model/shopsTexModel.dart';
 import 'package:SalesUp/model/syncDownModel.dart';
+import 'package:SalesUp/model/userLiveModel.dart';
 import 'package:SalesUp/model/weekPerformanceModel.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -547,6 +548,29 @@ class HiveDatabase {
       remarksModel = RemarksModel(remarks: data.remarks,checkIn: data.checkIn);
     }
     return remarksModel;
+  }
+
+
+
+  static Future<void> setUserLive(String boxName, String key,
+      var data) async {
+    var box = await Hive.openBox(boxName);
+    await box.put(key, data);
+  }
+
+
+  static Future<List<UserLiveModel>> getUserLive(String boxName, String key) async {
+
+    var box = await Hive.openBox(boxName);
+    var data = box.get(key);
+
+    List<UserLiveModel> liveList = [];
+
+    if(data != null){
+      List<dynamic> list = data;
+      liveList = list.map((e) => UserLiveModel(email: e.email,longitude: e.longitude,latitude: e.latitude,dateTime: e.dateTime)).toList();
+    }
+    return liveList;
   }
 
 

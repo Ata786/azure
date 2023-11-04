@@ -92,6 +92,7 @@ class _TodayNotCloseScreenState extends State<TodayNotCloseScreen> {
                         setState(() {
                           i = !i;
                           searchCtr.text = '';
+                          originalList = List.from(widget.list);
                         });
                       },
                       child: Icon(i == true ? Icons.close : Icons.search)),

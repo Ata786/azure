@@ -8,6 +8,7 @@ import 'package:SalesUp/utils/widgets/appWidgets.dart';
 import 'package:SalesUp/view/NonProductive.dart';
 import 'package:SalesUp/view/distributerScreen.dart';
 import 'package:SalesUp/view/sessionTimeOut.dart';
+import 'package:SalesUp/view/shopLocations.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../utils/widgets/productiveStores.dart';
@@ -27,10 +28,6 @@ class _VisitPlanState extends State<VisitPlan> {
 
   bool search = false;
 
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -108,7 +105,7 @@ class _VisitPlanState extends State<VisitPlan> {
                               child: Icon(Icons.close)),
                         ),
                       ),
-                    )
+                    ),
                   ],
                 ),
                 InkWell(
@@ -130,14 +127,43 @@ class _VisitPlanState extends State<VisitPlan> {
                     // );
                   },
                   child: buttonWithIcon(
+                      icon: Icons.add,
                       color: themeColor,
                       textColor: Colors.white,
                       textSize: FetchPixels.getPixelHeight(15),
                       borderRadius: 20.0,
                       textWeight: FontWeight.w500,
                       text: "Add"),
-                )
+                ),
               ],
+            ),
+          ),
+          SizedBox(
+            height: FetchPixels.getPixelHeight(10),
+          ),
+          InkWell(
+            onTap: (){
+              if(userController.isOnline.value == true){
+                Get.to(ShopLocations(syncDownList: syncNowController.syncDownList));
+              }else{
+                showToast(context, "");
+              }
+            },
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Container(
+                margin: EdgeInsets.only(right: FetchPixels.getPixelWidth(20)),
+                width: FetchPixels.getPixelWidth(70),
+                padding: EdgeInsets.symmetric(horizontal: 5,vertical: 3),
+                decoration: BoxDecoration(
+                    color: themeColor, borderRadius: BorderRadius.circular(10)),
+                child: Row(
+                  children: [
+                    Icon(Icons.location_on,color: Colors.white,),
+                    textWidget(text: "Map", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w500,textColor: Colors.white),
+                  ],
+                ),
+              ),
             ),
           ),
           SizedBox(
@@ -146,8 +172,7 @@ class _VisitPlanState extends State<VisitPlan> {
           Container(
             height: FetchPixels.getPixelHeight(75),
             width: FetchPixels.width,
-            padding:
-                EdgeInsets.symmetric(horizontal: FetchPixels.getPixelWidth(20)),
+            padding: EdgeInsets.symmetric(horizontal: FetchPixels.getPixelWidth(20)),
             color: Color(0xff616161),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

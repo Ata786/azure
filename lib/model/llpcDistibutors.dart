@@ -85,6 +85,7 @@ class _LlpcDistributorsScreenState extends State<LlpcDistributorsScreen> {
                       setState(() {
                         show = !show;
                         searchCtr.text = '';
+                        originalList = List.from(widget.lppcModel.distributionList!);
                       });
                     },
                     child: Icon(show == true ? Icons.close : Icons.search)),

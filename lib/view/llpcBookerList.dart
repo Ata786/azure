@@ -83,6 +83,7 @@ class _LlpcBookerListScreenState extends State<LlpcBookerListScreen> {
                       setState(() {
                         show = !show;
                         searchCtr.text = '';
+                        originalList = List.from(widget.lppcModel.bookerList!);
                       });
                     },
                     child: Icon(show == true ? Icons.close : Icons.search)),

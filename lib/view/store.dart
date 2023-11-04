@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:SalesUp/controllers/UserController.dart';
 import 'package:SalesUp/controllers/shopServiceController.dart';
 import 'package:SalesUp/data/hiveDb.dart';
+import 'package:SalesUp/model/addProducts.dart';
 import 'package:SalesUp/model/orderModel.dart';
 import 'package:SalesUp/model/productsModel.dart';
 import 'package:SalesUp/model/reateDetailModel.dart';
@@ -29,6 +30,29 @@ class StoreScreen extends StatefulWidget {
 }
 
 class _StoreScreenState extends State<StoreScreen> {
+
+
+  List<String> productsList = ["Hockey","Foot Ball","Snooker"];
+  String selectedProduct = "Hockey";
+
+  List<String> sizeList = ["Large","Classic","Regular","Sim"];
+  String selectedSize = "Large";
+
+  TextEditingController purchaseRate = TextEditingController();
+  TextEditingController saleRate = TextEditingController();
+  TextEditingController stock = TextEditingController();
+
+  List<AddProductsModel> addProductsList = [];
+
+
+
+  /////////
+
+
+
+
+
+
   TextEditingController searchCtr = TextEditingController();
 
   bool search = false;
@@ -203,6 +227,9 @@ class _StoreScreenState extends State<StoreScreen> {
                 SizedBox(height: FetchPixels.getPixelHeight(10),),
                 Container(height: FetchPixels.getPixelHeight(1),color: Colors.black,width: FetchPixels.width,),
                 SizedBox(height: FetchPixels.getPixelHeight(10),),
+
+
+
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: FetchPixels.getPixelWidth(20),vertical: FetchPixels.getPixelHeight(10)),
                   height: search == false ? FetchPixels.getPixelHeight(100) : FetchPixels.getPixelHeight(140),
@@ -269,6 +296,12 @@ class _StoreScreenState extends State<StoreScreen> {
                     ],
                   ),
                 ),
+
+
+                ///////////////////////////////////
+
+
+
                 Container(
                     height: FetchPixels.getPixelHeight(400),
                     width: FetchPixels.width,

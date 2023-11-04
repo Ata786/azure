@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'package:SalesUp/controllers/UserController.dart';
 import 'package:SalesUp/controllers/dashboardController.dart';
@@ -5,10 +6,14 @@ import 'package:SalesUp/controllers/syncNowController.dart';
 import 'package:SalesUp/data/getApis.dart';
 import 'package:SalesUp/data/hiveDb.dart';
 import 'package:SalesUp/data/postApi.dart';
+import 'package:SalesUp/main.dart';
 import 'package:SalesUp/model/attendenceModel.dart';
 import 'package:SalesUp/model/creditModel.dart';
-import 'package:SalesUp/model/reasonsModel.dart';
+import 'package:SalesUp/model/userLiveModel.dart';
+import 'package:SalesUp/utils/localNotification.dart';
+import 'package:http/http.dart' as http;
 import 'package:SalesUp/model/syncDownModel.dart';
+import 'package:SalesUp/model/userTrackingModel.dart';
 import 'package:SalesUp/res/base/fetch_pixels.dart';
 import 'package:SalesUp/res/colors.dart';
 import 'package:SalesUp/utils/routes/routePath.dart';
@@ -24,13 +29,17 @@ import 'package:SalesUp/view/dropSize.dart';
 import 'package:SalesUp/view/receivableReport.dart';
 import 'package:SalesUp/view/saleScreen.dart';
 import 'package:SalesUp/view/targetReport.dart';
+import 'package:SalesUp/view/userTracking.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workmanager/workmanager.dart';
 import '../../controllers/shopServiceController.dart';
+import '../../data/sharedPreference.dart';
 import '../../model/orderCalculations.dart';
 import '../../model/orderModel.dart';
 import '../../res/images.dart';
@@ -53,13 +62,13 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     UserController userController = Get.find<UserController>();
-    log('>>>> user ${userController.user!.value.toJson()}');
-    log('>>>> lat ${userController.latitude} and lon ${userController.longitude}');
+
     if(userController.user!.value.designation!.startsWith("Director")){
       director = "Director";
     }else{
       director = "";
     }
+
 
 
     Get.put(SyncNowController());
@@ -74,7 +83,6 @@ class _HomeState extends State<Home> {
     getCalculation();
     super.initState();
   }
-
 
   void getCalculation()async{
     SyncNowController syncNowController = Get.find<SyncNowController>();
@@ -116,7 +124,7 @@ class _HomeState extends State<Home> {
               Icons.menu,
               color: Colors.white,
             )),
-              actions:   userController.user!.value.designation == "Booker" || userController.user!.value.designation == "CSF" ? null 
+              actions: userController.user!.value.designation == "Booker" || userController.user!.value.designation == "CSF" ? null
               : [
                 InkWell(
                   onTap: (){
@@ -642,6 +650,32 @@ class _HomeState extends State<Home> {
                      width: FetchPixels.getPixelWidth(40),
                    ),
                  ) : SizedBox(),
+                 userController.user!.value.designation == "Admin" || userController.user!.value.designation == "NSM"
+                     || userController.user!.value.designation == "Managing Director" || userController.user!.value.designation == "GM Sales"
+                     || director == "Director"
+                     ? ListTile(
+                   onTap:()async{
+                     List<UserTrackingModel> userTrackingList1 = [];
+                     List<UserTrackingModel> userTrackingList2 = [];
+                     userTrackingList1.clear();
+                     userTrackingList2.clear();
+                     List<UserTrackingModel> userTrackingList =  await userTrackingApis();
+                     userTrackingList1.addAll(userTrackingList);
+                     Get.to(UserTrackingScreen(userTrackingList1));
+                   },
+                   minLeadingWidth: FetchPixels.getPixelWidth(20),
+                   title: textWidget(
+                       text: "User Tracking",
+                       fontSize: FetchPixels.getPixelHeight(17),
+                       fontWeight: FontWeight.w500,
+                       textColor: Colors.black),
+                   leading: Image.asset(
+                     color: Colors.black,
+                     attReport,
+                     height: FetchPixels.getPixelHeight(40),
+                     width: FetchPixels.getPixelWidth(40),
+                   ),
+                 ) : SizedBox(),
                  ListTile(
                    onTap:()async{
                      Get.to(TargetReport());
@@ -695,8 +729,6 @@ class _HomeState extends State<Home> {
                  ListTile(
                    onTap: ()async{
 
-                     log('>>>> ${userController.user!.value.designation}');
-
                      if(userController.user!.value.designation == "Admin" || userController.user!.value.designation == "NSM"
                          || userController.user!.value.designation == "Managing Director" || userController.user!.value.designation == "GM Sales"
                          || director == "Director"){
@@ -746,34 +778,46 @@ class _HomeState extends State<Home> {
                                .showSnackBar(SnackBar(behavior: SnackBarBehavior.floating,content: Text("Please Checkout before Log Out")));
                          }else{
 
-                           CheckOut check = await HiveDatabase.getCheckOutAttendance("checkOutAttendance", "checkOut");
-                           CheckIn checkIn = await HiveDatabase.getCheckInAttendance("checkInAttendance", "checkIn");
-                           RemarksModel remarksModel = await HiveDatabase.getRemarks("remarksBox", 'remarks');
-
-                           DateFormat inputFormat = DateFormat("dd MMM y hh:mm a");
-
-                           DateTime dateTime = inputFormat.parse(check.outAttendanceDateTime!);
-                           String formattedDateTime = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(dateTime);
-
-                           DateTime checkInDateTime = inputFormat.parse(checkIn.attendanceDateTime!);
-                           String checkInFormattedDateTime = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(checkInDateTime);
-
-                           Map<String,dynamic> checkOut = {
-                             "id": checkIn.id,
-                             "userId": userController.user!.value.id,
-                             "latitude": checkIn.latitude,
-                             "longitude": checkIn.longitude,
-                             "attendanceDateTime": checkInFormattedDateTime,
-                             "outLongitude": check.outLongitude,
-                             "outLatitude": check.outLatitude,
-                             "outAttendanceDateTime": formattedDateTime,
-                             "checkIn": remarksModel.checkIn ?? "0.5",
-                             "remarks": remarksModel.remarks ?? "",
-                           };
-
-                           log('>>>> ${checkOut}');
-
-                           await syncNowController.updateAttendance(checkOut);
+                           Get.dialog(
+                               AlertDialog(content: Container(
+                                 height: FetchPixels.getPixelHeight(100),
+                                 width: FetchPixels.width,
+                                 color: Colors.white,
+                                 child: Column(
+                                   children: [
+                                     textWidget(text: "Are your sure?\nYou want to logout?",
+                                         fontSize: FetchPixels.getPixelHeight(20),
+                                         fontWeight: FontWeight.w500,
+                                         textAlign: TextAlign.center),
+                                     SizedBox(height: FetchPixels.getPixelHeight(25),),
+                                     Row(
+                                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                       children: [
+                                         InkWell(
+                                             onTap: () {
+                                               Get.back();
+                                             },
+                                             child: textWidget(text: "No", fontSize: FetchPixels
+                                                 .getPixelHeight(15), fontWeight: FontWeight
+                                                 .w600, textColor: Colors.red)),
+                                         InkWell(
+                                             onTap: () async {
+                                               SharedPreferences shared = await SharedPreferences
+                                                   .getInstance();
+                                               bool remove = await shared.remove("user");
+                                               if (remove == true) {
+                                                 Get.offAllNamed(SIGN_IN_SCREEN);
+                                               }
+                                             },
+                                             child: textWidget(text: "Yes", fontSize: FetchPixels
+                                                 .getPixelHeight(15), fontWeight: FontWeight
+                                                 .w600, textColor: Colors.green)),
+                                       ],
+                                     )
+                                   ],
+                                 ),
+                               ),)
+                           );
 
                          }
 
@@ -847,4 +891,38 @@ class _HomeState extends State<Home> {
     String formattedTime = dateTime.toUtc().toIso8601String();
     return formattedTime;
   }
+
+
+  Future<List<UserTrackingModel>> userTrackingApis()async{
+
+    List<UserTrackingModel> userTracking = [];
+
+    try{
+
+      Get.dialog(Center(child: CircularProgressIndicator(color: themeColor,),));
+
+      var res = await http.post(Uri.parse('$BASE_URL/User/UserList'),headers: {
+        'Content-Type': 'application/json',
+      },body: jsonEncode(["ASM","RSM"]));
+
+      Get.back();
+
+      if(res.statusCode ==  200){
+
+
+        List<dynamic> json = jsonDecode(res.body);
+        userTracking = json.map((e) => UserTrackingModel.fromJson(e)).toList();
+
+      }else{
+        log('>>>> Error ${res.body}');
+      }
+
+
+    }catch(e){
+      log('>>>> exception ${e.toString()}');
+    }
+    return userTracking;
+  }
+
+
 }
