@@ -512,6 +512,8 @@ void mobileDetailDeleteApi(Map<String,dynamic> deleteData)async {
       order.add(data1);
     }
 
+    log('>>>> orders ${order.length}');
+
     Map<String, dynamic> uploadData = {
       "masterM": combinedList,
       "masterD": order,

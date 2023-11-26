@@ -38,7 +38,7 @@ class _OrderDetailState extends State<OrderDetail> {
   void getSelectedProducts()async{
     var box = await Hive.openBox("productsBox");
     List<dynamic> data = box.get("products") ?? [];
-    List<dynamic> list = data.where((element) => element.subTotal != null).toList();
+    List<dynamic> list = data.where((element) => element.subTotal != null && element.subTotal > 0.0).toList();
     productsList = list.map((e) => ProductsModel(sr: e.sr,pname: e.pname,wgm: e.wgm,brandName: e.brandName,
         netRate: e.netRate,rateId: e.rateId,quantity: e.quantity,subTotal: e.subTotal,retail: e.retail,weight: e.weight,tonnage: e.tonnage,fixedRate: e.fixedRate,tonagePerPcs: e.tonagePerPcs)).toList();
 

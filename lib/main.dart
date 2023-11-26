@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:ui';
 import 'package:SalesUp/controllers/UserController.dart';
+import 'package:flutter_foreground_service/flutter_foreground_service.dart';
+import 'package:http/http.dart' as http;
 import 'package:SalesUp/data/hiveDb.dart';
 import 'package:SalesUp/data/sharedPreference.dart';
 import 'package:SalesUp/model/NewShopModel.dart';
@@ -42,97 +44,21 @@ import 'model/reateDetailModel.dart';
 
 
 const fetchBackground = "fetchBackground";
+const fetchBackground2 = "fetchBackground2";
 
 
 @pragma('vm:entry-point')
 void printHello() async {
-
-
-  log('>>> registered ${Hive.isAdapterRegistered(25)}');
-
   Workmanager().executeTask((task, inputData) async {
 
-
-    if(Hive.isAdapterRegistered(25)){
-
-      log('>>>> register is true');
-
-      String? user = await getUserDataSp("user");
-
-      if(user != null) {
-
-        log('>>>> user not null');
-
-        Map<String,dynamic> data = jsonDecode(user);
-        UserModel userModel = UserModel.fromJson(data);
-
-        Position? location = await getCurrentLocation();
-
-        if(location != null){
-
-          log('>>>> location not null');
-
-          List<UserLiveModel> liveList = await HiveDatabase.getUserLive("live", "liveBox");
-
-          UserLiveModel userLiveModel = UserLiveModel(email: userModel.email,dateTime: DateFormat("yyyy-MM-ddTHH:mm:ss.SSS'Z'").format(DateTime.now()),latitude: location.latitude,longitude: location.longitude);
-
-          liveList.add(userLiveModel);
-
-          await HiveDatabase.setUserLive("live", "liveBox", liveList);
-
-          List<UserLiveModel> live = await HiveDatabase.getUserLive("live", "liveBox");
-
-          for(int i=0; i<live.length; i++){
-            log('>>>> live Data ${live[i].toJson()}');
-          }
-
-        }
-
-
-
-      }
-
-    }else{
-      var directory = await getApplicationDocumentsDirectory();
-      Hive
-        ..init(directory.path);
-      Hive.registerAdapter(UserLiveModelAdapter());
-
-      String? user = await getUserDataSp("user");
-
-      if(user != null) {
-
-        Map<String,dynamic> data = jsonDecode(user);
-        UserModel userModel = UserModel.fromJson(data);
-
-        Position? location = await getCurrentLocation();
-
-        if(location != null){
-
-          List<UserLiveModel> liveList = await HiveDatabase.getUserLive("live", "liveBox");
-
-          UserLiveModel userLiveModel = UserLiveModel(email: userModel.email,dateTime: DateFormat("yyyy-MM-ddTHH:mm:ss.SSS'Z'").format(DateTime.now()),latitude: location.latitude,longitude: location.longitude);
-
-          liveList.add(userLiveModel);
-
-          await HiveDatabase.setUserLive("live", "liveBox", liveList);
-
-          List<UserLiveModel> live = await HiveDatabase.getUserLive("live", "liveBox");
-
-          for(int i=0; i<live.length; i++){
-            log('>>>> live Data ${live[i].toJson()}');
-          }
-
-
-        }
-
-
-
-      }
-
-
+    switch(task){
+      case fetchBackground:
+        await handleTask1();
+        break;
+      case fetchBackground2:
+        await handleTask2();
+        break;
     }
-
 
     return Future.value(true);
   });
@@ -141,10 +67,155 @@ void printHello() async {
 }
 
 
+
+Future<void> handleTask1()async{
+
+  if(Hive.isAdapterRegistered(25)){
+
+    log('>>>> register is true');
+
+    String? user = await getUserDataSp("user");
+
+    if(user != null) {
+
+      log('>>>> user not null');
+
+      Map<String,dynamic> data = jsonDecode(user);
+      UserModel userModel = UserModel.fromJson(data);
+
+      Position? location = await getCurrentLocation();
+
+      if(location != null){
+
+        log('>>>> location not null');
+
+        List<UserLiveModel> liveList = await HiveDatabase.getUserLive("live", "liveBox");
+
+        UserLiveModel userLiveModel = UserLiveModel(email: userModel.email,dateTime: DateFormat("yyyy-MM-ddTHH:mm:ss.SSS'Z'").format(DateTime.now()),latitude: location.latitude,longitude: location.longitude);
+
+        liveList.add(userLiveModel);
+
+        await HiveDatabase.setUserLive("live", "liveBox", liveList);
+
+        List<UserLiveModel> live = await HiveDatabase.getUserLive("live", "liveBox");
+
+        for(int i=0; i<live.length; i++){
+          log('>>>> live Data ${live[i].toJson()}');
+        }
+
+      }
+
+    }
+
+  }else{
+    var directory = await getApplicationDocumentsDirectory();
+    Hive
+      ..init(directory.path);
+    Hive.registerAdapter(UserLiveModelAdapter());
+
+    String? user = await getUserDataSp("user");
+
+    if(user != null) {
+
+      Map<String,dynamic> data = jsonDecode(user);
+      UserModel userModel = UserModel.fromJson(data);
+
+      Position? location = await getCurrentLocation();
+
+      if(location != null){
+
+        List<UserLiveModel> liveList = await HiveDatabase.getUserLive("live", "liveBox");
+
+        UserLiveModel userLiveModel = UserLiveModel(email: userModel.email,dateTime: DateFormat("yyyy-MM-ddTHH:mm:ss.SSS'Z'").format(DateTime.now()),latitude: location.latitude,longitude: location.longitude);
+
+        liveList.add(userLiveModel);
+
+        await HiveDatabase.setUserLive("live", "liveBox", liveList);
+
+        List<UserLiveModel> live = await HiveDatabase.getUserLive("live", "liveBox");
+
+        for(int i=0; i<live.length; i++){
+          log('>>>> live Data ${live[i].toJson()}');
+        }
+      }
+
+    }
+
+  }
+
+}
+
+
+
+
+
+Future<void> handleTask2()async{
+
+  log('>>>> second task');
+
+  String? user = await getUserDataSp("user");
+
+  log('>>>> second user ${user}');
+
+  Map<String,dynamic> data = jsonDecode(user!);
+  UserModel userModel = UserModel.fromJson(data);
+
+  log('>>>> user model is ${userModel.toJson()}');
+
+  List<UserLiveModel> live = [];
+
+    var directory = await getApplicationDocumentsDirectory();
+    Hive
+      ..init(directory.path);
+    Hive.registerAdapter(UserLiveModelAdapter());
+    Hive.registerAdapter(CheckInAdapter());
+    live = await HiveDatabase.getUserLive("live", "liveBox");
+
+    log('>>> live lenght is ${live.length}');
+
+  CheckIn checkIn = await HiveDatabase.getCheckInAttendance("checkInAttendance", "checkIn");
+
+  log('>>>> checkIn ${checkIn.toJson()}');
+
+  DateFormat inputFormat = DateFormat("dd MMM y hh:mm a");
+  DateTime checkInDateTime = inputFormat.parse(checkIn.attendanceDateTime!);
+  String checkInFormattedDateTime = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(checkInDateTime);
+
+  Map<String,dynamic> map = {
+    "email": userModel.email,
+    "date": checkInFormattedDateTime,
+    "userLocation": live.map((user) {
+      return {
+        "longitude": user.longitude,
+        "latitude": user.latitude,
+        "datetime": user.dateTime,
+      };
+    }).toList(),
+  };
+
+  log('>>>>> map is ${map}');
+
+  final response = await http.post(
+    Uri.parse('http://125.209.79.107:7700/api/UserLive'),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode(map),
+  );
+
+  ForegroundService().stop();
+  await Workmanager().cancelAll();
+
+  log('>>>> userLive response on time under ${response.statusCode} and ${response.body}');
+
+}
+
+
+
 void main() async {
   SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(statusBarColor: Colors.blue));
   WidgetsFlutterBinding.ensureInitialized();
+
+  await LocalNotification.initializeLocalNotification();
 
   await Hive.deleteFromDisk();
   var directory = await getApplicationDocumentsDirectory();
@@ -172,9 +243,8 @@ void main() async {
     ..registerAdapter(CheckOutAdapter())
     ..registerAdapter(DistributionModelAdapter())
     ..registerAdapter(FinancialYearAdapter())
-    ..registerAdapter(RemarksModelAdapter());
-
-  // await AndroidAlarmManager.initialize();
+    ..registerAdapter(RemarksModelAdapter())
+    ..registerAdapter(UserLiveModelAdapter());
   
   Workmanager().initialize(printHello);
 

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:SalesUp/model/syncDownModel.dart';
 import 'package:SalesUp/res/base/fetch_pixels.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +25,7 @@ class _ShopLocationsState extends State<ShopLocations> {
     for(int i=0; i<widget.syncDownList.length; i++){
       String gprs = widget.syncDownList[i].gprs ?? "0.0,0.0";
       List<String> location = gprs.split(",");
+      log('>>> ${location[0]} and ${location[1]}');
       markers.add(Marker(markerId: MarkerId("${i.toString()}"),position: LatLng(double.tryParse(location[0]) ?? 0.0, double.tryParse(location[1]) ?? 00.0),infoWindow: InfoWindow(title: "${widget.syncDownList[i].shopname}")));
     }
   }

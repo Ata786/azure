@@ -1,7 +1,10 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:SalesUp/controllers/UserController.dart';
 import 'package:SalesUp/data/getApis.dart';
+import 'package:SalesUp/model/assignUserModel.dart';
 import 'package:SalesUp/model/userTrackLocationModel.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:SalesUp/model/userTrackingModel.dart';
 import 'package:SalesUp/res/base/fetch_pixels.dart';
@@ -25,24 +28,42 @@ class _UserTrackingScreenState extends State<UserTrackingScreen> {
   TextEditingController toDateCtr = TextEditingController();
   DateTime now = DateTime.now();
 
-  UserTrackingModel userValue = UserTrackingModel();
+  // UserTrackingModel userValue = UserTrackingModel();
   UserTrackingModel desigValue = UserTrackingModel();
+
+  UserAssignModel typeValue = UserAssignModel();
+
+  List<String> userDesignationList = [];
+  String designation = "";
+  UserAssignModel userValue = UserAssignModel();
+
+  List<UserAssignModel> personsList = [];
 
   @override
   void initState() {
     super.initState();
 
     toDateCtr.text = DateFormat("dd-MM-yyyy").format(now);
-
-    userValue = widget.userTrackingList[0];
-
+    // userValue = widget.userTrackingList[0];
     desigValue = widget.userTrackingList[0];
 
+    UserController userController = Get.find<UserController>();
+
+    personsList.addAll(userController.userAssignList);
+    userValue = personsList[0];
+
+    typeValue.fullName = userController.userAssignList[0].fullName ?? "";
+
+    userDesignationList = getDesignations(userController.userAssignList);
+    userDesignationList.insert(0, "All");
+    designation = userDesignationList[0];
+    getUsers();
 
   }
 
   @override
   Widget build(BuildContext context) {
+    UserController userController = Get.find<UserController>();
     FetchPixels(context);
     return Scaffold(
       appBar: AppBar(
@@ -92,21 +113,44 @@ class _UserTrackingScreenState extends State<UserTrackingScreen> {
               children: [
                 Expanded(flex: 1,child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: FetchPixels.getPixelWidth(15)),
-                  child: DropdownButtonFormField<UserTrackingModel>(
+                  child: DropdownButtonFormField<String>(
                     isExpanded: true,
                     decoration: InputDecoration(
                       border: UnderlineInputBorder(
                         borderSide: BorderSide(color: Colors.blue),
                       ),
                     ),
-                    value: desigValue,
+                    value: designation,
                     onChanged: (newValue) {
-                      desigValue = newValue!;
-                    },
-                    items: widget.userTrackingList.map<DropdownMenuItem<UserTrackingModel>>((UserTrackingModel value) {
-                      return DropdownMenuItem<UserTrackingModel>(
+                      designation = newValue!;
+
+                      if(designation == "All"){
+
+                        List<UserAssignModel>  list = userController.userAssignList;
+
+                        personsList.clear();
+                        personsList.addAll(list);
+                        userValue = personsList[0];
+                        setState(() {
+
+                        });
+
+                      }else{
+                        List<UserAssignModel>  list = userController.userAssignList.where((element) => element.designation == designation).toList();
+
+                        personsList.clear();
+                        personsList.addAll(list);
+                        userValue = personsList[0];
+                        setState(() {
+
+                        });
+                      }
+
+                      },
+                    items: userDesignationList.map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
                         value: value,
-                        child: Text(value.designation ?? ""),
+                        child: Text(value ?? ""),
                       );
                     }).toList(),
                   ),
@@ -115,7 +159,7 @@ class _UserTrackingScreenState extends State<UserTrackingScreen> {
                   flex: 2,
                   child: Padding(
                     padding: EdgeInsets.symmetric(horizontal: FetchPixels.getPixelWidth(15)),
-                    child: DropdownButtonFormField<UserTrackingModel>(
+                    child: DropdownButtonFormField<UserAssignModel>(
                       isExpanded: true,
                       decoration: InputDecoration(
                         border: UnderlineInputBorder(
@@ -129,12 +173,12 @@ class _UserTrackingScreenState extends State<UserTrackingScreen> {
 
                         });
                       },
-                      items: widget.userTrackingList.map<DropdownMenuItem<UserTrackingModel>>((UserTrackingModel value) {
-                        return DropdownMenuItem<UserTrackingModel>(
+                      items: personsList.map<DropdownMenuItem<UserAssignModel>>((UserAssignModel value) {
+                        return DropdownMenuItem<UserAssignModel>(
                           value: value,
                           child: Text(value.fullName ?? ""),
                         );
-                      }).toList(),
+                      }).toList()..sort((a, b) => (a.value?.fullName ?? "").compareTo(b.value?.fullName ?? "")),
                     ),
                   ),
                 ),
@@ -145,7 +189,19 @@ class _UserTrackingScreenState extends State<UserTrackingScreen> {
               onTap: ()async{
                 List<UserTrackLocationModel> userTrackingLocation = [];
                 userTrackingLocation = await userTrackLocationApi(userValue.email ?? "", toDateCtr.text);
-                Get.to(TrackMap(userTrackingLocation));
+                if(userTrackingLocation.isEmpty){
+                  Fluttertoast.showToast(
+                      msg: "Data Not Found",
+                      toastLength: Toast.LENGTH_LONG,
+                      gravity: ToastGravity.CENTER,
+                      timeInSecForIosWeb: 1,
+                      backgroundColor: themeColor,
+                      textColor: Colors.white,
+                      fontSize: 16.0
+                  );
+                }else{
+                  Get.to(TrackMap(userTrackingLocation));
+                }
               },
               child: Container(
                 alignment: Alignment.center,
@@ -192,10 +248,10 @@ class _UserTrackingScreenState extends State<UserTrackingScreen> {
         'Content-Type': 'application/json',
       },body: jsonEncode(data));
 
-      Get.back();
-
       if(res.statusCode ==  200){
+        Get.back();
 
+        log('>>>>> ${res.body}');
 
         List<dynamic> json = jsonDecode(res.body);
         userTrackLocationModel = json.map((e) => UserTrackLocationModel.fromJson(e)).toList();
@@ -212,6 +268,34 @@ class _UserTrackingScreenState extends State<UserTrackingScreen> {
       log('>>>> exception ${e.toString()}');
     }
     return userTrackLocationModel;
+  }
+
+
+  void getUsers()async{
+
+    UserController userController = Get.find<UserController>();
+    getDesignations(userController.userAssignList);
+
+    setState(() {
+
+    });
+
+  }
+
+
+
+  List<String> getDesignations(List<UserAssignModel> userDesignationList) {
+    final designations = <String>[];
+
+    for (final userAssignModel in userDesignationList) {
+      final designation = userAssignModel.designation;
+
+      if (!designations.contains(designation)) {
+        designations.add(designation ?? "");
+      }
+    }
+
+    return designations;
   }
 
 

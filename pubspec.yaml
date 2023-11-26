@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.1+4
 
 environment:
-  sdk: '>=3.1.0 <4.0.0'
+  sdk: '>=3.1.5 <4.0.0'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -53,6 +53,8 @@ dependencies:
   android_alarm_manager_plus: ^3.0.3
   workmanager: ^0.5.2
   flutter_local_notifications: ^16.1.0
+  flutter_foreground_service: ^0.4.1
+  label_marker: ^1.0.1
 
 dev_dependencies:
   flutter_test:

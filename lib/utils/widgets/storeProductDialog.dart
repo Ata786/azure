@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:SalesUp/controllers/shopServiceController.dart';
+import 'package:SalesUp/data/hiveDb.dart';
 import 'package:SalesUp/res/base/fetch_pixels.dart';
 import 'package:SalesUp/res/colors.dart';
 import 'package:SalesUp/utils/toast.dart';
@@ -220,7 +221,85 @@ class _StoreProductDialogContentState extends State<StoreProductDialogContent> {
                   child: Text('Ok',style: TextStyle(color: Colors.green,fontWeight: FontWeight.w600),),
                   onPressed: () async{
                     if(int.tryParse(qtyController.text)! <= 0){
-                      Get.back();
+
+
+                      List<OrderModel> orderList =
+                      await HiveDatabase.getOrderData(
+                          "orderBox", "order");
+
+                      orderList.removeWhere((element) => element.shopId.toString() == widget.argumentSr.toString() && element.orderDataModel!.productId.toString() == widget.sr.toString());
+
+                      HiveDatabase.setOrderData("orderBox", "order", orderList);
+
+
+
+                      var box = await Hive.openBox("productsBox");
+                      List<dynamic> data = box.get("products") ?? [];
+                      if (data.isNotEmpty) {
+                        List<ProductsModel> products = data.map((e) =>
+                            ProductsModel(
+                              sr: e.sr,
+                              pname: e.pname,
+                              wgm: e.wgm,
+                              brandName: e.brandName,
+                              tonagePerPcs: e.tonagePerPcs,
+                              netRate: e.netRate,
+                              quantity: e.quantity,
+                              subTotal: e.subTotal,
+                              retail: e.retail,
+                              weight: e.weight,
+                              tonnage: e.tonnage,
+                              rateId: e.rateId,
+                              fixedRate: e.fixedRate,
+                            )).toList();
+
+
+                        int productIndex = products.indexWhere((element) =>
+                        element.sr == widget.sr);
+                        if (productIndex != -1) {
+                          ProductsModel product = products[productIndex];
+                          product.retail = 0;
+                          product.netRate = 0;
+                          product.quantity = 0;
+                          product.rateId = 0;
+                          product.subTotal = 0.0;
+                          product.fixedRate = 0;
+                          product.weight = 0.0;
+                          product.tonnage = 0.0;
+
+
+                          products[productIndex] = product;
+                          // Update the productsList in the shopServiceController
+                          widget.shopServiceController.productsList.value = products;
+
+                          //Update the specific product in the Hive box
+                          box.put("products", widget.shopServiceController.productsList);
+                          List<dynamic> data = box.get("products") ?? [];
+                          if (data.isNotEmpty) {
+                            widget.shopServiceController.productsList.value = data.map((e) =>
+                                ProductsModel(sr: e.sr,
+                                    pname: e.pname,
+                                    wgm: e.wgm,
+                                    brandName: e.brandName,
+                                    tonagePerPcs: e.tonagePerPcs,
+                                    retail: e.retail,
+                                    netRate: e.netRate,
+                                    subTotal: e.subTotal,
+                                    quantity: e.quantity,
+                                    weight: e.weight,
+                                    tonnage: e.tonnage,
+                                    fixedRate: e.fixedRate,
+                                    rateId: e.rateId)).toList();
+                            widget.shopServiceController.filteredProductsList.value = widget
+                                .shopServiceController.productsList;
+
+                            Get.back();
+                          }
+                        } else {
+
+                        }
+                      }
+
                     }else{
 
                       int index = widget.shopServiceController.orderList.indexWhere((element) => element.shopId.toString() == widget.argumentSr.toString());

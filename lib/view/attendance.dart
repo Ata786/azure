@@ -11,12 +11,14 @@ import 'package:SalesUp/model/userLiveModel.dart';
 import 'package:SalesUp/model/userModel.dart';
 import 'package:SalesUp/res/base/fetch_pixels.dart';
 import 'package:SalesUp/res/colors.dart';
+import 'package:SalesUp/utils/localNotification.dart';
 import 'package:SalesUp/utils/toast.dart';
 import 'package:SalesUp/utils/userCurrentLocation.dart';
 import 'package:SalesUp/utils/widgets/appWidgets.dart';
 import 'package:SalesUp/view/updateLocation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_foreground_service/flutter_foreground_service.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
@@ -128,7 +130,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
                                 if(userController.user!.value.designation == "Booker" || userController.user!.value.designation == "CSF"){
                                 }else {
-                                  Workmanager().registerPeriodicTask("1", fetchBackground,frequency: Duration(minutes: 15));
+                                  ForegroundServiceHandler.notification.setTitle("Sales Up");
+                                  ForegroundServiceHandler.notification.setText("Running...");
+                                  ForegroundService().start();
+                                  Workmanager().registerPeriodicTask(fetchBackground, fetchBackground,frequency: Duration(minutes: 30));
                                 }
                                 setState(() {
                                 });
@@ -226,8 +231,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
         log('>>>> request ${checkOut}');
 
-        SyncNowController syncCtr = Get.find<SyncNowController>();
-
         await updateSaleAttendance(checkOut,live);
 
       }else{
@@ -235,10 +238,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       }
 
     }
-
-
-
-
                         });
                       },
                       child: Container(
@@ -372,7 +371,24 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     if(userController.user!.value.designation == "Booker" || userController.user!.value.designation == "CSF"){
 
     }else{
-     Workmanager().registerPeriodicTask("1", fetchBackground,frequency: Duration(minutes: 15));
+      ForegroundServiceHandler.notification.setTitle("Sales Up");
+      ForegroundServiceHandler.notification.setText("Running...");
+      ForegroundService().start();
+      Workmanager().registerPeriodicTask(fetchBackground, fetchBackground,frequency: Duration(minutes: 30));
+
+      DateTime now = DateTime.now();
+      DateTime desiredTime = DateTime(now.year, now.month, now.day, 19, 0);
+      int initialDelay = desiredTime.isAfter(now) ? desiredTime.difference(now).inSeconds : 24 * 60 * 60 - now.difference(desiredTime).inSeconds;
+
+      log('>>>> delay ${initialDelay}');
+
+      Workmanager().registerPeriodicTask(
+        fetchBackground2,
+        fetchBackground2,
+        frequency: Duration(hours: 24),
+        initialDelay: Duration(seconds: initialDelay),
+      );
+
     }
 
 

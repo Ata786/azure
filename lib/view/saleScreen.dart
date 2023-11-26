@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:SalesUp/controllers/UserController.dart';
@@ -7,7 +8,7 @@ import 'package:SalesUp/model/financialYearModel.dart';
 import 'package:SalesUp/model/saleDistributionModel.dart';
 import 'package:SalesUp/res/base/fetch_pixels.dart';
 import 'package:SalesUp/res/colors.dart';
-import 'package:SalesUp/utils/localNotification.dart';
+import 'package:http/http.dart' as http;
 import 'package:SalesUp/utils/toast.dart';
 import 'package:SalesUp/view/brandWiseSale.dart';
 import 'package:SalesUp/view/categoryWiseSale.dart';
@@ -17,6 +18,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../controllers/distributionController.dart';
+import '../data/getApis.dart';
+import '../model/assignUserModel.dart';
 import '../model/distributionModel.dart';
 
 class SaleScreen extends StatefulWidget {
@@ -48,6 +51,8 @@ class _SaleScreenState extends State<SaleScreen> {
   List<Distributors> distributorWiseList = [];
   bool loading = false;
   bool distributorLoading = false;
+
+  List<UserAssignModel> userAssignList = [];
 
 
   String typeValue = "Select Person";
@@ -115,6 +120,7 @@ class _SaleScreenState extends State<SaleScreen> {
         showToast(context, "");
       }else{
         getSaleDistributionByDate(saleByDay);
+        getAssignedUsersApi(userController.user!.value.id!, context);
       }
     });
 
@@ -600,6 +606,38 @@ class _SaleScreenState extends State<SaleScreen> {
     categoryWiseList.addAll(saleDistributionModel.categorySale ?? []);
     regionWiseList.addAll(saleDistributionModel.regionSale ?? []);
 
+
+  }
+
+
+
+
+  void getAssignedUsersApi(String id,BuildContext context)async{
+    Get.dialog(
+        Center(child: CircularProgressIndicator(color: themeColor),)
+    );
+
+    UserController userController = Get.find<UserController>();
+
+    try{
+      var res = await http.get(
+        Uri.parse("${BASE_URL}/UserAssigned/$id"),
+      );
+
+      log(">> assignUser ${res.statusCode} and ${res.body}");
+
+      if(res.statusCode == 200){
+        Get.back();
+        List<dynamic> dataMap = jsonDecode(res.body);
+        userController.userAssignList = dataMap.map((e) => UserAssignModel.fromJson(e)).toList();
+      }else{
+        Get.back();
+        print(">> error ${res.body}");
+      }
+    }catch(exception){
+      Get.back();
+      print('>>> ${exception.toString()}');
+    }
 
   }
   

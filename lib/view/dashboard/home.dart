@@ -6,11 +6,9 @@ import 'package:SalesUp/controllers/syncNowController.dart';
 import 'package:SalesUp/data/getApis.dart';
 import 'package:SalesUp/data/hiveDb.dart';
 import 'package:SalesUp/data/postApi.dart';
-import 'package:SalesUp/main.dart';
+import 'package:SalesUp/model/NewShopModel.dart';
 import 'package:SalesUp/model/attendenceModel.dart';
 import 'package:SalesUp/model/creditModel.dart';
-import 'package:SalesUp/model/userLiveModel.dart';
-import 'package:SalesUp/utils/localNotification.dart';
 import 'package:http/http.dart' as http;
 import 'package:SalesUp/model/syncDownModel.dart';
 import 'package:SalesUp/model/userTrackingModel.dart';
@@ -31,17 +29,12 @@ import 'package:SalesUp/view/saleScreen.dart';
 import 'package:SalesUp/view/targetReport.dart';
 import 'package:SalesUp/view/userTracking.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:workmanager/workmanager.dart';
 import '../../controllers/shopServiceController.dart';
-import '../../data/sharedPreference.dart';
 import '../../model/orderCalculations.dart';
-import '../../model/orderModel.dart';
 import '../../res/images.dart';
 import '../../utils/widgets/appWidgets.dart';
 
@@ -62,7 +55,7 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     UserController userController = Get.find<UserController>();
-
+    log('>>>> user is ${userController.user!.value.toJson()}');
     if(userController.user!.value.designation!.startsWith("Director")){
       director = "Director";
     }else{
@@ -355,30 +348,29 @@ class _HomeState extends State<Home> {
 
                        if(userController.isOnline.value == true){
 
-                         // List<NewShopModel> newShopList = await HiveDatabase.getNewShops("NewShopsBox", "NewShops");
-                         //
-                         // for(int i=0; i<newShopList.length; i++){
-                         //   Map<String,dynamic> data = {
-                         //     "ShopName": newShopList[i].shopName,
-                         //     "ShopAddress": newShopList[i].shopAddress,
-                         //     "OwnerPhone": newShopList[i].ownerPhone,
-                         //     "OwnerName": newShopList[i].ownerName,
-                         //     "OwnerCnic": newShopList[i].ownerCnic,
-                         //     "Strm": newShopList[i].strn,
-                         //     "Myntn": newShopList[i].myntn,
-                         //     "Sector": newShopList[i].sectorSr,
-                         //     "SaleTax": newShopList[i].salesTaxSr,
-                         //     "ShopeType": newShopList[i].shopTypeSr,
-                         //     "Gprs": newShopList[i].gprs,
-                         //     "Image": newShopList[i].picture,
-                         //     "DistributerId":  syncNowController.syncDownList[0].distributerId,
-                         //     "UserId": userController.user!.value.id,
-                         //   };
-                         //   log('>>> ${data}');
-                         //   addNewShop(data);
-                         //
-                         // }
-                         //
+                         List<NewShopModel> newShopList = await HiveDatabase.getNewShops("NewShopsBox", "NewShops");
+
+                         for(int i=0; i<newShopList.length; i++){
+                           Map<String,dynamic> data = {
+                             "ShopName": newShopList[i].shopName,
+                             "ShopAddress": newShopList[i].shopAddress,
+                             "OwnerPhone": newShopList[i].ownerPhone,
+                             "OwnerName": newShopList[i].ownerName,
+                             "OwnerCnic": newShopList[i].ownerCnic,
+                             "Strm": newShopList[i].strn,
+                             "Myntn": newShopList[i].myntn,
+                             "Sector": newShopList[i].sectorSr,
+                             "SaleTax": newShopList[i].salesTaxSr,
+                             "ShopeType": newShopList[i].shopTypeSr,
+                             "Gprs": newShopList[i].gprs,
+                             "Image": newShopList[i].picture,
+                             "DistributerId":  syncNowController.syncDownList[0].distributerId,
+                             "UserId": userController.user!.value.id,
+                           };
+                           log('>>> ${data}');
+                           addNewShop(data);
+                         }
+
 
                          HiveDatabase.getData("syncDownList", "syncDown");
                          List<SyncDownModel> editList = syncNowController.syncDownList.where((p0) => p0.isEdit == true).toList();
@@ -632,7 +624,8 @@ class _HomeState extends State<Home> {
                  ),
                  userController.user!.value.designation == "Admin" || userController.user!.value.designation == "NSM"
                      || userController.user!.value.designation == "Managing Director" || userController.user!.value.designation == "GM Sales"
-                     || director == "Director"
+                     || director == "Director" || userController.user!.value.designation == "ASM" || userController.user!.value.designation == "RSM" || userController.user!.value.designation == "CSF"
+                 || userController.user!.value.designation == "SO" || userController.user!.value.designation == "FM" || userController.user!.value.designation == "ZSM"
                  ? ListTile(
                    onTap:()async{
                      Get.to(AttendanceReportScreen());
@@ -671,7 +664,7 @@ class _HomeState extends State<Home> {
                        textColor: Colors.black),
                    leading: Image.asset(
                      color: Colors.black,
-                     attReport,
+                     tracking,
                      height: FetchPixels.getPixelHeight(40),
                      width: FetchPixels.getPixelWidth(40),
                    ),

@@ -102,6 +102,7 @@ class SignIn extends StatelessWidget {
                             var box11 = await Hive.openBox("orderCalculateBox");
                             var box12 = await Hive.openBox("checkInAttendance");
                             var box13 = await Hive.openBox("checkOutAttendance");
+                            var box14 = await Hive.openBox("live");
                             box1.delete("syncDown");
                             box2.delete("week");
                             box3.delete("month");
@@ -115,6 +116,7 @@ class SignIn extends StatelessWidget {
                             box11.delete("orderCalculate");
                             box12.delete("checkIn");
                             box13.delete("checkOut");
+                            box14.delete("liveBox");
                             signInApi(nameCtr.text, passCtr.text,context);
 
                           }

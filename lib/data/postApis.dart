@@ -16,6 +16,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
 import '../controllers/UserController.dart';
+import '../model/assignUserModel.dart';
 import '../model/distributionModel.dart';
 import '../model/userModel.dart';
 import '../utils/routes/routePath.dart';

@@ -491,10 +491,12 @@ Widget productiveStore({required SyncNowController syncNowController}) {
                                                               retail: null,
                                                             ))
                                                             .toList();
+
                                                         shopCtr.productsList
                                                             .value = products;
                                                         box2.put("products",
                                                             products);
+
                                                       }
 
 
@@ -506,11 +508,6 @@ Widget productiveStore({required SyncNowController syncNowController}) {
                                                       await HiveDatabase.getOrderData(
                                                           "orderBox", "order");
 
-                                                      log('>>>> order ${orderList.length}');
-
-                                                      for(int i=0; i<orderList.length; i++){
-                                                        log('>>>> order ${orderList[i].toJson()}');
-                                                      }
 
                                                       HiveDatabase.getReasonData("reasonNo", "reason");
 
@@ -553,6 +550,7 @@ Widget productiveStore({required SyncNowController syncNowController}) {
                                                           for (int j = 0; j < order.length; j++) {
                                                             if (products[i].sr == order[j].orderDataModel!.productId) {
                                                               ProductsModel product = products[i];
+                                                              log('>>>> product is ${product.toJson()} and ${product.rateId}');
                                                               product.quantity = order[j].orderDataModel!.quantity;
                                                               product.netRate = order[j].orderDataModel!.netRate;
                                                               product.fixedRate = order[j].orderDataModel!.fixedRate;

@@ -69,6 +69,7 @@ class Distributor {
   int? distributorId;
   String? distributorName;
   double? totalReciveable;
+  String? townName;
 
   Distributor({this.distributorId, this.distributorName, this.totalReciveable});
 
@@ -76,6 +77,7 @@ class Distributor {
     distributorId = json['distributorId'];
     distributorName = json['distributorName'];
     totalReciveable = json['totalReciveable'];
+    townName = json['townName'];
   }
 
   Map<String, dynamic> toJson() {
@@ -83,6 +85,7 @@ class Distributor {
     data['distributorId'] = this.distributorId;
     data['distributorName'] = this.distributorName;
     data['totalReciveable'] = this.totalReciveable;
+    data['townName'] = this.townName;
     return data;
   }
 }

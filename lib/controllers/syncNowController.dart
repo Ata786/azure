@@ -6,9 +6,11 @@ import 'package:SalesUp/data/sharedPreference.dart';
 import 'package:SalesUp/model/orderCalculations.dart';
 import 'package:SalesUp/model/reasonsModel.dart';
 import 'package:SalesUp/model/userLiveModel.dart';
+import 'package:SalesUp/utils/localNotification.dart';
 import 'package:SalesUp/view/attendance.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_foreground_service/flutter_foreground_service.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -174,6 +176,7 @@ Future<void> updateSaleAttendance(Map<String, dynamic> data,List<UserLiveModel> 
 Future<void> userLive(Map<String, dynamic> data) async {
   try {
     log('>>>> userLive data ${data}');
+    UserController userController = Get.find<UserController>();
 
     Get.dialog(Center(child: CircularProgressIndicator(color: themeColor,),));
 
@@ -188,7 +191,13 @@ Future<void> userLive(Map<String, dynamic> data) async {
     Get.back();
 
     if (response.statusCode == 200) {
-      await Workmanager().cancelAll();
+
+      if(userController.user!.value.designation == "Booker" || userController.user!.value.designation == "CSF"){
+      }else {
+        ForegroundService().stop();
+        await Workmanager().cancelAll();
+      }
+
       Fluttertoast.showToast(
           msg: "Your Attendance Updated Successfully",
           toastLength: Toast.LENGTH_LONG,
@@ -204,4 +213,44 @@ Future<void> userLive(Map<String, dynamic> data) async {
   } catch (e) {
     log('Exception ${e.toString()}');
   }
+
+}
+
+
+class Background{
+
+  static Future<void> userLive3(Map<String, dynamic> data) async {
+    try {
+      log('>>>> userLive data on time under ${data}');
+
+      final response = await http.post(
+        Uri.parse('http://125.209.79.107:7700/api/UserLive'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(data),
+      );
+
+      log('>>>> userLive response on time under ${response.statusCode} and ${response.body}');
+
+      if (response.statusCode == 200) {
+
+        ForegroundService().stop();
+        await Workmanager().cancelAll();
+
+        Fluttertoast.showToast(
+            msg: "Your Attendance Updated Successfully",
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.CENTER,
+            timeInSecForIosWeb: 1,
+            backgroundColor: themeColor,
+            textColor: Colors.white,
+            fontSize: 16.0
+        );
+      } else {
+        log('Error ${response.statusCode} and ${response.body}');
+      }
+    } catch (e) {
+      log('Exception ${e.toString()}');
+    }
+  }
+
 }

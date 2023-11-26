@@ -15,8 +15,10 @@ import 'package:SalesUp/utils/widgets/appWidgets.dart';
 import 'package:SalesUp/utils/widgets/imagePickerDialog.dart';
 import 'package:SalesUp/utils/widgets/storeProductDialog.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../res/images.dart';
@@ -45,14 +47,6 @@ class _StoreScreenState extends State<StoreScreen> {
   List<AddProductsModel> addProductsList = [];
 
 
-
-  /////////
-
-
-
-
-
-
   TextEditingController searchCtr = TextEditingController();
 
   bool search = false;
@@ -69,6 +63,7 @@ class _StoreScreenState extends State<StoreScreen> {
     getArgs();
     super.initState();
   }
+
 
   void getArgs(){
     shopServiceController = Get.find<ShopServiceController>();
@@ -189,25 +184,43 @@ class _StoreScreenState extends State<StoreScreen> {
                           shopServiceController.checkIn.value = argument['sr'];
                           Get.dialog(Center(child: CircularProgressIndicator(color: themeColor,),));
                           Position? location = await getLocation(context);
-                          Get.back();
-                          String gprs = argument['gprs'];
-                          List<String> gprsLatLng = gprs.split(',');
-                          double? lat = double.tryParse(gprsLatLng[0]);
-                          double? lon = double.tryParse(gprsLatLng[1]);
-                          double dis = Geolocator.distanceBetween(location!.latitude, location.longitude, lat ?? 0.0, lon ?? 0.0);
-                          distance = dis+0.5;
-                          String formattedDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
-                          List<OrderModel> orderList = await HiveDatabase.getOrderData("orderBox", "order");
-                          int length = orderList.where((element) => element.shopId == argument['sr']).length;
-                          orderModel = OrderModel(shopId: argument['sr'],pjpNo: "0",pjpDate: formattedDate,
-                              bookerId: userController.user!.value.catagoryId,invoiceStatus: "Pending",orderNumber: length+1,
-                              userId: userController.user!.value.id,replace: "0",reason: "Pending",checkIn: distance.toString(),
-                              image: imagePath,orderDataModel: OrderDataModel());
-                          if(argument['isProductive'] == true){
-                            shopServiceController.orderList[0] = orderModel!;
+
+                          if(location == null){
+
+                            Fluttertoast.showToast(
+                                msg: "Location Error",
+                                toastLength: Toast.LENGTH_LONG,
+                                gravity: ToastGravity.CENTER,
+                                timeInSecForIosWeb: 1,
+                                backgroundColor: themeColor,
+                                textColor: Colors.white,
+                                fontSize: 16.0
+                            );
+
                           }else{
-                            shopServiceController.orderList.add(orderModel!);
+
+                            Get.back();
+                            String gprs = argument['gprs'];
+                            List<String> gprsLatLng = gprs.split(',');
+                            double? lat = double.tryParse(gprsLatLng[0]);
+                            double? lon = double.tryParse(gprsLatLng[1]);
+                            double dis = Geolocator.distanceBetween(location!.latitude, location.longitude, lat ?? 0.0, lon ?? 0.0);
+                            distance = dis+0.5;
+                            String formattedDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
+                            List<OrderModel> orderList = await HiveDatabase.getOrderData("orderBox", "order");
+                            int length = orderList.where((element) => element.shopId == argument['sr']).length;
+                            orderModel = OrderModel(shopId: argument['sr'],pjpNo: "0",pjpDate: formattedDate,
+                                bookerId: userController.user!.value.catagoryId,invoiceStatus: "Pending",orderNumber: length+1,
+                                userId: userController.user!.value.id,replace: "0",reason: "Pending",checkIn: distance.toString(),
+                                image: imagePath,orderDataModel: OrderDataModel());
+                            if(argument['isProductive'] == true){
+                              shopServiceController.orderList[0] = orderModel!;
+                            }else{
+                              shopServiceController.orderList.add(orderModel!);
+                            }
+
                           }
+
                         }else{
                           distance = double.tryParse(argument['gprs'])! + 0.5;
                           log('>>>> ${argument['gprs']}');
@@ -221,15 +234,12 @@ class _StoreScreenState extends State<StoreScreen> {
                         });
                       }
 
-                    }, distance == 0.0 ? "0.000 M" : "${distance!.toStringAsFixed(2).toString()} M"),
+                    }, distance == 0.0 ? "0.000 M" : "${distance.toStringAsFixed(2).toString()} M"),
                   ],
                 ),
                 SizedBox(height: FetchPixels.getPixelHeight(10),),
                 Container(height: FetchPixels.getPixelHeight(1),color: Colors.black,width: FetchPixels.width,),
                 SizedBox(height: FetchPixels.getPixelHeight(10),),
-
-
-
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: FetchPixels.getPixelWidth(20),vertical: FetchPixels.getPixelHeight(10)),
                   height: search == false ? FetchPixels.getPixelHeight(100) : FetchPixels.getPixelHeight(140),
@@ -313,7 +323,7 @@ class _StoreScreenState extends State<StoreScreen> {
                           List<int> selectedIndices = [];
 
                           for (int i = 0; i < shopServiceController.filteredProductsList.length; i++) {
-                            if (shopServiceController.filteredProductsList[i].subTotal != null) {
+                            if (shopServiceController.filteredProductsList[i].subTotal != null && shopServiceController.filteredProductsList[i].subTotal > 0.0) {
                               selectedIndices.add(i);
                             }
                           }
@@ -380,13 +390,13 @@ class _StoreScreenState extends State<StoreScreen> {
                                         Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            textWidget(text: combinedList[index].pname!.trim() ?? '', fontSize: FetchPixels.getPixelHeight(16), fontWeight: FontWeight.w600,textColor: combinedList[index].subTotal != null ? Colors.green : primaryColor),
+                                            textWidget(text: combinedList[index].pname!.trim() ?? '', fontSize: FetchPixels.getPixelHeight(16), fontWeight: FontWeight.w600,textColor: combinedList[index].subTotal != null && combinedList[index].subTotal > 0.0 ? Colors.green : primaryColor),
                                             SizedBox(height: FetchPixels.getPixelHeight(7),),
-                                            textWidget(text: '${combinedList[index].wgm!.toString().trim()}', fontSize: FetchPixels.getPixelHeight(13), fontWeight: FontWeight.w500,textColor: combinedList[index].subTotal != null ? Colors.green : primaryColor),
+                                            textWidget(text: '${combinedList[index].wgm!.toString().trim()}', fontSize: FetchPixels.getPixelHeight(13), fontWeight: FontWeight.w500,textColor: combinedList[index].subTotal != null && combinedList[index].subTotal > 0.0 ? Colors.green : primaryColor),
                                             SizedBox(height: FetchPixels.getPixelHeight(7),),
-                                            textWidget(text: combinedList[index].brandName!.trim() ?? '', fontSize: FetchPixels.getPixelHeight(13), fontWeight: FontWeight.w500,textColor: combinedList[index].subTotal != null ? Colors.green : primaryColor),
+                                            textWidget(text: combinedList[index].brandName!.trim() ?? '', fontSize: FetchPixels.getPixelHeight(13), fontWeight: FontWeight.w500,textColor: combinedList[index].subTotal != null && combinedList[index].subTotal > 0.0 ? Colors.green : primaryColor),
                                             SizedBox(height: FetchPixels.getPixelHeight(7),),
-                                            textWidget(text: "${combinedList[index].sr.toString().trim()}", fontSize: FetchPixels.getPixelHeight(13), fontWeight: FontWeight.w500,textColor: combinedList[index].subTotal != null ? Colors.green : primaryColor)
+                                            textWidget(text: "${combinedList[index].sr.toString().trim()}", fontSize: FetchPixels.getPixelHeight(13), fontWeight: FontWeight.w500,textColor: combinedList[index].subTotal != null && combinedList[index].subTotal > 0.0 ? Colors.green : primaryColor)
                                           ],
                                         ),
                                         Column(
@@ -397,28 +407,28 @@ class _StoreScreenState extends State<StoreScreen> {
                                             Row(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
-                                                textWidget(text: "Retail", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: combinedList[index].subTotal != null ? Colors.green : primaryColor),
+                                                textWidget(text: "Retail", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: combinedList[index].subTotal != null && combinedList[index].subTotal > 0.0 ? Colors.green : primaryColor),
                                                 SizedBox(width: FetchPixels.getPixelWidth(10),),
-                                                textWidget(text: combinedList[index].retail ==  null ? "0" : "${combinedList[index].retail.toString().trim()}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: combinedList[index].subTotal != null ? Colors.green : primaryColor),
+                                                textWidget(text: combinedList[index].retail ==  null ? "0" : "${combinedList[index].retail.toString().trim()}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: combinedList[index].subTotal != null && combinedList[index].subTotal > 0.0 ? Colors.green : primaryColor),
                                               ],
                                             ),
                                             SizedBox(height: FetchPixels.getPixelHeight(7),),
                                             Row(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
-                                                textWidget(text: "Net", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: combinedList[index].subTotal != null ? Colors.green : primaryColor),
+                                                textWidget(text: "Net", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: combinedList[index].subTotal != null && combinedList[index].subTotal > 0.0 ? Colors.green : primaryColor),
                                                 SizedBox(width: FetchPixels.getPixelWidth(10),),
-                                                textWidget(text: combinedList[index].netRate == null ? "0" : "${combinedList[index].netRate.toString().trim()}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: combinedList[index].subTotal != null ? Colors.green : primaryColor),
+                                                textWidget(text: combinedList[index].netRate == null ? "0" : "${combinedList[index].netRate.toString().trim()}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: combinedList[index].subTotal != null && combinedList[index].subTotal > 0.0 ? Colors.green : primaryColor),
                                               ],
                                             ),
                                             SizedBox(height: FetchPixels.getPixelHeight(30),),
-                                            textWidget(text: combinedList[index].quantity ==  null ? "0" : "${combinedList[index].quantity.toString().trim()}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: combinedList[index].subTotal != null ? Colors.green : primaryColor),
+                                            textWidget(text: combinedList[index].quantity ==  null ? "0" : "${combinedList[index].quantity.toString().trim()}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: combinedList[index].subTotal != null && combinedList[index].subTotal > 0.0 ? Colors.green : primaryColor),
                                             Row(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
-                                                textWidget(text: "Subtotal:", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: combinedList[index].subTotal != null ? Colors.green : primaryColor),
+                                                textWidget(text: "Subtotal:", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: combinedList[index].subTotal != null && combinedList[index].subTotal > 0.0 ? Colors.green : primaryColor),
                                                 SizedBox(width: FetchPixels.getPixelWidth(10),),
-                                                textWidget(text: combinedList[index].subTotal == null ? "0" : "${double.tryParse(combinedList[index].subTotal.toString())!.toStringAsFixed(6)}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: combinedList[index].subTotal != null ? Colors.green : primaryColor),
+                                                textWidget(text: combinedList[index].subTotal == null ? "0" : "${double.tryParse(combinedList[index].subTotal.toString())!.toStringAsFixed(6)}", fontSize: FetchPixels.getPixelHeight(14), fontWeight: FontWeight.w500,textColor: combinedList[index].subTotal != null && combinedList[index].subTotal > 0.0 ? Colors.green : primaryColor),
                                               ],
                                             ),
                                           ],

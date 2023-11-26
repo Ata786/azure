@@ -26,3 +26,4 @@ String sale = "assets/images/sale.png";
 String target = "assets/images/target.png";
 String edit = "assets/images/edit.png";
 String dayclose = "assets/images/dayclose.png";
+String tracking = "assets/images/locationIcon.png";

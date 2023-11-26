@@ -48,11 +48,13 @@ class LocalNotification {
       channelName,
       icon: '@mipmap/ic_launcher',
       color: themeColor,
-      priority: Priority.max,
-      importance: Importance.max,
-      playSound: true,
+      priority: Priority.min,
+      importance: Importance.min,
+      playSound: false,
       audioAttributesUsage: AudioAttributesUsage.notificationEvent,
-      enableVibration: true,
+      enableVibration: false,
+      autoCancel: false,
+      ongoing: true
     );
 
     NotificationDetails notificationDetails =
@@ -118,6 +120,11 @@ class LocalNotification {
     await plugin.periodicallyShow(id, title, body, RepeatInterval.everyMinute, notificationDetails,androidAllowWhileIdle: true,androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle);
 
 
+  }
+
+
+  static void cancelLocalNotification(int id)async{
+    await plugin.cancel(id);
   }
 
 

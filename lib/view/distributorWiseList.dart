@@ -104,7 +104,7 @@ class _DistributionWiseListState extends State<DistributionWiseList> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Expanded(child: textWidget(maxLines: 2,text: "${_filteredData[index].distributorName}", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w500,textColor: Colors.black)),
-                        Expanded(child: textWidget(text: "City Name", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w500,textColor: Colors.black)),
+                        Expanded(child: textWidget(text: "${_filteredData[index].townName}", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w500,textColor: Colors.black)),
                         Expanded(child: textWidget(text: "${formatNumberWithCommas(_filteredData[index].totalReciveable.toString())}", fontSize: FetchPixels.getPixelHeight(15), fontWeight: FontWeight.w500,textColor: Colors.black))
                       ],
                     ),

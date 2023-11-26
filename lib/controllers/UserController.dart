@@ -1,6 +1,7 @@
 
 import 'dart:async';
 
+import 'package:SalesUp/model/assignUserModel.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
@@ -39,6 +40,11 @@ class UserController extends GetxController{
     super.onInit();
     listenConnectivity();
   }
+
+
+
+
+  List<UserAssignModel> userAssignList = [];
 
 
 }
