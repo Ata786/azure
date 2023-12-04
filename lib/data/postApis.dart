@@ -9,6 +9,7 @@ import 'package:SalesUp/model/financialYearModel.dart';
 import 'package:SalesUp/res/colors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -30,17 +31,34 @@ void officeCodeApis(String data)async{
         body: {"CompanyCode": data}
     );
 
+    Get.back();
+
     if(res.statusCode == 200){
-      Get.back();
       Map<String,dynamic> codeMap = jsonDecode(res.body);
       codeMap.putIfAbsent("isCode", () => true);
       setOfficeCode(jsonEncode(codeMap));
       Get.toNamed(SIGN_IN_SCREEN);
     }else{
-      print(">> error ${res.body}");
+      Fluttertoast.showToast(
+          msg: "Invalid Code",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.CENTER,
+          timeInSecForIosWeb: 1,
+          backgroundColor: themeColor,
+          textColor: Colors.white,
+          fontSize: 16.0
+      );
     }
   }catch(exception){
-    print('>>> ${exception.toString()}');
+    Fluttertoast.showToast(
+        msg: "${exception.toString()}",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 1,
+        backgroundColor: themeColor,
+        textColor: Colors.white,
+        fontSize: 16.0
+    );
   }
 
 }
@@ -61,8 +79,9 @@ void signInApi(String email,String password,BuildContext context)async{
 
     log(">> signin ${res.statusCode}");
 
+    Get.back();
+
     if(res.statusCode == 200){
-      Get.back();
       Map<String,dynamic> dataMap = jsonDecode(res.body);
       dataMap.putIfAbsent("isLogin", () => true);
       setUserDataSp(jsonEncode(dataMap));
@@ -77,10 +96,26 @@ void signInApi(String email,String password,BuildContext context)async{
       await distributorList();
 
     }else{
-      print(">> error ${res.body}");
+      Fluttertoast.showToast(
+          msg: "${res.body}",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.CENTER,
+          timeInSecForIosWeb: 1,
+          backgroundColor: themeColor,
+          textColor: Colors.white,
+          fontSize: 16.0
+      );
     }
   }catch(exception){
-    print('>>> ${exception.toString()}');
+    Fluttertoast.showToast(
+        msg: "${exception.toString()}",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 1,
+        backgroundColor: themeColor,
+        textColor: Colors.white,
+        fontSize: 16.0
+    );
   }
 
 }

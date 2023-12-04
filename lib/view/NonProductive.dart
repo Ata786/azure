@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:SalesUp/controllers/UserController.dart';
 import 'package:SalesUp/controllers/syncNowController.dart';
 import 'package:SalesUp/data/hiveDb.dart';
